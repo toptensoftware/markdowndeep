@@ -1,0 +1,14 @@
+﻿before
+
+	for (int i=0; i<10; i++)
+	{
+		print("%i\n", i);
+	}
+	
+sep
+
+	<div>
+		<p>Copyright &copy; 2010
+	</div>
+
+after

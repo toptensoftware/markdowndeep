@@ -1,0 +1,8 @@
+build
+bin
+obj
+*.pdb
+*.user
+*.suo
+*.swp
+*.swo
