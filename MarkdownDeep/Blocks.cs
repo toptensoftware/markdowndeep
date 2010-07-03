@@ -14,6 +14,7 @@ namespace MarkdownDeep
 		internal void Process(Markdown m)
 		{
 			JoinParagraphs();
+			ExtractLinkDefinitions(m);
 			BuildLists(m);
 			BuildCodeBlocks(m);
 			BuildBlockQuotes(m);
@@ -79,6 +80,7 @@ namespace MarkdownDeep
 							case LineType.h6:
 							case LineType.plain:
 							case LineType.indent:
+							case LineType.possible_linkdef:
 								this[i].RevertToPlain();
 								this[i - 1].m_str += "\n" + this[i].m_str;
 								this.RemoveAt(i);
@@ -100,6 +102,7 @@ namespace MarkdownDeep
 							case LineType.h5:
 							case LineType.h6:
 							case LineType.plain:
+							case LineType.possible_linkdef:
 								this[i].RevertToPlain();
 								this[i - 1].m_str += "\n" + this[i].m_str;
 								this.RemoveAt(i);
@@ -107,6 +110,33 @@ namespace MarkdownDeep
 								break;
 						}
 						break;
+				}
+			}
+		}
+
+		private void ExtractLinkDefinitions(Markdown m)
+		{
+			for (int i = 0; i < Count; i++)
+			{
+				// Possible?
+				if (this[i].m_LineType != LineType.possible_linkdef)
+					continue;
+
+				// Parse it
+				var def = LinkDefinition.ParseLinkDefinition(this[i].m_str);
+
+				// If parse failed, revert block back to a plain block
+				if (def == null)
+				{
+					this[i].m_LineType = LineType.plain;
+				}
+				else
+				{
+					// Otherwise, store the link reference on the markdown object and 
+					// remove the link
+					m.AddLinkDefinition(def);
+					this.RemoveAt(i);
+					i--;
 				}
 			}
 		}

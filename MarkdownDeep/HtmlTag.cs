@@ -37,33 +37,127 @@ namespace MarkdownDeep
 		}
 
 		string m_name;
-		Dictionary<string, string> m_attributes=new Dictionary<string,string>();
+		Dictionary<string, string> m_attributes = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
 		bool m_closed;
 		bool m_closing;
 
+		static string[] m_allowed_tags = new string [] {
+			"b","blockquote","code","dd","dt","dl","del","em","h1","h2","h3","h4","h5","h6","i","kbd","li","ol","ul",
+			"p", "pre", "s", "sub", "sup", "strong", "strike", "img", "a"
+		};
+
+		static Dictionary<string, string[]> m_allowed_attributes = new Dictionary<string, string[]>() {
+			{ "a", new string[] { "href", "title"} },
+			{ "img", new string[] { "src", "width", "height", "alt", "title" } },
+		};
+
+		/*
+		 * a href title
+		 * img src width height alt title
+		 */
+
+		// Check if this tag is safe
+		public bool IsSafe()
+		{
+			string name_lower=m_name.ToLowerInvariant();
+
+			// Check if tag is in whitelist
+			if (!Utils.IsInList(name_lower, m_allowed_tags))
+				return false;
+
+			// Find allowed attributes
+			string[] allowed_attributes;
+			if (!m_allowed_attributes.TryGetValue(name_lower, out allowed_attributes))
+			{
+				// No allowed attributes, check we don't have any
+				return m_attributes.Count == 0;
+			}
+
+			// Check all are allowed
+			foreach (var i in m_attributes)
+			{
+				if (!Utils.IsInList(i.Key.ToLowerInvariant(), allowed_attributes))
+					return false;
+			}
+
+			// Check href attribute is ok
+			string href;
+			if (m_attributes.TryGetValue("href", out href))
+			{
+				if (!Utils.IsSafeUrl(href))
+					return false;
+			}
+
+			string src;
+			if (m_attributes.TryGetValue("src", out src))
+			{
+				if (!Utils.IsSafeUrl(src))
+					return false;
+			}
+
+
+			// Passed all white list checks, allow it
+			return true;
+		}
 
 		public static HtmlTag Parse(string str, ref int pos)
 		{
+			StringParser sp = new StringParser(str, pos);
+			var ret = Parse(sp);
+
+			if (ret!=null)
+			{
+				pos = sp.position;
+				return ret;
+			}
+
+			return null;
+		}
+
+		public static HtmlTag Parse(StringParser p)
+		{
+			// Save position
+			int savepos = p.position;
+
+			// Parse it
+			var ret = ParseHelper(p);
+			if (ret!=null)
+				return ret;
+
+			// Rewind if failed
+			p.position = savepos;
+			return null;
+		}
+
+		private static HtmlTag ParseHelper(StringParser p)
+		{
 			// Does it look like a tag?
-			if (str[pos] != '<')
+			if (p.current != '<')
 				return null;
 
-			// Setup to scan string
-			int len = str.Length;
-			int i = pos;
-			i++;
+			// Skip '<'
+			p.Skip(1);
+
+			// Is it a comment?
+			if (p.Skip("!--"))
+			{
+				p.Mark();
+
+				if (p.Find("-->"))
+				{
+					var t = new HtmlTag("!");
+					t.m_attributes.Add("content", p.Extract());
+					p.Skip(3);
+					return t;
+				}
+			}
 
 			// Is it a closing tag eg: </div>
-			bool bClosing=false;
-			if (str[i]=='/')
-			{
-				bClosing=true;
-				i++;
-			}
+			bool bClosing = p.Skip('/');
 
 			// Get the tag name
 			string tagName=null;
-			if (!Utils.ParseIdentifier(str, ref i, ref tagName))
+			if (!p.SkipIdentifier(ref tagName))
 				return null;
 
 			// Probably a tag, create the HtmlTag object now
@@ -74,88 +168,70 @@ namespace MarkdownDeep
 			// If it's a closing tag, no attributes
 			if (bClosing)
 			{
-				if (i==len || str[i]!='>')
+				if (p.current != '>')
 					return null;
 
-				i++;
-				pos = i;
+				p.Skip(1);
 				return tag;
 			}
 
 
-			str = str + "\0";			// Terminate to make scanning code easier (save doing index out of range checks)
-			while (i < len)
+			while (!p.eof)
 			{
 				// Skip whitespace
-				while (char.IsWhiteSpace(str[i]))
-					i++;
+				p.SkipWhitespace();
 
 				// Check for closed tag eg: <hr />
-				if (str[i] == '/' && str[i + 1] == '>')
+				if (p.Skip("/>"))
 				{
-					pos = i + 2;
 					tag.m_closed=true;
 					return tag;
 				}
 
 				// End of tag?
-				if (str[i] == '>')
+				if (p.Skip('>'))
 				{
-					pos = i + 1;
 					return tag;
 				}
 
 				// attribute name
 				string attributeName = null;
-				if (!Utils.ParseIdentifier(str, ref i, ref attributeName))
-				{
-					// Syntax error
+				if (!p.SkipIdentifier(ref attributeName))
 					return null;
-				}
 
 				// Skip whitespace
-				while (char.IsWhiteSpace(str[i]))
-					i++;
+				p.SkipWhitespace();
 
 				// Skip equal sign
-				if (str[i] != '=')
+				if (!p.Skip('='))
 					return null;
-				i++;
 
 				// Skip whitespace
-				while (char.IsWhiteSpace(str[i]))
-					i++;
+				p.SkipWhitespace();
 
 				// Optional quotes
-				if (str[i] == '\"')
+				if (p.Skip('\"'))
 				{
-					// Skip the quote
-					i++;
-
 					// Scan the value
-					int start = i;
-					while (i < len && str[i] != '\"')
-						i++;
-
-					// End of string?
-					if (i == len)
+					p.Mark();
+					if (!p.Find('\"'))
 						return null;
 
 					// Store the value
-					tag.m_attributes.Add(attributeName, str.Substring(start, i - start));
+					tag.m_attributes.Add(attributeName, p.Extract());
 
 					// Skip closing quote
-					i++;
+					p.Skip(1);
 				}
 				else
 				{
 					// Scan the value
-					int start = i;
-					while (i < len && !char.IsWhiteSpace(str[i]) && str[i] != '>' && str[i] != '/')
-						i++;
+					p.Mark();
+					while (!char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
+						p.Skip(1);
 
 					// Store the value
-					tag.m_attributes.Add(attributeName, str.Substring(start, i - start));
+					tag.m_attributes.Add(attributeName, p.Extract());
 				}
 			}
 

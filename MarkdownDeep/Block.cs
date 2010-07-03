@@ -20,17 +20,8 @@ namespace MarkdownDeep
 			m_strOriginal = strOriginal;
 		}
 
-		internal string processSpan(Markdown m)
-		{
-			if (m_str == null)
-				return null;
-
-			return m_str.Replace("  \n", "<br />\n");
-		}
-
 		internal virtual void Render(Markdown m, StringBuilder b)
 		{
-			string strTag=null;
 			string strContent = m_str;				 
 			switch (m_LineType)
 			{
@@ -38,8 +29,9 @@ namespace MarkdownDeep
 					return;
 
 				case LineType.plain:
-					strTag = "p";
-					strContent = processSpan(m);
+					b.Append("<p>");
+					m.processSpan(b, m_str);
+					b.Append("</p>\n");
 					break;
 
 				case LineType.h1:
@@ -48,8 +40,9 @@ namespace MarkdownDeep
 				case LineType.h4:
 				case LineType.h5:
 				case LineType.h6:
-					strTag = m_LineType.ToString();
-					strContent = processSpan(m);
+					b.Append("<" + m_LineType.ToString() + ">");
+					m.processSpan(b, m_str);
+					b.Append("</" + m_LineType.ToString() + ">\n");
 					break;
 
 				case LineType.hr:
@@ -58,8 +51,9 @@ namespace MarkdownDeep
 
 				case LineType.ol:
 				case LineType.ul:
-					strTag = "li";
-					strContent = processSpan(m);
+					b.Append("<li>");
+					m.processSpan(b, m_str);
+					b.Append("</li>\n");
 					break;
 
 				case LineType.html:
@@ -67,11 +61,9 @@ namespace MarkdownDeep
 					return;
 
 				default:
-					strTag = "?" + m_LineType.ToString() + "?";
+					System.Diagnostics.Debug.Assert(false);
 					break;
-
 			}
-			b.Append(string.Format("<{0}>{1}</{0}>\n", strTag, strContent));
 		}
 
 		public void RevertToPlain()

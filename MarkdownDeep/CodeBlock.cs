@@ -17,7 +17,7 @@ namespace MarkdownDeep
 			b.Append("<pre><code>");
 			foreach (var line in m_childBlocks)
 			{
-				b.Append(System.Web.HttpUtility.HtmlEncode(line.m_str));
+				m.HtmlEncodeAndConvertTabsToSpaces(b, line.m_str);
 				b.Append("\n");
 			}
 			b.Append("</code></pre>\n\n");

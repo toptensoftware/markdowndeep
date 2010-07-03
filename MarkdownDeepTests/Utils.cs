@@ -115,5 +115,40 @@ namespace MarkdownDeepTests
 			return sb.ToString().Trim();
 		}
 
+		public static void RunResourceTest(string resourceName, bool CompatibilityMode)
+		{
+			string input = Utils.LoadTextResource(resourceName);
+			string expected = Utils.LoadTextResource(System.IO.Path.ChangeExtension(resourceName, "html"));
+
+			var md = new MarkdownDeep.Markdown();
+			md.CompatibilityMode = CompatibilityMode;
+
+			string actual = md.Transform(input);
+			string actual_clean = Utils.strip_redundant_whitespace(actual);
+			string expected_clean = Utils.strip_redundant_whitespace(expected);
+
+			string sep = new string('-', 30) + "\n";
+
+			Console.WriteLine("Input:\n" + sep + input);
+			Console.WriteLine("Actual:\n" + sep + actual);
+			Console.WriteLine("Expected:\n" + sep + expected);
+
+			Assert.AreEqual(expected_clean, actual_clean);
+		}
+
 	}
 }
+
+
+/*
+ * Issues:
+ * 
+ * 1. Don't allow multiline headings
+ * 2. Nested list items without blank line.  Don't join indent to previous if looks like a list item
+ * 3. Multiline HTML comments are broken.
+ * 4. Reference links where the id is on the next line
+ * 5. Formatting in link text  eg: [** link text **](url)
+ * 6. Escapes in urls eg: [link](url\(parens\))
+ * 7. Link titles with embedded quotes
+ * 
+*/

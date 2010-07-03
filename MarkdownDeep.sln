@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeep", "MarkdownDee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepTests", "MarkdownDeepTests\MarkdownDeepTests.csproj", "{CD1F5BFF-0118-4994-86A2-92658A36CE1B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepBenchmark", "MarkdownDeepBenchmark\MarkdownDeepBenchmark.csproj", "{655AA41D-B9F5-48C6-99A8-3D04659B2591}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{CD1F5BFF-0118-4994-86A2-92658A36CE1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD1F5BFF-0118-4994-86A2-92658A36CE1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD1F5BFF-0118-4994-86A2-92658A36CE1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655AA41D-B9F5-48C6-99A8-3D04659B2591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655AA41D-B9F5-48C6-99A8-3D04659B2591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655AA41D-B9F5-48C6-99A8-3D04659B2591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655AA41D-B9F5-48C6-99A8-3D04659B2591}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
