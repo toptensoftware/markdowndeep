@@ -5,6 +5,12 @@ using System.Text;
 
 namespace MarkdownDeep
 {
+	/*
+	 * StringParser is a simple class to help scan through an input string.
+	 * 
+	 * Maintains a current position with various operations to inspect the current
+	 * character, skip forward, check for matches, skip whitespace etc...
+	 */
 	public class StringParser
 	{
 		// Constructor
@@ -60,6 +66,7 @@ namespace MarkdownDeep
 			this.end = pos + len;
 		}
 
+		// Get the entire input string
 		public string input
 		{
 			get
@@ -68,12 +75,15 @@ namespace MarkdownDeep
 			}
 		}
 
-		// Get the current character
+		// Get the character at the current position
 		public char current
 		{
 			get
 			{
-				return CharAtOffset(0);
+				if (pos < start || pos >= end)
+					return '\0';
+				else
+					return str[pos];
 			}
 		}
 
@@ -90,14 +100,8 @@ namespace MarkdownDeep
 			}
 		}
 
-		public int end_position
-		{
-			get
-			{
-				return end;
-			}
-		}
-
+		// Get the remainder of the input 
+		// (use this in a watch window while debugging :)
 		public string remainder
 		{
 			get
@@ -106,10 +110,56 @@ namespace MarkdownDeep
 			}
 		}
 
-
-		public void SkipToEnd()
+		// Skip to the end of file
+		public void SkipToEof()
 		{
 			pos = end;
+		}
+
+
+		// Skip to the end of the current line
+		public void SkipToEol()
+		{
+			while (pos < end)
+			{
+				char ch=str[pos];
+				if (ch=='\r' || ch=='\n')
+					break;
+				pos++;
+			}
+		}
+
+		// Skip if currently at a line end
+		public bool SkipEol()
+		{
+			if (pos < end)
+			{
+				char ch = str[pos];
+				if (ch == '\r')
+				{
+					pos++;
+					if (pos < end && str[pos] == '\n')
+						pos++;
+					return true;
+				}
+
+				else if (ch == '\n')
+				{
+					pos++;
+					if (pos < end && str[pos] == '\r')
+						pos++;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		// Skip to the next line
+		public void SkipToNextLine()
+		{
+			SkipToEol();
+			SkipEol();
 		}
 
 		// Get the character at offset from current position
@@ -117,7 +167,8 @@ namespace MarkdownDeep
 		public char CharAtOffset(int offset)
 		{
 			int index = pos + offset;
-			if (index < 0)
+			
+			if (index < start)
 				return '\0';
 			if (index >= end)
 				return '\0';
@@ -125,17 +176,17 @@ namespace MarkdownDeep
 		}
 
 		// Skip a number of characters
-		public void Skip(int characters)
+		public void SkipForward(int characters)
 		{
 			pos += characters;
 		}
 
 		// Skip a character if present
-		public bool Skip(char ch)
+		public bool SkipChar(char ch)
 		{
 			if (current == ch)
 			{
-				Skip(1);
+				SkipForward(1);
 				return true;
 			}
 
@@ -143,11 +194,23 @@ namespace MarkdownDeep
 		}
 
 		// Skip a matching string
-		public bool Skip(string str)
+		public bool SkipString(string str)
 		{
 			if (DoesMatch(str))
 			{
-				Skip(str.Length);
+				SkipForward(str.Length);
+				return true;
+			}
+
+			return false;
+		}
+
+		// Skip a matching string
+		public bool SkipStringI(string str)
+		{
+			if (DoesMatchI(str))
+			{
+				SkipForward(str.Length);
 				return true;
 			}
 
@@ -159,10 +222,10 @@ namespace MarkdownDeep
 		{
 			if (!char.IsWhiteSpace(current))
 				return false;
-			Skip(1);
+			SkipForward(1);
 
 			while (char.IsWhiteSpace(current))
-				Skip(1);
+				SkipForward(1);
 
 			return true;
 		}
@@ -178,10 +241,10 @@ namespace MarkdownDeep
 		{
 			if (!IsLineSpace(current))
 				return false;
-			Skip(1);
+			SkipForward(1);
 
 			while (IsLineSpace(current))
-				Skip(1);
+				SkipForward(1);
 
 			return true;
 		}
@@ -228,8 +291,13 @@ namespace MarkdownDeep
 				if (str[i] != CharAtOffset(i))
 					return false;
 			}
-
 			return true;
+		}
+
+		// Does current string position match a string
+		public bool DoesMatchI(string str)
+		{
+			return string.Compare(str, Substring(position, str.Length), true) == 0;
 		}
 
 		// Extract a substring
@@ -316,6 +384,15 @@ namespace MarkdownDeep
 			}
 		}
 
+		// Are we at eol?
+		public bool eol
+		{
+			get
+			{
+				return IsLineEnd(current);
+			}
+		}
+
 		// Are we at bof?
 		public bool bof
 		{
@@ -354,6 +431,7 @@ namespace MarkdownDeep
 			return true;
 		}
 
+		// Skip a Html entity (eg: &amp;)
 		public bool SkipHtmlEntity(ref string entity)
 		{
 			int savepos = position;
@@ -367,6 +445,42 @@ namespace MarkdownDeep
 			return true;
 		}
 
+		// Check if a character marks end of line
+		public static bool IsLineEnd(char ch)
+		{
+			return ch == '\r' || ch == '\n' || ch=='\0';
+		}
+
+		bool IsUrlChar(char ch)
+		{
+			switch (ch)
+			{
+				case '+':
+				case '&':
+				case '@':
+				case '#':
+				case '/':
+				case '%':
+				case '?':
+				case '=':
+				case '~':
+				case '_':
+				case '|':
+				case '[':
+				case ']':
+				case '(':
+				case ')':
+				case '!':
+				case ':':
+				case ',':
+				case '.':
+				case ';':
+					return true;
+
+				default:
+					return Char.IsLetterOrDigit(ch);
+			}
+		}
 
 		// Attributes
 		string str;

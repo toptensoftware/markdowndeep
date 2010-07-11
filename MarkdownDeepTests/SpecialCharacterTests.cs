@@ -69,6 +69,13 @@ namespace MarkdownDeepTests
 					f.Format("pre &#x1aF; post"));
 		}
 
+		[Test]
+		public void EscapeChars()
+		{
+			Assert.AreEqual(@"\ ` * _ { } [ ] ( ) # + - . ! &gt;",
+					f.Format(@"\\ \` \* \_ \{ \} \[ \] \( \) \# \+ \- \. \! \>"));
+	}
+
 
 	}
 }

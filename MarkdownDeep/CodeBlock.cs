@@ -7,7 +7,7 @@ namespace MarkdownDeep
 {
 	class CodeBlock : ParentBlock
 	{
-		public CodeBlock() : base(LineType.plain, null)
+		public CodeBlock() : base(LineType.p)
 		{
 			
 		}
@@ -17,10 +17,24 @@ namespace MarkdownDeep
 			b.Append("<pre><code>");
 			foreach (var line in m_childBlocks)
 			{
-				m.HtmlEncodeAndConvertTabsToSpaces(b, line.m_str);
+				m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
 				b.Append("\n");
 			}
 			b.Append("</code></pre>\n\n");
+		}
+
+		public override string Content
+		{
+			get
+			{
+				StringBuilder s = new StringBuilder();
+				foreach (var line in m_childBlocks)
+				{
+					s.Append(line.Content);
+					s.Append('\n');
+				}
+				return s.ToString();
+			}
 		}
 	}
 }

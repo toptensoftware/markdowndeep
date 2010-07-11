@@ -24,3 +24,13 @@ before
 	hard wrapped indented
 
 after
+
+before
+
+>first line
+hard wrapped
+
+>second line
+hard wrapped
+
+after

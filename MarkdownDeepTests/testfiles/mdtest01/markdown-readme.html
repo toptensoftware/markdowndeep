@@ -11,7 +11,7 @@
 allows you to write using an easy-to-read, easy-to-write plain text
 format, then convert it to structurally valid XHTML (or HTML).</p>
 
-<p>Thus, "Markdown" is two things: a plain text markup syntax, and a
+<p>Thus, &quot;Markdown&quot; is two things: a plain text markup syntax, and a
 software tool, written in Perl, that converts the plain text markup 
 to HTML.</p>
 
@@ -34,9 +34,9 @@ Markdown also requires the standard Perl library module <code>Digest::MD5</code>
 MT 3.0 or later).</p>
 
 <ol>
-<li><p>Copy the "Markdown.pl" file into your Movable Type "plugins"
-directory. The "plugins" directory should be in the same directory
-as "mt.cgi"; if the "plugins" directory doesn't already exist, use
+<li><p>Copy the &quot;Markdown.pl&quot; file into your Movable Type &quot;plugins&quot;
+directory. The &quot;plugins&quot; directory should be in the same directory
+as &quot;mt.cgi&quot;; if the &quot;plugins&quot; directory doesn't already exist, use
 your FTP program to create it. Your installation should look like
 this:</p>
 
@@ -47,28 +47,28 @@ Text Formatting pop-up menu. This is selectable on a per-post basis.
 Markdown translates your posts to HTML when you publish; the posts
 themselves are stored in your MT database in Markdown format.</p></li>
 <li><p>If you also install SmartyPants 1.5 (or later), Markdown will offer
-a second text formatting option: "Markdown with SmartyPants". This
-option is the same as the regular "Markdown" formatter, except that
+a second text formatting option: &quot;Markdown with SmartyPants&quot;. This
+option is the same as the regular &quot;Markdown&quot; formatter, except that
 automatically uses SmartyPants to create typographically correct
 curly quotes, em-dashes, and ellipses. See the SmartyPants web page
 for more information: <a href="http://daringfireball.net/projects/smartypants/">http://daringfireball.net/projects/smartypants/</a></p></li>
-<li><p>To make Markdown (or "Markdown with SmartyPants") your default
-text formatting option for new posts, go to Weblog Config ->
+<li><p>To make Markdown (or &quot;Markdown with SmartyPants&quot;) your default
+text formatting option for new posts, go to Weblog Config -&gt;
 Preferences.</p></li>
 </ol>
 
 <p>Note that by default, Markdown produces XHTML output. To configure
-Markdown to produce HTML 4 output, see "Configuration", below.</p>
+Markdown to produce HTML 4 output, see &quot;Configuration&quot;, below.</p>
 
 <h3>Blosxom</h3>
 
 <p>Markdown works with Blosxom version 2.x.</p>
 
 <ol>
-<li><p>Rename the "Markdown.pl" plug-in to "Markdown" (case is
-important). Movable Type requires plug-ins to have a ".pl"
+<li><p>Rename the &quot;Markdown.pl&quot; plug-in to &quot;Markdown&quot; (case is
+important). Movable Type requires plug-ins to have a &quot;.pl&quot;
 extension; Blosxom forbids it.</p></li>
-<li><p>Copy the "Markdown" plug-in file to your Blosxom plug-ins folder.
+<li><p>Copy the &quot;Markdown&quot; plug-in file to your Blosxom plug-ins folder.
 If you're not sure where your Blosxom plug-ins folder is, see the
 Blosxom documentation for information.</p></li>
 <li><p>That's it. The entries in your weblog will now automatically be
@@ -86,8 +86,8 @@ Markdown in conjunction with Blosxom's Meta plugin:</p>
 with BBEdit 5.1 or later and MacPerl 5.6.1 on Mac OS 8.6 or later.)</p>
 
 <ol>
-<li><p>Copy the "Markdown.pl" file to appropriate filters folder in your
-"BBEdit Support" folder. On Mac OS X, this should be:</p>
+<li><p>Copy the &quot;Markdown.pl&quot; file to appropriate filters folder in your
+&quot;BBEdit Support&quot; folder. On Mac OS X, this should be:</p>
 
 <pre><code>BBEdit Support/Unix Support/Unix Filters/
 </code></pre>
@@ -95,9 +95,9 @@ with BBEdit 5.1 or later and MacPerl 5.6.1 on Mac OS 8.6 or later.)</p>
 <p>See the BBEdit documentation for more details on the location of
 these folders.</p>
 
-<p>You can rename "Markdown.pl" to whatever you wish.</p></li>
+<p>You can rename &quot;Markdown.pl&quot; to whatever you wish.</p></li>
 <li><p>That's it. To use Markdown, select some text in a BBEdit document,
-then choose Markdown from the Filters sub-menu in the "#!" menu, or
+then choose Markdown from the Filters sub-menu in the &quot;#!&quot; menu, or
 the Filters floating palette</p></li>
 </ol>
 
@@ -173,9 +173,9 @@ will now generate different output than before.</p></li>
 within three spaces of the left margin. Thus if you indent a link
 definition by four spaces or a tab, it will now be a code block.</p>
 
-<pre><code>   [a]: /url/  "Indented 3 spaces, this is a link def"
+<pre><code>   [a]: /url/  &quot;Indented 3 spaces, this is a link def&quot;
 
-    [b]: /url/  "Indented 4 spaces, this is a code block"
+    [b]: /url/  &quot;Indented 4 spaces, this is a code block&quot;
 </code></pre>
 
 <p><strong>IMPORTANT</strong>: This may affect existing Markdown content if it
@@ -222,7 +222,7 @@ wrapped in a spurious <code>&lt;p&gt;</code> tag.</p></li>
 <li><p><code>&lt;hr&gt;</code> HTML tags in must occur within three spaces of left
 margin. (With 4 spaces or a tab, they should be code blocks, but
 weren't before this fix.)</p></li>
-<li><p>Capitalized "With" in "Markdown With SmartyPants" for
+<li><p>Capitalized &quot;With&quot; in &quot;Markdown With SmartyPants&quot; for
 consistency with the same string label in SmartyPants.pl.
 (This fix is specific to the MT plug-in interface.)</p></li>
 <li><p>Auto-linked email address can now optionally contain
@@ -259,7 +259,7 @@ is only for the benefit of Blosxom users, because Blosxom
 <pre><code>[1]: http://sources.wikipedia.org/wiki/Middle_East_Policy_(Chomsky)
 </code></pre>
 
-<p>"Chomsky" was being erroneously treated as the URL's title.</p></li>
+<p>&quot;Chomsky&quot; was being erroneously treated as the URL's title.</p></li>
 <li><p>At some point during 1.0's beta cycle, I changed every sub's
 argument fetching from this idiom:</p>
 
@@ -274,7 +274,7 @@ argument fetching from this idiom:</p>
 <p>The idea was to keep Markdown from doing any work in a sub
 if the input was empty. This introduced a bug, though:
 if the input to any function was the single-character string
-"0", it would also evaluate as false and return immediately.
+&quot;0&quot;, it would also evaluate as false and return immediately.
 How silly. Now fixed.</p></li>
 </ul>
 
@@ -299,13 +299,13 @@ this list of conditions and the following disclaimer.</p></li>
 <li><p>Redistributions in binary form must reproduce the above copyright
 notice, this list of conditions and the following disclaimer in the
 documentation and/or other materials provided with the distribution.</p></li>
-<li><p>Neither the name "Markdown" nor the names of its contributors may
+<li><p>Neither the name &quot;Markdown&quot; nor the names of its contributors may
 be used to endorse or promote products derived from this software
 without specific prior written permission.</p></li>
 </ul>
 
-<p>This software is provided by the copyright holders and contributors "as
-is" and any express or implied warranties, including, but not limited
+<p>This software is provided by the copyright holders and contributors &quot;as
+is&quot; and any express or implied warranties, including, but not limited
 to, the implied warranties of merchantability and fitness for a
 particular purpose are disclaimed. In no event shall the copyright owner
 or contributors be liable for any direct, indirect, incidental, special,

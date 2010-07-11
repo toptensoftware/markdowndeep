@@ -7,8 +7,8 @@ namespace MarkdownDeep
 {
 	class ParentBlock  : Block
 	{
-		public ParentBlock(LineType lt, string str)
-			: base(lt, str)
+		public ParentBlock(LineType lt)
+			: base(lt)
 		{
 		}
 
@@ -20,6 +20,6 @@ namespace MarkdownDeep
 			}
 		}
 
-		internal Blocks m_childBlocks=new Blocks();
+		internal List<Block> m_childBlocks=new List<Block>();
 	}
 }

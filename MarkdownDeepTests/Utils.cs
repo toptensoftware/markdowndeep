@@ -115,13 +115,12 @@ namespace MarkdownDeepTests
 			return sb.ToString().Trim();
 		}
 
-		public static void RunResourceTest(string resourceName, bool CompatibilityMode)
+		public static void RunResourceTest(string resourceName)
 		{
 			string input = Utils.LoadTextResource(resourceName);
 			string expected = Utils.LoadTextResource(System.IO.Path.ChangeExtension(resourceName, "html"));
 
 			var md = new MarkdownDeep.Markdown();
-			md.CompatibilityMode = CompatibilityMode;
 
 			string actual = md.Transform(input);
 			string actual_clean = Utils.strip_redundant_whitespace(actual);

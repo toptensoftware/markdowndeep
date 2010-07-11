@@ -14,7 +14,7 @@ Inline within a paragraph: [alt text](/url/).
 
 ![Empty]()
 
-![this is a stupid URL](http://example.com/(parens).jpg)
+![this is a stupid URL](http://example.com/\(parens\).jpg)
 
 
 ![alt text][foo]

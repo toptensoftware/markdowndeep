@@ -66,9 +66,10 @@ namespace MarkdownDeepBenchmark
 			Benchmark(FileContents(Path.Combine("benchmark", "markdown-example-short-1.text")), 4000);
 			Benchmark(FileContents(Path.Combine("benchmark", "markdown-example-medium-1.text")), 1000);
 			Benchmark(FileContents(Path.Combine("benchmark", "markdown-example-long-2.text")), 100);
-			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.text")), 1);
-			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.8.text")), 1);
-			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.32.text")), 1);
+			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.text")), 10);
+			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.8.text")), 10);
+			Benchmark(FileContents(Path.Combine("benchmark", "markdown-readme.32.text")), 10);
+			Benchmark(FileContents(Path.Combine("benchmark", "long_plain_text.text")), 10);
 		}
 
 		/// <summary>

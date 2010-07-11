@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<title>MarkdownDeep JavaScript Test Page</title>
+<script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.StringBuilder.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.StringParser.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.HtmlTag.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.Block.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.BlockProcessor.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.LinkDefinition.js"></script>
+<script type="text/javascript">
+
+function run()
+{
+	var p=new StringParser("Hello &amp; World");
+	p.SkipIdentifier();
+	p.SkipWhitespace();
+	p.SkipHtmlEntity();
+	p.SkipWhitespace();
+	p.Mark();
+	p.SkipToEof();
+	var x=p.Extract();
+	alert("(" + x + ")");
+	
+}
+
+$(function(){
+	run();
+});
+
+</script>
+</head>
+<body>
+
+<textarea cols=100 rows=20 id="markdown">
+# Welcome to MarkdownDeepJS #
+</textarea>
+
+<div id="info"></div>
+<div id="preview"></div>
+
+</body>
+</html>

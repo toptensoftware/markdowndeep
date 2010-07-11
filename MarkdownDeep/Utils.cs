@@ -2,11 +2,56 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MarkdownDeep
 {
+	/*
+	 * Various utility and extension methods
+	 */
 	static class Utils
 	{
+		// Extension method. Get the last item in a list (or null if empty)
+		public static T Last<T>(this List<T> list) where T:class
+		{
+			if (list.Count > 0)
+				return list[list.Count - 1];
+			else
+				return null;
+		}
+
+		// Extension method. Get the first item in a list (or null if empty)
+		public static T First<T>(this List<T> list) where T : class
+		{
+			if (list.Count > 0)
+				return list[0];
+			else
+				return null;
+		}
+
+		// Extension method.  Use a list like a stack
+		public static void Push<T>(this List<T> list, T value) where T : class
+		{
+			list.Add(value);
+		}
+
+		// Extension method.  Remove last item from a list
+		public static T Pop<T>(this List<T> list) where T : class
+		{
+			if (list.Count == 0)
+				return null;
+			else
+			{
+				T val = list[list.Count - 1];
+				list.RemoveAt(list.Count - 1);
+				return val;
+			}
+		}
+
+
+		// Scan a string for a valid identifier.  Identifier must start with alpha or underscore
+		// and can be followed by alpha, digit or underscore
+		// Updates `pos` to character after the identifier if matched
 		public static bool ParseIdentifier(string str, ref int pos, ref string identifer)
 		{
 			if (pos >= str.Length)
@@ -29,6 +74,8 @@ namespace MarkdownDeep
 			return true;
 		}
 
+		// Skip over anything that looks like a valid html entity (eg: &amp, &#123, &#nnn) etc...
+		// Updates `pos` to character after the entity if matched
 		public static bool SkipHtmlEntity(string str, ref int pos, ref string entity)
 		{
 			if (str[pos] != '&')
@@ -53,7 +100,6 @@ namespace MarkdownDeep
 					i++;
 				}
 			}
-
 
 			// Parse the content
 			int contentpos = i;
@@ -97,6 +143,41 @@ namespace MarkdownDeep
 			return true;
 		}
 
+		// Randomize a string using html entities;
+		public static void HtmlRandomize(StringBuilder dest, string str)
+		{
+			// Deterministic random seed
+			int seed = 0;
+			foreach (char ch in str)
+			{
+				seed = unchecked(seed + ch);
+			}
+			Random r = new Random(seed);
+
+			// Randomize
+			foreach (char ch in str)
+			{
+				int x = r.Next() % 100;
+				if (x > 90 && ch != '@')
+				{
+					dest.Append(ch);
+				}
+				else if (x > 45)
+				{
+					dest.Append("&#");
+					dest.Append(((int)ch).ToString());
+					dest.Append(";");
+				}
+				else
+				{
+					dest.Append("&#x");
+					dest.Append(((int)ch).ToString("x"));
+					dest.Append(";");
+				}
+
+			}
+		}
+
 		// Like HtmlEncode, but don't escape &'s that look like html entities
 		public static void SmartHtmlEncodeAmpsAndAngles(StringBuilder dest, string str)
 		{
@@ -136,10 +217,13 @@ namespace MarkdownDeep
 				}
 			}
 		}
-		// Like HtmlEncode, but don't escape &'s that look like html entities
-		public static void SmartHtmlEncodeAmps(StringBuilder dest, string str)
+
+
+		// Like HtmlEncode, but only escape &'s that don't look like html entities
+		public static void SmartHtmlEncodeAmps(StringBuilder dest, string str, int startOffset, int len)
 		{
-			for (int i = 0; i < str.Length; i++)
+			int end = startOffset + len;
+			for (int i = startOffset; i < end; i++)
 			{
 				switch (str[i])
 				{
@@ -164,6 +248,7 @@ namespace MarkdownDeep
 			}
 		}
 
+		// Check if a string is in an array of strings
 		public static bool IsInList(string str, string[] list)
 		{
 			foreach (var t in list)
@@ -174,6 +259,8 @@ namespace MarkdownDeep
 			return false;
 		}
 
+		// Check if a url is "safe" (we require urls start with valid protocol)
+		// Definitely don't allow "javascript:" or any of it's encodings.
 		public static bool IsSafeUrl(string url)
 		{
 			if (!url.StartsWith("http://") && !url.StartsWith("https://") && !url.StartsWith("ftp://"))
@@ -181,6 +268,133 @@ namespace MarkdownDeep
 
 			return true;
 		}
+
+		// Check if a character is escapable in markdown
+		public static bool IsEscapableChar(char ch)
+		{
+			switch (ch)
+			{
+				case '\\':
+				case '`':
+				case '*':
+				case '_':
+				case '{':
+				case '}':
+				case '[':
+				case ']':
+				case '(':
+				case ')':
+				case '#':
+				case '+':
+				case '-':
+				case '.':
+				case '!':
+				case '>':
+					return true;
+			}
+
+			return false;
+		}
+
+		// Extension method.  Skip an escapable character, or one normal character
+		public static void SkipEscapableChar(this StringParser p)
+		{
+			if (p.current == '\\' && IsEscapableChar(p.CharAtOffset(1)))
+			{
+				p.SkipForward(2);
+			}
+			else
+			{
+				p.SkipForward(1);
+			}
+		}
+
+
+		// Remove the markdown escapes from a string
+		public static string UnescapeString(string str)
+		{
+			if (str == null || str.IndexOf('\\')==-1)
+				return str;
+
+			var b = new StringBuilder();
+			for (int i = 0; i < str.Length; i++)
+			{
+				if (str[i] == '\\' && i+1<str.Length && IsEscapableChar(str[i+1]))
+				{
+					b.Append(str[i + 1]);
+					i++;
+				}
+				else
+				{
+					b.Append(str[i]);
+				}
+			}
+
+			return b.ToString();
+
+		}
+
+		// Normalize the line ends in a string to just '\n'
+		// Handles all encodings - '\r\n' (windows), '\n\r' (mac), '\n' (unix) '\r' (something?)
+		static char[] lineends = new char[] { '\r', '\n' };
+		public static string NormalizeLineEnds(string str)
+		{
+			if (str.IndexOfAny(lineends) < 0)
+				return str;
+
+			StringBuilder sb = new StringBuilder();
+			StringParser sp = new StringParser(str);
+			while (!sp.eof)
+			{
+				if (sp.eol)
+				{
+					sb.Append('\n');
+					sp.SkipEol();
+				}
+				else
+				{
+					sb.Append(sp.current);
+					sp.SkipForward(1);
+				}
+			}
+
+			return sb.ToString();
+		}
+
+		/*
+		 * These two functions IsEmailAddress and IsWebAddress
+		 * are intended as a quick and dirty way to tell if a 
+		 * <autolink> url is email, web address or neither.
+		 * 
+		 * They are not intended as validating checks.
+		 * 
+		 * (use of Regex for more correct test unnecessarily
+		 *  slowed down some test documents by up to 300%.)
+		 */
+
+		// Check if a string looks like an email address
+		public static bool IsEmailAddress(string str)
+		{
+			int posAt = str.IndexOf('@');
+			if (posAt < 0)
+				return false;
+
+			int posLastDot = str.LastIndexOf('.');
+			if (posLastDot < posAt)
+				return false;
+
+			return true;
+		}
+
+		// Check if a string looks like a url
+		public static bool IsWebAddress(string str)
+		{
+			return str.StartsWith("http://") ||
+					str.StartsWith("https://") ||
+					str.StartsWith("ftp://") ||
+					str.StartsWith("file://");
+		}
+
 
 	}
 }

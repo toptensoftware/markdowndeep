@@ -5,9 +5,9 @@ using System.Text;
 
 namespace MarkdownDeep
 {
-	class ComplexListItem : ParentBlock
+	class ListItem : ParentBlock
 	{
-		public ComplexListItem(LineType lt) : base(lt, null)
+		public ListItem(LineType lt) : base(lt)
 		{
 
 		}

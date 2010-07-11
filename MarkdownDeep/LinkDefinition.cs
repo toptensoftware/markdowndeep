@@ -46,53 +46,84 @@ namespace MarkdownDeep
 
 		public void RenderLink(Markdown m, StringBuilder b, string link_text)
 		{
-			b.Append("<a href=\"");
-			Utils.SmartHtmlEncodeAmpsAndAngles(b, url);
-			b.Append("\"");
-			if (!String.IsNullOrEmpty(title))
+			if (url.StartsWith("mailto:"))
 			{
-				b.Append(" title=\"");
-				Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
-				b.Append("\"");
+				b.Append("<a href=\"");
+				Utils.HtmlRandomize(b, url);
+				b.Append('\"');
+				if (!String.IsNullOrEmpty(title))
+				{
+					b.Append(" title=\"");
+					Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
+					b.Append('\"');
+				}
+				b.Append('>');
+				Utils.HtmlRandomize(b, link_text);
+				b.Append("</a>");
 			}
-			b.Append(">");
-			Utils.SmartHtmlEncodeAmpsAndAngles(b, link_text);
-			b.Append("</a>");
+			else
+			{
+				b.Append("<a href=\"");
+				Utils.SmartHtmlEncodeAmpsAndAngles(b, url);
+				b.Append('\"');
+				if (!String.IsNullOrEmpty(title))
+				{
+					b.Append(" title=\"");
+					Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
+					b.Append('\"');
+				}
+				b.Append('>');
+				b.Append(link_text);	  // Link text already escaped by SpanFormatter
+				b.Append("</a>");
+			}
 		}
 
 		public void RenderImg(Markdown m, StringBuilder b, string alt_text)
 		{
 			b.Append("<img src=\"");
 			Utils.SmartHtmlEncodeAmpsAndAngles(b, url);
-			b.Append("\"");
+			b.Append('\"');
 			if (!String.IsNullOrEmpty(alt_text))
 			{
 				b.Append(" alt=\"");
 				Utils.SmartHtmlEncodeAmpsAndAngles(b, alt_text);
-				b.Append("\"");
+				b.Append('\"');
 			}
 			if (!String.IsNullOrEmpty(title))
 			{
 				b.Append(" title=\"");
 				Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
-				b.Append("\"");
+				b.Append('\"');
 			}
 			b.Append(" />");
 		}
 
 
-		// Parse a link reference of the form
-		//  '[' <id> ']:' [<whitespace>] [ <url> | '<' <url> '> ] [<whitespace>] [ '\"' <title> '\"' | '\'' <title> '\'' | '(' <title> ') ]
+		// Parse a link definition from a string (used by test cases)
 		public static LinkDefinition ParseLinkDefinition(string str)
 		{
 			StringParser p = new StringParser(str);
+			return ParseLinkDefinitionInternal(p);
+		}
 
-			
+		// Parse a link definition
+		internal static LinkDefinition ParseLinkDefinition(StringParser p)
+		{
+			int savepos=p.position;
+			var l = ParseLinkDefinitionInternal(p);
+			if (l==null)
+				p.position = savepos;
+			return l;
+
+		}
+
+		internal static LinkDefinition ParseLinkDefinitionInternal(StringParser p)
+		{
 			// Skip leading white space
 			p.SkipWhitespace();
 
 			// Must start with an opening square bracket
-			if (!p.Skip('['))
+			if (!p.SkipChar('['))
 				return null;
 
 			// Extract the id
@@ -102,17 +133,17 @@ namespace MarkdownDeep
 			string id = p.Extract();
 			if (id.Length == 0)
 				return null;
-			if (!p.Skip("]:"))
+			if (!p.SkipString("]:"))
 				return null;
 
 			// Parse the url and title
 			var link=ParseLinkTarget(p, id);
 
 			// and trailing whitespace
-			p.SkipWhitespace();
+			p.SkipLinespace();
 
 			// Trailing crap, not a valid link reference...
-			if (!p.eof)
+			if (!p.eol)
 				return null;
 
 			return link;
@@ -123,32 +154,36 @@ namespace MarkdownDeep
 		// For inline link, this is the bit in the parens: [link text](thisbit)
 		public static LinkDefinition ParseLinkTarget(StringParser p, string id)
 		{
-			// Create the link definition
-			var r = new LinkDefinition(id);
-
 			// Skip whitespace
 			p.SkipWhitespace();
 
 			// End of string?
-			if (p.eof)
+			if (p.eol)
 				return null;
 
-			// Is the url enclosed in angle brackets
-			if (p.Skip('<'))
-			{
+			// Create the link definition
+			var r = new LinkDefinition(id);
 
+			// Is the url enclosed in angle brackets
+			if (p.SkipChar('<'))
+			{
 				// Extract the url
 				p.Mark();
-				if (!p.Find('>'))
-					return null;
+
+				// Find end of the url
+				while (p.current != '>')
+				{
+					if (p.eof)
+						return null;
+					p.SkipEscapableChar();
+				}
+
 				string url = p.Extract();
-				if (!p.Skip('>'))
+				if (!p.SkipChar('>'))
 					return null;
 
-				// Check it didn't have any whitespace
-				r.url = url.Trim();
-				if (r.url.Length == 0 || r.url.Length != url.Length)
-					return null;
+				// Unescape it
+				r.url = Utils.UnescapeString(url.Trim());
 
 				// Skip whitespace
 				p.SkipWhitespace();
@@ -157,43 +192,50 @@ namespace MarkdownDeep
 			{
 				// Find end of the url
 				p.Mark();
-				int paren_depth = 0;
-				while (!p.eof)
+				int paren_depth = 1;
+				while (!p.eol)
 				{
 					char ch=p.current;
 					if (char.IsWhiteSpace(ch))
 						break;
-
-					if (ch == '(')
+					if (id == null)
 					{
-						paren_depth++;
-					}
-					else if (ch == ')')
-					{
-						if (paren_depth == 0)
-							break;
-						else
+						if (ch == '(')
+							paren_depth++;
+						else if (ch == ')')
+						{
 							paren_depth--;
+							if (paren_depth==0)
+								break;
+						}
 					}
 
-					p.Skip(1);
+					p.SkipEscapableChar();
 				}
 
-				r.url = p.Extract().Trim();
+				r.url = Utils.UnescapeString(p.Extract().Trim());
 			}
 
-			p.SkipWhitespace();
+			p.SkipLinespace();
 
-			// End of string without title?
-			if (p.eof || p.DoesMatch(')'))
+			// End of inline target
+			if (p.DoesMatch(')'))
 				return r;
+
+			bool bOnNewLine = p.eol;
+			int posLineEnd = p.position;
+			if (p.eol)
+			{
+				p.SkipEol();
+				p.SkipLinespace();
+			}
 
 			// Work out what the title is delimited with
 			char delim;
 			switch (p.current)
 			{
+				case '\'':  
 				case '\"':
-				case '\'':
 					delim = p.current;
 					break;
 
@@ -202,22 +244,61 @@ namespace MarkdownDeep
 					break;
 
 				default:
-					return null;
+					if (bOnNewLine)
+					{
+						p.position = posLineEnd;
+						return r;
+					}
+					else
+						return null;
 			}
 
 			// Skip the opening title delimiter
-			p.Skip(1);
+			p.SkipForward(1);
 
 			// Find the end of the title
 			p.Mark();
-			if (!p.Find(delim))
-				return null;
+			while (true)
+			{
+				if (p.eol)
+					return null;
+
+				if (p.current == delim)
+				{
+
+					if (delim != ')')
+					{
+						int savepos = p.position;
+
+						// Check for embedded quotes in title
+
+						// Skip the quote and any trailing whitespace
+						p.SkipForward(1);
+						p.SkipLinespace();
+
+						// Next we expect either the end of the line for a link definition
+						// or the close bracket for an inline link
+						if ((id == null && p.current != ')') ||
+							(id != null && !p.eol))
+						{
+							continue;
+						}
+
+						p.position = savepos;
+					}
+
+					// End of title
+					break;
+				}
+
+				p.SkipEscapableChar();
+			}
 
 			// Store the title
-			r.title = p.Extract();
+			r.title = Utils.UnescapeString(p.Extract());
 
 			// Skip closing quote
-			p.Skip(1);
+			p.SkipForward(1);
 
 			// Done!
 			return r;

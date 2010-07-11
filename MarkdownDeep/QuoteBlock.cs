@@ -7,7 +7,7 @@ namespace MarkdownDeep
 {
 	class QuoteBlock : ParentBlock
 	{
-		public QuoteBlock() : base(LineType.plain, null)
+		public QuoteBlock() : base(LineType.p)
 		{
 		}
 

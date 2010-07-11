@@ -1,0 +1,84 @@
+<!DOCTYPE html >
+<html>
+<head>
+  <title>JavaScript unit test file</title>
+  <link rel="stylesheet" href="/js/unittest.css" type="text/css" />
+  <script src="/js/jsunittest.js" type="text/javascript"></script>
+
+  <script src="../js/MarkdownDeep.js" type="text/javascript"></script>
+  
+</head>
+<body>
+
+<div id="content">
+
+  <div id="header">
+    <h1>MarkdownDeep unit test file</h1>
+    <p>
+      This file tests <strong>MarkdownDeep.StringBuilder</strong>.
+    </p>
+  </div>
+
+  <!-- Log output (one per Runner, via {testLog: "testlog"} option)-->
+  <div id="testlog"></div>
+  
+  <!-- Put sample/test html here -->
+  <div id="sample">
+  </div>
+</div>
+
+<script type="text/javascript">
+// <![CDATA[
+  new Test.Unit.Runner({
+    setup: function() {
+		this.sb=new MarkdownDeep.StringBuilder();
+    },
+    
+    teardown: function() {
+		this.sb=null;
+    },
+    
+    testEmpty: function() { with(this) {
+		assert(sb.ToString()=="");
+    }},
+    
+    testAppend: function() { with(this) {
+		sb.Append("Hello");
+		sb.Append(" ");
+		sb.Append("World");
+		assertEqual(sb.ToString(), "Hello World");
+    }},
+    
+    testClear: function() { with(this) {
+		sb.Append("Hello World");
+		assertEqual(sb.ToString(), "Hello World");
+		sb.Clear();
+		sb.Append("Hello Universe");
+		assertEqual(sb.ToString(), "Hello Universe");
+    }},
+    
+    testRandomize: function() { with(this) {
+		sb.HtmlRandomize("MarkdownDeep");
+		//info("Encoded to:'" + sb.ToString() + "'");
+		assertNotEqual(sb.ToString(), "MarkdownDeep");
+		
+		var div = document.createElement('div');
+		div.innerHTML=sb.ToString();
+		assertEqual(div.innerText, "MarkdownDeep");
+    }},
+    
+    testSmartHtmlEncodeAmpsAndAngles: function() { with(this) {
+		sb.SmartHtmlEncodeAmpsAndAngles("AT&T &lt; &gt; x && y 5<6>8");
+		assertEqual(sb.ToString(), "AT&amp;T &lt; &gt; x &amp;&amp; y 5&lt;6&gt;8");
+    }},
+    
+    testSmartHtmlEncodeAmps: function() { with(this) {
+		sb.SmartHtmlEncodeAmps("AT&T &lt; &gt; x && y 5<6>8");
+		assertEqual(sb.ToString(), "AT&amp;T &lt; &gt; x &amp;&amp; y 5<6>8");
+    }},
+    
+  }); 
+// ]]>
+</script>
+</body>
+</html>

@@ -14,11 +14,11 @@ Just a [URL](/url/).
 
 [Empty]().
 
-[With parens in the URL](http://en.wikipedia.org/wiki/WIMP_(computing))
+[With parens in the URL](http://en.wikipedia.org/wiki/WIMP_\(computing\))
 
-(With outer parens and [parens in url](/foo(bar)))
+(With outer parens and [parens in url](/foo\(bar\)))
 
 
-[With parens in the URL](/foo(bar) "and a title")
+[With parens in the URL](/foo\(bar\) "and a title")
 
-(With outer parens and [parens in url](/foo(bar) "and a title"))
+(With outer parens and [parens in url](/foo\(bar\) "and a title"))

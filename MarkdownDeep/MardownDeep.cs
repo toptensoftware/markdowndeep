@@ -13,96 +13,52 @@ namespace MarkdownDeep
 		quote,
 		ol,
 		ul,
-		plain,
+		p,
 		indent,
 		hr,
 		html,
-		possible_linkdef,		// Starts with [, could be a [link]: definition
+
+		text,
 	}
 
 	public class Markdown
 	{
+		// Constructor
 		public Markdown()
 		{
-			Reset();
+			m_StringBuilder = new StringBuilder();
+			m_StringParser = new StringParser();
+			m_SpanFormatter = new SpanFormatter(this);
+			m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
 		}
 
+		// Transform a string
 		public string Transform(string str)
 		{
-			Reset();
-			AddLines(str);
-			return Render();
+			// Reset the list of link definitions
+			m_LinkDefinitions.Clear();
+
+			// Process blocks
+			List<Block> blocks = new BlockProcessor(this).Process(str);
+
+			// Render
+			StringBuilder sb = GetStringBuilder();
+			foreach (var b in blocks)
+				b.Render(this, sb);
+
+			// Done
+			return sb.ToString();
 		}
 
-		public void Reset()
-		{
-			// Create a line parser and blocks collection
-			m_LineParser = new LineParser(this);
-			m_SpanFormatter = new SpanFormatter(this);
-			m_Blocks = new Blocks();
-		}
 
-		public void AddLines(string str)
-		{
-			/*
-			// Fix carriage returns
-			str = str.Replace("\r\n", "\n").Replace("\r", "\n");
-			foreach (var line in str.Split('\n'))
-			{
-				AddLine(line);
-			}
-			 */
-
-			// Reset string parser
-			m_StringParser.Reset(str);
-			var p = m_StringParser;
-
-			char[] crlf=new char[] { '\r', '\n' };
-
-			while (!p.eof)
-			{
-				p.Mark();
-				if (!p.FindAny(crlf))
-					p.SkipToEnd();
-
-				AddLine(p.Extract());
-
-				// All sorts of line ends
-				if (!p.Skip("\r\n"))
-					if (!p.Skip("\n\r"))
-						if (!p.Skip("\r"))
-							p.Skip("\n");
-			}
-
-		}
-
-		public void AddLine(string str)
-		{
-			// Add line as a new block
-			m_Blocks.Add(m_LineParser.ProcessLine(str));
-		}
-
-		public string Render()
-		{
-			m_Blocks.Add(m_LineParser.Finish());
-
-			// Process all blocks
-			m_Blocks.Process(this);
-
-			// Render all blocks
-			StringBuilder b = new StringBuilder();
-			m_Blocks.Render(this, b);
-
-			// Done!
-			return b.ToString();
-		}
-
+		// Add a link definition
 		public void AddLinkDefinition(LinkDefinition link)
 		{
 			// Store it
 			m_LinkDefinitions[link.id]=link;
 		}
 
+		// Get a link definition
 		public LinkDefinition GetLinkDefinition(string id)
 		{
 			LinkDefinition link;
@@ -112,20 +68,10 @@ namespace MarkdownDeep
 				return null;
 		}
 
-		// When set, tries to behave in a mode more compatible
-		// with the original markdown spec.
-		// When on, HtmlEncode only encodes &lt; and &amp
-		// When off, HtmlEncode encodes other entities such as &gt; using System.Web.HttpUtility.HtmlEncode
-
-		public bool CompatibilityMode
+		// HtmlEncode a range in a string to a specified string builder
+		internal void HtmlEncode(StringBuilder dest, string str, int start, int len)
 		{
-			get;
-			set;
-		}
-
-		internal void HtmlEncode(StringBuilder dest, string str)
-		{
-			m_StringParser.Reset(str);
+			m_StringParser.Reset(str, start, len);
 			var p = m_StringParser;
 			while (!p.eof)
 			{
@@ -145,24 +91,22 @@ namespace MarkdownDeep
 						break;
 
 					case '\"':
-						if (CompatibilityMode)
-							dest.Append(ch);
-						else
-							dest.Append("&quot;");
+						dest.Append("&quot;");
 						break;
 
 					default:
 						dest.Append(ch);
 						break;
 				}
-				p.Skip(1);
+				p.SkipForward(1);
 			}
 		}
 
 
-		internal void HtmlEncodeAndConvertTabsToSpaces(StringBuilder dest, string str)
+		// HtmlEncode a string, also converting tabs to spaces (used by CodeBlocks)
+		internal void HtmlEncodeAndConvertTabsToSpaces(StringBuilder dest, string str, int start, int len)
 		{
-			m_StringParser.Reset(str);
+			m_StringParser.Reset(str, start, len);
 			var p = m_StringParser;
 			int pos = 0;
 			while (!p.eof)
@@ -194,41 +138,71 @@ namespace MarkdownDeep
 						break;
 
 					case '\"':
-						if (CompatibilityMode)
-							dest.Append(ch);
-						else
-							dest.Append("&quot;");
+						dest.Append("&quot;");
 						break;
 
 					default:
 						dest.Append(ch);
 						break;
 				}
-				p.Skip(1);
+				p.SkipForward(1);
 				pos++;
 			}
 		}
 
 
-		// Overridable query to check if a tag is a block level tag or not.
-		static string[] m_BlockTags = new string[] { "p", "div", "h[1-6]", "blockquote", "pre", "table", "dl", "ol", "ul", "script", "noscript", "form", "fieldset", "iframe", "math", "ins", "del", "!" };
-		public virtual bool IsBlockTag(string tag)
+		/*
+		 * Get this markdown processors string builder.  
+		 * 
+		 * We re-use the same string builder whenever we can for performance.  
+		 * We just reset the length before starting to / use it again, which 
+		 * hopefully should keep the memory around for next time.
+		 * 
+		 * Note, care should be taken when using this string builder to not
+		 * call out to another function that also uses it.
+		 */
+		public StringBuilder GetStringBuilder()
 		{
-			return Utils.IsInList(tag.ToLower(), m_BlockTags);
+			m_StringBuilder.Length = 0;
+			return m_StringBuilder;
 		}
 
-		internal Blocks m_Blocks;			// Internal so UnitTest can access
-		StringParser m_StringParser = new StringParser();
-		LineParser m_LineParser;
+
+		/*
+		 * Process a span of text to the specified destination string buffer
+		 */
+		internal void processSpan(StringBuilder sb, string str, int start, int len)
+		{
+			m_SpanFormatter.Format(sb, str, start, len);
+		}
+
+		#region Block Pooling
+
+		// We cache and re-use blocks for performance
+
+		Stack<Block> m_SpareBlocks=new Stack<Block>();
+
+		internal Block CreateBlock()
+		{
+			if (m_SpareBlocks.Count!=0)
+				return m_SpareBlocks.Pop();
+			else
+				return new Block();
+		}
+
+		internal void FreeBlock(Block b)
+		{
+			m_SpareBlocks.Push(b);
+		}
+
+		#endregion
+
+		// Attributes
+		StringBuilder m_StringBuilder;
+		StringParser m_StringParser;
 		SpanFormatter m_SpanFormatter;
-		Dictionary<string, LinkDefinition> m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
-
-		internal void processSpan(StringBuilder sb, string str)
-		{
-			m_SpanFormatter.Format(sb, str);
-		}
-
-
+		Dictionary<string, LinkDefinition> m_LinkDefinitions;
+	
 	}
 
 }

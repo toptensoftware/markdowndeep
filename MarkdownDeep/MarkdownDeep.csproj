@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Accessibility" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -46,14 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blocks.cs" />
     <Compile Include="CodeBlock.cs" />
-    <Compile Include="ComplexListItem.cs" />
+    <Compile Include="ListItem.cs" />
+    <Compile Include="BlockProcessor.cs" />
     <Compile Include="HtmlTag.cs" />
     <Compile Include="LinkDefinition.cs" />
     <Compile Include="LinkInfo.cs" />
     <Compile Include="MardownDeep.cs" />
-    <Compile Include="LineParser.cs" />
     <Compile Include="ListBlock.cs" />
     <Compile Include="ParentBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,6 +61,7 @@
     <Compile Include="QuoteBlock.cs" />
     <Compile Include="SpanFormatter.cs" />
     <Compile Include="StringParser.cs" />
+    <Compile Include="Token.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

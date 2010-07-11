@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockProcessorTests.cs" />
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
     <Compile Include="MoreTestFiles.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="SpecialCharacterTests.cs" />
     <Compile Include="HtmlTagTests.cs" />
     <Compile Include="BlockLevelTests.cs" />
-    <Compile Include="LineParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EmphasisTests.cs" />
     <Compile Include="StringParserTests.cs" />
@@ -313,9 +313,6 @@
     <EmbeddedResource Include="testfiles\phpmarkdown\Tight blocks.text" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="testfiles\mdtest01\markdown-readme%28original%29.html" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="testfiles\blocktests\InsTypes.html" />
   </ItemGroup>
   <ItemGroup>
@@ -356,6 +353,24 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="testfiles\spantests\FormattingInLinkText.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\pandoc\indented-code-in-list-item.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\pandoc\unordered-list-and-horizontal-rules.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\pandoc\unordered-list-followed-by-ordered-list.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\pandoc\unpredictable-sublists.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\spantests\Emphasis.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="testfiles\spantests\Emphasis.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

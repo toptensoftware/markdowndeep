@@ -7,31 +7,44 @@ namespace MarkdownDeep
 {
 	class Block
 	{
-		internal Block(LineType lt, string str)
+		internal Block()
 		{
-			m_LineType = lt;
-			m_str = str;
+
 		}
 
-		internal Block(LineType lt, string str, string strOriginal)
+		internal Block(LineType lt)
 		{
-			m_LineType = lt;
-			m_str = str;
-			m_strOriginal = strOriginal;
+			lineType = lt;
 		}
+
+		public virtual string Content
+		{
+			get
+			{
+				if (buf==null)
+					return null;
+				else
+					return contentStart == -1 ? buf : buf.Substring(contentStart, contentLen);
+			}
+		}
+
 
 		internal virtual void Render(Markdown m, StringBuilder b)
 		{
-			string strContent = m_str;				 
-			switch (m_LineType)
+			switch (lineType)
 			{
 				case LineType.Blank:
 					return;
 
-				case LineType.plain:
+				case LineType.p:
 					b.Append("<p>");
-					m.processSpan(b, m_str);
+					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</p>\n");
+					break;
+
+				case LineType.text:
+					m.processSpan(b, buf, contentStart, contentLen);
+					b.Append("\n");
 					break;
 
 				case LineType.h1:
@@ -40,9 +53,9 @@ namespace MarkdownDeep
 				case LineType.h4:
 				case LineType.h5:
 				case LineType.h6:
-					b.Append("<" + m_LineType.ToString() + ">");
-					m.processSpan(b, m_str);
-					b.Append("</" + m_LineType.ToString() + ">\n");
+					b.Append("<" + lineType.ToString() + ">");
+					m.processSpan(b, buf, contentStart, contentLen);
+					b.Append("</" + lineType.ToString() + ">\n");
 					break;
 
 				case LineType.hr:
@@ -52,32 +65,86 @@ namespace MarkdownDeep
 				case LineType.ol:
 				case LineType.ul:
 					b.Append("<li>");
-					m.processSpan(b, m_str);
+					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</li>\n");
 					break;
 
 				case LineType.html:
-					b.Append(m_str);
+					b.Append(buf, contentStart, contentLen);
 					return;
 
 				default:
-					System.Diagnostics.Debug.Assert(false);
+					b.Append("<" + lineType.ToString() + ">");
+					m.processSpan(b, buf, contentStart, contentLen);
+					b.Append("</" + lineType.ToString() + ">\n");
 					break;
 			}
 		}
 
 		public void RevertToPlain()
 		{
-			if (m_strOriginal != null)
-			{
-				m_str=m_strOriginal;
-			}
-			m_LineType = LineType.plain;
+			lineType = LineType.p;
+			contentStart = lineStart;
+			contentLen = lineLen;
 		}
 
-		internal LineType m_LineType;
-		internal string m_str;
-		internal string m_strOriginal;		// Used by ul, ol and indent items to store the original
-											// unadjusted string in case we need to revert
+		public int contentEnd
+		{
+			get
+			{
+				return contentStart + contentLen;
+			}
+			set
+			{
+				contentLen = value - contentStart;
+			}
+		}
+
+		// Count the leading spaces on a block
+		// Used by list item evaluation to determine indent levels
+		// irrespective of indent line type.
+		public int leadingSpaces
+		{
+			get
+			{
+				int count = 0;
+				for (int i = lineStart; i < lineStart + lineLen; i++)
+				{
+					if (buf[i] == ' ')
+					{
+						count++;
+					}
+					else
+					{
+						break;
+					}
+				}
+				return count;
+			}
+		}
+
+		public override string ToString()
+		{
+			string c = Content;
+			return lineType.ToString() + " - " + (c==null ? "<null>" : c);
+		}
+
+		public Block CopyFrom(Block other)
+		{
+			lineType = other.lineType;
+			buf = other.buf;
+			contentStart = other.contentStart;
+			contentLen = other.contentLen;
+			lineStart = other.lineStart;
+			lineLen = other.lineLen;
+			return this;
+		}
+
+		internal LineType lineType;
+		internal string buf;
+		internal int contentStart;
+		internal int contentLen;
+		internal int lineStart;
+		internal int lineLen;
 	}
 }

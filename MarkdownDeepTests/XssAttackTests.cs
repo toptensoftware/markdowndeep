@@ -101,7 +101,7 @@ namespace MarkdownDeepTests
 				else
 				{
 					// Next character
-					p.Skip(1);
+					p.SkipForward(1);
 				}
 			}
 		}
@@ -127,7 +127,7 @@ namespace MarkdownDeepTests
 				else
 				{
 					// Next character
-					p.Skip(1);
+					p.SkipForward(1);
 				}
 			}
 		}

@@ -18,13 +18,13 @@ namespace MarkdownDeepTests
 			p.Reset("This is a string with something [bracketed]");
 			Assert.IsTrue(p.bof);
 			Assert.IsFalse(p.eof);
-			Assert.IsTrue(p.Skip("This"));
+			Assert.IsTrue(p.SkipString("This"));
 			Assert.IsFalse(p.bof);
 			Assert.IsFalse(p.eof);
-			Assert.IsFalse(p.Skip("huh?"));
+			Assert.IsFalse(p.SkipString("huh?"));
 			Assert.IsTrue(p.SkipLinespace());
-			Assert.IsTrue(p.Skip('i'));
-			Assert.IsTrue(p.Skip('s'));
+			Assert.IsTrue(p.SkipChar('i'));
+			Assert.IsTrue(p.SkipChar('s'));
 			Assert.IsTrue(p.SkipWhitespace());
 			Assert.IsTrue(p.DoesMatchAny(new char[] { 'r', 'a', 't'} ));
 			Assert.IsFalse(p.Find("Not here"));
@@ -32,11 +32,11 @@ namespace MarkdownDeepTests
 			Assert.IsFalse(p.FindI("Not here"));
 			Assert.IsTrue(p.FindI("WITH"));
 			Assert.IsTrue(p.Find('['));
-			p.Skip(1);
+			p.SkipForward(1);
 			p.Mark();
 			Assert.IsTrue(p.Find(']'));
 			Assert.AreEqual("bracketed", p.Extract());
-			Assert.IsTrue(p.Skip(']'));
+			Assert.IsTrue(p.SkipChar(']'));
 			Assert.IsTrue(p.eof);
 		}
 	}

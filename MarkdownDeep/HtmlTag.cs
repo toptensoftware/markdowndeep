@@ -41,6 +41,11 @@ namespace MarkdownDeep
 		bool m_closed;
 		bool m_closing;
 
+		public bool IsBlockTag()
+		{
+			return Utils.IsInList(name.ToLower(), m_block_tags);
+		}
+
 		static string[] m_allowed_tags = new string [] {
 			"b","blockquote","code","dd","dt","dl","del","em","h1","h2","h3","h4","h5","h6","i","kbd","li","ol","ul",
 			"p", "pre", "s", "sub", "sup", "strong", "strike", "img", "a"
@@ -51,10 +56,8 @@ namespace MarkdownDeep
 			{ "img", new string[] { "src", "width", "height", "alt", "title" } },
 		};
 
-		/*
-		 * a href title
-		 * img src width height alt title
-		 */
+		static string[] m_block_tags= new string[] { "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", 
+			"blockquote", "pre", "table", "dl", "ol", "ul", "script", "noscript", "form", "fieldset", "iframe", "math", "ins", "del" };
 
 		// Check if this tag is safe
 		public bool IsSafe()
@@ -136,10 +139,10 @@ namespace MarkdownDeep
 				return null;
 
 			// Skip '<'
-			p.Skip(1);
+			p.SkipForward(1);
 
 			// Is it a comment?
-			if (p.Skip("!--"))
+			if (p.SkipString("!--"))
 			{
 				p.Mark();
 
@@ -147,13 +150,14 @@ namespace MarkdownDeep
 				{
 					var t = new HtmlTag("!");
 					t.m_attributes.Add("content", p.Extract());
-					p.Skip(3);
+					t.m_closed = true;
+					p.SkipForward(3);
 					return t;
 				}
 			}
 
 			// Is it a closing tag eg: </div>
-			bool bClosing = p.Skip('/');
+			bool bClosing = p.SkipChar('/');
 
 			// Get the tag name
 			string tagName=null;
@@ -171,7 +175,7 @@ namespace MarkdownDeep
 				if (p.current != '>')
 					return null;
 
-				p.Skip(1);
+				p.SkipForward(1);
 				return tag;
 			}
 
@@ -182,14 +186,14 @@ namespace MarkdownDeep
 				p.SkipWhitespace();
 
 				// Check for closed tag eg: <hr />
-				if (p.Skip("/>"))
+				if (p.SkipString("/>"))
 				{
 					tag.m_closed=true;
 					return tag;
 				}
 
 				// End of tag?
-				if (p.Skip('>'))
+				if (p.SkipChar('>'))
 				{
 					return tag;
 				}
@@ -203,14 +207,14 @@ namespace MarkdownDeep
 				p.SkipWhitespace();
 
 				// Skip equal sign
-				if (!p.Skip('='))
+				if (!p.SkipChar('='))
 					return null;
 
 				// Skip whitespace
 				p.SkipWhitespace();
 
 				// Optional quotes
-				if (p.Skip('\"'))
+				if (p.SkipChar('\"'))
 				{
 					// Scan the value
 					p.Mark();
@@ -221,17 +225,20 @@ namespace MarkdownDeep
 					tag.m_attributes.Add(attributeName, p.Extract());
 
 					// Skip closing quote
-					p.Skip(1);
+					p.SkipForward(1);
 				}
 				else
 				{
 					// Scan the value
 					p.Mark();
-					while (!char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
-						p.Skip(1);
+					while (!p.eof && !char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
+						p.SkipForward(1);
 
-					// Store the value
-					tag.m_attributes.Add(attributeName, p.Extract());
+					if (!p.eof)
+					{
+						// Store the value
+						tag.m_attributes.Add(attributeName, p.Extract());
+					}
 				}
 			}
 

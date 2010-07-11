@@ -90,7 +90,135 @@ namespace MarkdownDeepTests
 		{
 			Assert.AreEqual("un<strong>frigging</strong>believable",
 					f.Format("un**frigging**believable"));
-		}		   
+		}
+
+		[Test]
+		public void combined_1()
+		{
+			Assert.AreEqual("<strong><em>test test</em></strong>",
+					f.Format("***test test***"));
+		}
+
+		[Test]
+		public void combined_2()
+		{
+			Assert.AreEqual("<strong><em>test test</em></strong>",
+					f.Format("___test test___"));
+		}
+
+
+		[Test]
+		public void combined_3()
+		{
+			Assert.AreEqual("<em>test <strong>test</strong></em>",
+					f.Format("*test **test***"));
+		}
+
+
+		[Test]
+		public void combined_4()
+		{
+			Assert.AreEqual("<strong>test <em>test</em></strong>",
+					f.Format("**test *test***"));
+		}
+
+
+		[Test]
+		public void combined_5()
+		{
+			Assert.AreEqual("<strong><em>test</em> test</strong>",
+					f.Format("***test* test**"));
+		}
+
+
+		[Test]
+		public void combined_6()
+		{
+			Assert.AreEqual("<em><strong>test</strong> test</em>",
+					f.Format("***test** test*"));
+		}
+
+
+		[Test]
+		public void combined_7()
+		{
+			Assert.AreEqual("<strong><em>test</em> test</strong>",
+					f.Format("***test* test**"));
+		}
+
+
+		[Test]
+		public void combined_8()
+		{
+			Assert.AreEqual("<strong>test <em>test</em></strong>",
+					f.Format("**test *test***"));
+		}
+
+
+		[Test]
+		public void combined_9()
+		{
+			Assert.AreEqual("<em>test <strong>test</strong></em>",
+					f.Format("*test **test***"));
+		}
+
+
+		[Test]
+		public void combined_10()
+		{
+			Assert.AreEqual("<em>test <strong>test</strong></em>",
+					f.Format("_test __test___"));
+		}
+
+
+		[Test]
+		public void combined_11()
+		{
+			Assert.AreEqual("<strong>test <em>test</em></strong>",
+					f.Format("__test _test___"));
+		}
+
+
+		[Test]
+		public void combined_12()
+		{
+			Assert.AreEqual("<strong><em>test</em> test</strong>",
+					f.Format("___test_ test__"));
+		}
+
+
+		[Test]
+		public void combined_13()
+		{
+			Assert.AreEqual("<em><strong>test</strong> test</em>",
+					f.Format("___test__ test_"));
+		}
+
+
+		[Test]
+		public void combined_14()
+		{
+			Assert.AreEqual("<strong><em>test</em> test</strong>",
+					f.Format("___test_ test__"));
+		}
+
+
+		[Test]
+		public void combined_15()
+		{
+			Assert.AreEqual("<strong>test <em>test</em></strong>",
+					f.Format("__test _test___"));
+		}
+
+
+		[Test]
+		public void combined_16()
+		{
+			Assert.AreEqual("<em>test <strong>test</strong></em>",
+					f.Format("_test __test___"));
+		}
+
+
 
 	}
 }

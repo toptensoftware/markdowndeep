@@ -114,7 +114,7 @@ namespace MarkdownDeepTests
 
 			Assert.AreEqual(tag.name, "!");
 			Assert.AreEqual(tag.closing, false);
-			Assert.AreEqual(tag.closed, false);
+			Assert.AreEqual(tag.closed, true);
 			Assert.AreEqual(tag.attributes.Count, 1);
 			Assert.AreEqual(tag.attributes["content"], " comment ");
 			Assert.AreEqual(m_pos, str.Length);

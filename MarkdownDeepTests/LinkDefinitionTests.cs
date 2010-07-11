@@ -100,7 +100,6 @@ namespace MarkdownDeepTests
 			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> (title"));
 			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \"title\" crap"));
 			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> crap"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <  url  > (title)"));
 		}
 
 		LinkDefinition r;

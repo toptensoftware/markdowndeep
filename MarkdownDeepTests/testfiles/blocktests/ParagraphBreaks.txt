@@ -2,7 +2,7 @@
 with a contained break
 
 # this is a heading  
-with a contained break
+followed by a paragraph
 
 * an item  
 with a contained break

@@ -55,6 +55,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="benchmark\long_plain_text.text" />
     <None Include="benchmark\markdown-example-long-1.text" />
     <None Include="benchmark\markdown-example-long-2.text" />
     <None Include="benchmark\markdown-example-medium-1.text" />

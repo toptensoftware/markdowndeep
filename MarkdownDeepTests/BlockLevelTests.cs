@@ -20,7 +20,7 @@ namespace MarkdownDeepTests
 		[Test, TestCaseSource("GetTests")]
 		public void Test(string resourceName)
 		{
-			Utils.RunResourceTest(resourceName, false);
+			Utils.RunResourceTest(resourceName);
 		}
 
 	}
