@@ -5,6 +5,34 @@ using System.Text;
 
 namespace MarkdownDeep
 {
+	// Some block types are only used during block parsing, some
+	// are only used during rendering and some are used during both
+	internal enum BlockType
+	{
+		Blank,			// blank line (parse only)
+		h1,				// headings (render and parse)
+		h2, 
+		h3, 
+		h4, 
+		h5, 
+		h6,
+		post_h1,		// setext heading lines (parse only)
+		post_h2,
+		quote,			// block quote (render and parse)
+		ol_li,			// list item in an ordered list	(render and parse)
+		ul_li,			// list item in an unordered list (render and parse)
+		p,				// paragraph (or plain line during parse)
+		indent,			// an indented line (parse only)
+		hr,				// horizontal rule (render and parse)
+		html,			// html content (render and parse)
+		span,			// an undecorated span of text (used for simple list items 
+						//			where content is not wrapped in paragraph tags
+		codeblock,		// a code block (render only)
+		li,				// a list item (render only)
+		ol,				// ordered list (render only)
+		ul,				// unordered list (render only)
+	}
+
 	class Block
 	{
 		internal Block()
@@ -12,15 +40,28 @@ namespace MarkdownDeep
 
 		}
 
-		internal Block(LineType lt)
+		internal Block(BlockType type)
 		{
-			lineType = lt;
+			blockType = type;
 		}
 
-		public virtual string Content
+		public string Content
 		{
 			get
 			{
+				switch (blockType)
+				{
+					case BlockType.codeblock:
+						StringBuilder s = new StringBuilder();
+						foreach (var line in m_childBlocks)
+						{
+							s.Append(line.Content);
+							s.Append('\n');
+						}
+						return s.ToString();
+				}
+
+
 				if (buf==null)
 					return null;
 				else
@@ -28,62 +69,104 @@ namespace MarkdownDeep
 			}
 		}
 
-
-		internal virtual void Render(Markdown m, StringBuilder b)
+		internal void RenderChildren(Markdown m, StringBuilder b)
 		{
-			switch (lineType)
+			foreach (var block in m_childBlocks)
 			{
-				case LineType.Blank:
+				block.Render(m, b);
+			}
+		}
+
+		internal void Render(Markdown m, StringBuilder b)
+		{
+			switch (blockType)
+			{
+				case BlockType.Blank:
 					return;
 
-				case LineType.p:
+				case BlockType.p:
 					b.Append("<p>");
 					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</p>\n");
 					break;
 
-				case LineType.text:
+				case BlockType.span:
 					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("\n");
 					break;
 
-				case LineType.h1:
-				case LineType.h2:
-				case LineType.h3:
-				case LineType.h4:
-				case LineType.h5:
-				case LineType.h6:
-					b.Append("<" + lineType.ToString() + ">");
+				case BlockType.h1:
+				case BlockType.h2:
+				case BlockType.h3:
+				case BlockType.h4:
+				case BlockType.h5:
+				case BlockType.h6:
+					b.Append("<" + blockType.ToString() + ">");
 					m.processSpan(b, buf, contentStart, contentLen);
-					b.Append("</" + lineType.ToString() + ">\n");
+					b.Append("</" + blockType.ToString() + ">\n");
 					break;
 
-				case LineType.hr:
+				case BlockType.hr:
 					b.Append("<hr />\n");
 					return;
 
-				case LineType.ol:
-				case LineType.ul:
+				case BlockType.ol_li:
+				case BlockType.ul_li:
 					b.Append("<li>");
 					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</li>\n");
 					break;
 
-				case LineType.html:
+				case BlockType.html:
 					b.Append(buf, contentStart, contentLen);
 					return;
 
+				case BlockType.codeblock:
+					b.Append("<pre><code>");
+					foreach (var line in m_childBlocks)
+					{
+						m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
+						b.Append("\n");
+					}
+					b.Append("</code></pre>\n\n");
+					return;
+
+				case BlockType.quote:
+					b.Append("<blockquote>\n");
+					RenderChildren(m, b);
+					b.Append("</blockquote>\n");
+					return;
+
+				case BlockType.li:
+					b.Append("<li>\n");
+					RenderChildren(m, b);
+					b.Append("</li>\n");
+					return;
+
+				case BlockType.ol:
+					b.Append("<ol>\n");
+					RenderChildren(m, b);
+					b.Append("</ol>\n");
+					return;
+
+				case BlockType.ul:
+					b.Append("<ul>\n");
+					RenderChildren(m, b);
+					b.Append("</ul>\n");
+					return;
+
+
 				default:
-					b.Append("<" + lineType.ToString() + ">");
+					b.Append("<" + blockType.ToString() + ">");
 					m.processSpan(b, buf, contentStart, contentLen);
-					b.Append("</" + lineType.ToString() + ">\n");
+					b.Append("</" + blockType.ToString() + ">\n");
 					break;
 			}
 		}
 
 		public void RevertToPlain()
 		{
-			lineType = LineType.p;
+			blockType = BlockType.p;
 			contentStart = lineStart;
 			contentLen = lineLen;
 		}
@@ -126,12 +209,12 @@ namespace MarkdownDeep
 		public override string ToString()
 		{
 			string c = Content;
-			return lineType.ToString() + " - " + (c==null ? "<null>" : c);
+			return blockType.ToString() + " - " + (c==null ? "<null>" : c);
 		}
 
 		public Block CopyFrom(Block other)
 		{
-			lineType = other.lineType;
+			blockType = other.blockType;
 			buf = other.buf;
 			contentStart = other.contentStart;
 			contentLen = other.contentLen;
@@ -140,11 +223,12 @@ namespace MarkdownDeep
 			return this;
 		}
 
-		internal LineType lineType;
+		internal BlockType blockType;
 		internal string buf;
 		internal int contentStart;
 		internal int contentLen;
 		internal int lineStart;
 		internal int lineLen;
+		internal List<Block> m_childBlocks;
 	}
 }

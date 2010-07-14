@@ -10,10 +10,10 @@ namespace MarkdownDeep
 		public BlockProcessor(Markdown m)
 		{
 			m_markdown = m;
-			m_parentType = LineType.Blank;
+			m_parentType = BlockType.Blank;
 		}
 
-		internal BlockProcessor(Markdown m, LineType parentType)
+		internal BlockProcessor(Markdown m, BlockType parentType)
 		{
 			m_markdown = m;
 			m_parentType = parentType;
@@ -43,7 +43,7 @@ namespace MarkdownDeep
 				var b = EvaluateLine();
 
 				// SetExt header?
-				if (b.lineType == LineType.post_h1 || b.lineType == LineType.post_h2)
+				if (b.blockType == BlockType.post_h1 || b.blockType == BlockType.post_h2)
 				{
 					if (lines.Count > 0)
 					{
@@ -52,11 +52,11 @@ namespace MarkdownDeep
 						CollapseLines(blocks, lines);
 
 						// If previous line was blank, 
-						if (prevline.lineType != LineType.Blank)
+						if (prevline.blockType != BlockType.Blank)
 						{
 							// Convert the previous line to a heading and add to block list
 							prevline.RevertToPlain();
-							prevline.lineType = b.lineType == LineType.post_h1 ? LineType.h1 : LineType.h2;
+							prevline.blockType = b.blockType == BlockType.post_h1 ? BlockType.h1 : BlockType.h2;
 							blocks.Add(prevline);
 							continue;
 						}
@@ -64,7 +64,7 @@ namespace MarkdownDeep
 
 					// Couldn't apply setext header to a previous line
 
-					if (b.lineType == LineType.post_h1)
+					if (b.blockType == BlockType.post_h1)
 					{
 						// `===` gets converted to normal paragraph
 						b.RevertToPlain();
@@ -75,7 +75,7 @@ namespace MarkdownDeep
 						// `---` gets converted to hr
 						if (b.contentLen >= 3)
 						{
-							b.lineType = LineType.hr;
+							b.blockType = BlockType.hr;
 							blocks.Add(b);
 						}
 						else
@@ -90,27 +90,27 @@ namespace MarkdownDeep
 
 
 				// Work out the current paragraph type
-				LineType currentBlockType = lines.Count > 0 ? lines[0].lineType : LineType.Blank;
+				BlockType currentBlockType = lines.Count > 0 ? lines[0].blockType : BlockType.Blank;
 
 				// Process this line
-				switch (b.lineType)
+				switch (b.blockType)
 				{
-					case LineType.Blank:
+					case BlockType.Blank:
 						switch (currentBlockType)
 						{
-							case LineType.Blank:
+							case BlockType.Blank:
 								FreeBlock(b);
 								break;
 
-							case LineType.p:
+							case BlockType.p:
 								CollapseLines(blocks, lines);
 								FreeBlock(b);
 								break;
 
-							case LineType.quote:
-							case LineType.ol:
-							case LineType.ul:
-							case LineType.indent:
+							case BlockType.quote:
+							case BlockType.ol_li:
+							case BlockType.ul_li:
+							case BlockType.indent:
 								lines.Add(b);
 								break;
 
@@ -120,19 +120,19 @@ namespace MarkdownDeep
 						}
 						break;
 
-					case LineType.p:
+					case BlockType.p:
 						switch (currentBlockType)
 						{
-							case LineType.Blank:
-							case LineType.p:
+							case BlockType.Blank:
+							case BlockType.p:
 								lines.Add(b);
 								break;
 
-							case LineType.quote:
-							case LineType.ol:
-							case LineType.ul:
+							case BlockType.quote:
+							case BlockType.ol_li:
+							case BlockType.ul_li:
 								var prevline = lines.Last();
-								if (prevline.lineType == LineType.Blank)
+								if (prevline.blockType == BlockType.Blank)
 								{
 									CollapseLines(blocks, lines);
 									lines.Add(b);
@@ -143,7 +143,7 @@ namespace MarkdownDeep
 								}
 								break;
 
-							case LineType.indent:
+							case BlockType.indent:
 								CollapseLines(blocks, lines);
 								lines.Add(b);
 								break;
@@ -154,18 +154,18 @@ namespace MarkdownDeep
 						}
 						break;
 
-					case LineType.indent:
+					case BlockType.indent:
 						switch (currentBlockType)
 						{
-							case LineType.Blank:
+							case BlockType.Blank:
 								// Start a code block
 								lines.Add(b);
 								break;
 
-							case LineType.p:
-							case LineType.quote:
+							case BlockType.p:
+							case BlockType.quote:
 								var prevline = lines.Last();
-								if (prevline.lineType == LineType.Blank)
+								if (prevline.blockType == BlockType.Blank)
 								{
 									// Start a code block after a paragraph
 									CollapseLines(blocks, lines);
@@ -180,9 +180,9 @@ namespace MarkdownDeep
 								break;
 
 
-							case LineType.ol:
-							case LineType.ul:
-							case LineType.indent:
+							case BlockType.ol_li:
+							case BlockType.ul_li:
+							case BlockType.indent:
 								lines.Add(b);
 								break;
 
@@ -192,26 +192,26 @@ namespace MarkdownDeep
 						}
 						break;
 
-					case LineType.quote:
-						if (currentBlockType != LineType.quote)
+					case BlockType.quote:
+						if (currentBlockType != BlockType.quote)
 						{
 							CollapseLines(blocks, lines);
 						}
 						lines.Add(b);
 						break;
 
-					case LineType.ol:
-					case LineType.ul:
+					case BlockType.ol_li:
+					case BlockType.ul_li:
 						switch (currentBlockType)
 						{
-							case LineType.Blank:
+							case BlockType.Blank:
 								lines.Add(b);
 								break;
 
-							case LineType.p:
-							case LineType.quote:
+							case BlockType.p:
+							case BlockType.quote:
 								var prevline = lines.Last();
-								if (prevline.lineType == LineType.Blank || m_parentType==LineType.ol || m_parentType==LineType.ul)
+								if (prevline.blockType == BlockType.Blank || m_parentType==BlockType.ol_li || m_parentType==BlockType.ul_li)
 								{
 									// List starting after blank line after paragraph or quote
 									CollapseLines(blocks, lines);
@@ -225,16 +225,16 @@ namespace MarkdownDeep
 								}
 								break;
 
-							case LineType.ol:
-							case LineType.ul:
-								if (b.lineType != currentBlockType)
+							case BlockType.ol_li:
+							case BlockType.ul_li:
+								if (b.blockType != currentBlockType)
 								{
 									CollapseLines(blocks, lines);
 								}
 								lines.Add(b);
 								break;
 
-							case LineType.indent:
+							case BlockType.indent:
 								// List after code block
 								CollapseLines(blocks, lines);
 								lines.Add(b);
@@ -242,14 +242,14 @@ namespace MarkdownDeep
 						}
 						break;
 
-					case LineType.h1:
-					case LineType.h2:
-					case LineType.h3:
-					case LineType.h4:
-					case LineType.h5:
-					case LineType.h6:
-					case LineType.html:
-					case LineType.hr:
+					case BlockType.h1:
+					case BlockType.h2:
+					case BlockType.h3:
+					case BlockType.h4:
+					case BlockType.h5:
+					case BlockType.h6:
+					case BlockType.html:
+					case BlockType.hr:
 						CollapseLines(blocks, lines);
 						blocks.Add(b);
 						break;
@@ -296,7 +296,7 @@ namespace MarkdownDeep
 		internal void CollapseLines(List<Block> blocks, List<Block> lines)
 		{
 			// Remove trailing blank lines
-			while (lines.Count>0 && lines.Last().lineType == LineType.Blank)
+			while (lines.Count>0 && lines.Last().blockType == BlockType.Blank)
 			{
 				FreeBlock(lines.Pop());
 			}
@@ -309,13 +309,13 @@ namespace MarkdownDeep
 
 
 			// What sort of block?
-			switch (lines[0].lineType)
+			switch (lines[0].blockType)
 			{
-				case LineType.p:
+				case BlockType.p:
 				{
 					// Collapse all lines into a single paragraph
 					var para = CreateBlock();
-					para.lineType = LineType.p;
+					para.blockType = BlockType.p;
 					para.buf = lines[0].buf;
 					para.contentStart = lines[0].contentStart;
 					para.contentEnd = lines.Last().contentEnd;
@@ -324,24 +324,25 @@ namespace MarkdownDeep
 					break;
 				}
 
-				case LineType.quote:
+				case BlockType.quote:
 				{
 					// Create a new quote block
-					var quote = new QuoteBlock();
-					quote.m_childBlocks = new BlockProcessor(m_markdown, LineType.quote).Process(RenderLines(lines));
+					var quote = new Block(BlockType.quote);
+					quote.m_childBlocks = new BlockProcessor(m_markdown, BlockType.quote).Process(RenderLines(lines));
 					FreeBlocks(lines);
 					blocks.Add(quote);
 					break;
 				}
 
-				case LineType.ol:
-				case LineType.ul:
+				case BlockType.ol_li:
+				case BlockType.ul_li:
 					blocks.Add(BuildList(lines));
 					break;
 
-				case LineType.indent:
+				case BlockType.indent:
 				{
-					var codeblock = new CodeBlock();
+					var codeblock = new Block(BlockType.codeblock);
+					codeblock.m_childBlocks = new List<Block>();
 					codeblock.m_childBlocks.AddRange(lines);
 					blocks.Add(codeblock);
 					lines.Clear();
@@ -362,7 +363,7 @@ namespace MarkdownDeep
 			// Scan the line
 			b.contentStart = position;
 			int end = -1;
-			b.lineType=EvaluateLine(ref b.contentStart, ref end);
+			b.blockType=EvaluateLine(ref b.contentStart, ref end);
 
 			// Move to end of line
 			SkipToEol();
@@ -387,11 +388,11 @@ namespace MarkdownDeep
 			return b;
 		}
 
-		LineType EvaluateLine(ref int start, ref int end)
+		BlockType EvaluateLine(ref int start, ref int end)
 		{
 			// Empty line?
 			if (eol)
-				return LineType.Blank;
+				return BlockType.Blank;
 
 			// Save start of line position
 			int line_start= position;
@@ -436,7 +437,7 @@ namespace MarkdownDeep
 				end = position;
 
 				SkipToEol();
-				return LineType.h1 + (level - 1);
+				return BlockType.h1 + (level - 1);
 			}
 
 			// Check for entire line as - or = for setext h1 and h2
@@ -455,7 +456,7 @@ namespace MarkdownDeep
 				// If not at eol, must have found something other than setext header
 				if (eol)
 				{
-					return chType == '=' ? LineType.post_h1 : LineType.post_h2;
+					return chType == '=' ? BlockType.post_h1 : BlockType.post_h2;
 				}
 
 				position = line_start;
@@ -488,21 +489,21 @@ namespace MarkdownDeep
 			if (eol)
 			{
 				end = start;
-				return LineType.Blank;
+				return BlockType.Blank;
 			}
 
 			// 4 leading spaces?
 			if (leadingSpaces >= 4)
 			{
 				start = line_start + 4;
-				return LineType.indent;
+				return BlockType.indent;
 			}
 
 			// Tab in the first 4 characters?
 			if (tabPos >= 0 && tabPos - line_start<4)
 			{
 				start = tabPos + 1;
-				return LineType.indent;
+				return BlockType.indent;
 			}
 
 			// Treat start of line as after leading whitespace
@@ -518,7 +519,7 @@ namespace MarkdownDeep
 				if (ScanHtml())
 				{
 					end = position;
-					return LineType.html;
+					return BlockType.html;
 				}
 
 				// Rewind
@@ -534,12 +535,12 @@ namespace MarkdownDeep
 					// Skip it and create quote block
 					SkipForward(2);
 					start = position;
-					return LineType.quote;
+					return BlockType.quote;
 				}
 
 				SkipForward(1);
 				start = position;
-				return LineType.quote;
+				return BlockType.quote;
 			}
 
 			// Horizontal rule - a line consisting of 3 or more '-', '_' or '*' with optional spaces and nothing else
@@ -567,7 +568,7 @@ namespace MarkdownDeep
 
 				if (eol && count >= 3)
 				{
-					return LineType.hr;
+					return BlockType.hr;
 				}
 
 				// Rewind
@@ -581,7 +582,7 @@ namespace MarkdownDeep
 				SkipForward(1);
 				SkipLinespace();
 				start = position;
-				return LineType.ul;
+				return BlockType.ul_li;
 			}
 
 			// Ordered list
@@ -597,7 +598,7 @@ namespace MarkdownDeep
 				if (SkipChar('.') && SkipLinespace())
 				{
 					start = position;
-					return LineType.ol;
+					return BlockType.ol_li;
 				}
 
 				position=start;
@@ -611,12 +612,12 @@ namespace MarkdownDeep
 				if (l!=null)
 				{
 					m_markdown.AddLinkDefinition(l);
-					return LineType.Blank;
+					return BlockType.Blank;
 				}
 			}
 
 			// Nothing special
-			return LineType.p;
+			return BlockType.p;
 		}
 
 		internal bool ScanHtml()
@@ -695,11 +696,11 @@ namespace MarkdownDeep
 		/* 
 		 * BuildList - build a single <ol> or <ul> list
 		 */
-		private ListBlock BuildList(List<Block> lines)
+		private Block BuildList(List<Block> lines)
 		{
 			// What sort of list are we dealing with
-			LineType listType = lines[0].lineType;
-			System.Diagnostics.Debug.Assert(listType == LineType.ul || listType == LineType.ol);
+			BlockType listType = lines[0].blockType;
+			System.Diagnostics.Debug.Assert(listType == BlockType.ul_li || listType == BlockType.ol_li);
 
 			// Preprocess
 			// 1. Collapse all plain lines (ie: handle hardwrapped lines)
@@ -710,8 +711,8 @@ namespace MarkdownDeep
 			for (int i = 1; i < lines.Count; i++)
 			{
 				// Join plain paragraphs
-				if ((lines[i].lineType == LineType.p) && 
-					(lines[i - 1].lineType == LineType.p || lines[i-1].lineType==listType))
+				if ((lines[i].blockType == BlockType.p) && 
+					(lines[i - 1].blockType == BlockType.p || lines[i-1].blockType==listType))
 				{
 					lines[i - 1].contentEnd = lines[i].contentEnd;
 					FreeBlock(lines[i]);
@@ -720,14 +721,14 @@ namespace MarkdownDeep
 					continue;
 				}
 
-				if (lines[i].lineType != LineType.indent && lines[i].lineType!=LineType.Blank)
+				if (lines[i].blockType != BlockType.indent && lines[i].blockType!=BlockType.Blank)
 				{
 					int thisLeadingSpace=lines[i].leadingSpaces;
 					if (thisLeadingSpace > leadingSpace)
 					{
 						// Change line to indented, including original leading chars 
 						// (eg: '* ', '>', '1.' etc...)
-						lines[i].lineType = LineType.indent;
+						lines[i].blockType = BlockType.indent;
 						int saveend = lines[i].contentEnd;
 						lines[i].contentStart = lines[i].lineStart + thisLeadingSpace;
 						lines[i].contentEnd = saveend;
@@ -737,21 +738,22 @@ namespace MarkdownDeep
 
 
 			// Create the wrapping list item
-			var List = new ListBlock(listType);
+			var List = new Block(listType == BlockType.ul_li ? BlockType.ul : BlockType.ol);
+			List.m_childBlocks = new List<Block>();
 
 			// Process all lines in the range		
 			for (int i = 0; i < lines.Count; i++)
 			{
-				System.Diagnostics.Debug.Assert(lines[i].lineType == listType);
+				System.Diagnostics.Debug.Assert(lines[i].blockType == listType);
 
 				// Find start of item, including leading blanks
 				int start_of_li = i;
-				while (start_of_li > 0 && lines[start_of_li - 1].lineType == LineType.Blank)
+				while (start_of_li > 0 && lines[start_of_li - 1].blockType == BlockType.Blank)
 					start_of_li--;
 
 				// Find end of the item, including trailing blanks
 				int end_of_li = i;
-				while (end_of_li < lines.Count-1 && lines[end_of_li + 1].lineType != listType)
+				while (end_of_li < lines.Count-1 && lines[end_of_li + 1].blockType != listType)
 					end_of_li++;
 
 				// Is this a simple or complex list item?
@@ -772,14 +774,14 @@ namespace MarkdownDeep
 						sb.Append(l.buf, l.contentStart, l.contentLen);
 						sb.Append('\n');
 
-						if (lines[j].lineType == LineType.Blank)
+						if (lines[j].blockType == BlockType.Blank)
 						{
 							bAnyBlanks = true;
 						}
 					}
 
 					// Create the item and process child blocks
-					var item = new ListItem(listType);
+					var item = new Block(BlockType.li);
 					item.m_childBlocks = new BlockProcessor(m_markdown, listType).Process(sb.ToString());
 
 					// If no blank lines, change all contained paragraphs to plain text
@@ -787,9 +789,9 @@ namespace MarkdownDeep
 					{
 						foreach (var child in item.m_childBlocks)
 						{
-							if (child.lineType == LineType.p)
+							if (child.blockType == BlockType.p)
 							{
-								child.lineType = LineType.text;
+								child.blockType = BlockType.span;
 							}
 						}
 					}
@@ -810,6 +812,6 @@ namespace MarkdownDeep
 		}
 
 		Markdown m_markdown;
-		LineType m_parentType;
+		BlockType m_parentType;
 	}
 }

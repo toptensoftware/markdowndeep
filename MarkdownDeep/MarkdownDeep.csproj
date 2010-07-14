@@ -47,18 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeBlock.cs" />
-    <Compile Include="ListItem.cs" />
     <Compile Include="BlockProcessor.cs" />
     <Compile Include="HtmlTag.cs" />
     <Compile Include="LinkDefinition.cs" />
     <Compile Include="LinkInfo.cs" />
     <Compile Include="MardownDeep.cs" />
-    <Compile Include="ListBlock.cs" />
-    <Compile Include="ParentBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Block.cs" />
-    <Compile Include="QuoteBlock.cs" />
     <Compile Include="SpanFormatter.cs" />
     <Compile Include="StringParser.cs" />
     <Compile Include="Token.cs" />

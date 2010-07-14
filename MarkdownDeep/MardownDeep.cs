@@ -5,21 +5,6 @@ using System.Text;
 
 namespace MarkdownDeep
 {
-	internal enum LineType
-	{
-		Blank,
-		h1, h2, h3, h4, h5, h6,
-		post_h1, post_h2,
-		quote,
-		ol,
-		ul,
-		p,
-		indent,
-		hr,
-		html,
-
-		text,
-	}
 
 	public class Markdown
 	{
