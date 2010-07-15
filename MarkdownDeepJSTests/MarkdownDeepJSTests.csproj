@@ -53,9 +53,6 @@
     <Reference Include="System.Web.Mobile" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="js\MarkdownDeep.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="test_Transform.html" />
     <Content Include="test_BlockProcessor.html" />
     <Content Include="js\jquery-1.4.2.js" />
@@ -110,4 +107,7 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(SolutionDir)MarkdownDeepJS\*.js" "$(ProjectDir)js"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

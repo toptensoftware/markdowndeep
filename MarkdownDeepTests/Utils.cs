@@ -148,28 +148,12 @@ namespace MarkdownDeepTests
 			// Create browser, navigate and wait
 			WebBrowser b = new WebBrowser();
 			b.Navigate(url);
-			//b.ScriptErrorsSuppressed = true;
+			b.ScriptErrorsSuppressed = true;
 
 			while (b.ReadyState != WebBrowserReadyState.Complete)
 			{
 				Application.DoEvents();
 			}
-
-			/*
-
-			// Get elements
-			var input = b.Document.GetElementById("markdown_input");
-			var output = b.Document.GetElementById("markdown_output");
-
-			// Set the input text
-			input.InnerText = inputText;
-
-			// Run the script
-			b.Document.InvokeScript("run");
-
-			// Get the output text
-			var result = output.InnerText;
-			 */
 
 			var o = b.Document.InvokeScript("transform", new object[] { inputText } );
 

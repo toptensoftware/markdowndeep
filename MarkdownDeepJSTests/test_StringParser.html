@@ -104,13 +104,13 @@
 		
 		assertEqual(p.CharAtOffset(-1), '1');
 		assertEqual(p.CharAtOffset(-2), '0');
-		assertUndefined(p.CharAtOffset(-3));
-		assertUndefined(p.CharAtOffset(-30));
+		assert(p.CharAtOffset(-3)=="");
+		assert(p.CharAtOffset(-30)=="");
 		
 		assertEqual(p.CharAtOffset(1), '3');
 		assertEqual(p.CharAtOffset(2), '4');
-		assertUndefined(p.CharAtOffset(3));
-		assertUndefined(p.CharAtOffset(30));
+		assert(p.CharAtOffset(3)=="\0");
+		assert(p.CharAtOffset(30)=="\0");
     }},
     
     testSkipChar : function() { with(this) {

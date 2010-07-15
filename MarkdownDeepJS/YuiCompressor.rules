@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="YuiCompressor"
+	Version="8.00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="YuiCompressor"
+			DisplayName="YuiCompressor"
+			CommandLine="java -jar yuicompressor-2.4.2.jar  [AllOptions] [inputs]"
+			Outputs="[$OutputFileName]"
+			FileExtensions="*.js"
+			>
+			<Properties>
+				<StringProperty
+					Name="OutputFileName"
+					DisplayName="Output File Name"
+					Switch="-o &quot;[value]&quot;"
+					DefaultValue="$(OutDir)\$(InputName).min.js"
+				/>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>
