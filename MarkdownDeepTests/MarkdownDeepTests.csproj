@@ -37,6 +37,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -50,6 +51,9 @@
     <Compile Include="BlockProcessorTests.cs" />
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
+    <Compile Include="JavascriptTests.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MoreTestFiles.cs" />
     <Compile Include="LinkAndImgTests.cs" />
     <Compile Include="SpanLevelTests.cs" />
@@ -371,6 +375,19 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="testfiles\spantests\Emphasis.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MarkdownDeepTests.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="JSTestResources\JSHost.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="JSTestResources\MarkdownDeep.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

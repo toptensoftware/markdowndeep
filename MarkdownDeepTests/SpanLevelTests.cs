@@ -23,5 +23,11 @@ namespace MarkdownDeepTests
 			Utils.RunResourceTest(resourceName);
 		}
 
+		[Test, TestCaseSource("GetTests")]
+		public void Test_js(string resourceName)
+		{
+			Utils.RunResourceTestJS(resourceName);
+		}
+
 	}
 }

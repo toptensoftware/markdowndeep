@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using NUnit.Framework;
+using System.Windows.Forms;
 
 namespace MarkdownDeepTests
 {
@@ -134,6 +135,83 @@ namespace MarkdownDeepTests
 
 			Assert.AreEqual(expected_clean, actual_clean);
 		}
+
+		public static string TransformUsingJS(string inputText)
+		{
+			// Find test page
+			var url = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+			url = System.IO.Path.GetDirectoryName(url);
+			url = url.Replace("file:\\", "file:\\\\");
+			url = url.Replace("\\", "/");
+			url = url + "/JSTestResources/JSHost.html";
+
+			// Create browser, navigate and wait
+			WebBrowser b = new WebBrowser();
+			b.Navigate(url);
+			//b.ScriptErrorsSuppressed = true;
+
+			while (b.ReadyState != WebBrowserReadyState.Complete)
+			{
+				Application.DoEvents();
+			}
+
+			/*
+
+			// Get elements
+			var input = b.Document.GetElementById("markdown_input");
+			var output = b.Document.GetElementById("markdown_output");
+
+			// Set the input text
+			input.InnerText = inputText;
+
+			// Run the script
+			b.Document.InvokeScript("run");
+
+			// Get the output text
+			var result = output.InnerText;
+			 */
+
+			var o = b.Document.InvokeScript("transform", new object[] { inputText } );
+
+			string result = o as string;
+
+			// Clean up
+			b.Dispose();
+
+			return result;
+		}
+
+		public static void RunTestJS(string input)
+		{
+			string normalized_input = input.Replace("\r\n", "\n").Replace("\r", "\n");
+
+			// Work out the expected output using C# implementation
+			var md = new MarkdownDeep.Markdown();
+			string expected = md.Transform(normalized_input);
+
+			// Transform using javascript implementation
+			string actual = TransformUsingJS(input);
+
+			actual = actual.Replace("\r", "");
+			expected = expected.Replace("\r", "");
+
+			string sep = new string('-', 30) + "\n";
+
+			Console.WriteLine("Input:\n" + sep + input);
+			Console.WriteLine("Actual:\n" + sep + actual);
+			Console.WriteLine("Expected:\n" + sep + expected);
+
+			// Check it
+			Assert.AreEqual(expected, actual);
+		}
+
+		public static void RunResourceTestJS(string resourceName)
+		{
+			// Get the input script
+			string input = Utils.LoadTextResource(resourceName);
+			RunTestJS(input);
+		}
+
 
 	}
 }

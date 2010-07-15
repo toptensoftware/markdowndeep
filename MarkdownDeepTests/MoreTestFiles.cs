@@ -23,6 +23,12 @@ namespace MarkdownDeepTests
 			Utils.RunResourceTest(resourceName);
 		}
 
+		[Test, TestCaseSource("GetTests_mdtest11")]
+		public void Test_mdtest11_js(string resourceName)
+		{
+			Utils.RunResourceTestJS(resourceName);
+		}
+
 		public static IEnumerable<TestCaseData> GetTests_mdtest01()
 		{
 			return Utils.GetTests("mdtest01");
@@ -33,6 +39,12 @@ namespace MarkdownDeepTests
 		public void Test_mdtest01(string resourceName)
 		{
 			Utils.RunResourceTest(resourceName);
+		}
+
+		[Test, TestCaseSource("GetTests_mdtest01")]
+		public void Test_mdtest01_js(string resourceName)
+		{
+			Utils.RunResourceTestJS(resourceName);
 		}
 
 		/*
@@ -62,6 +74,16 @@ namespace MarkdownDeepTests
 		public void Test_phpmarkdown(string resourceName)
 		{
 			Utils.RunResourceTest(resourceName);
+		}
+
+		[Test, TestCaseSource("GetTests_phpmarkdown")]
+		public void Test_phpmarkdown_js(string resourceName)
+		{
+			// Fake success for randomized link can't ever match
+			if (resourceName.EndsWith("Email auto links.text"))
+				return;
+
+			Utils.RunResourceTestJS(resourceName);
 		}
 
 

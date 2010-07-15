@@ -53,7 +53,7 @@ namespace MarkdownDeep
 				{
 					case BlockType.codeblock:
 						StringBuilder s = new StringBuilder();
-						foreach (var line in m_childBlocks)
+						foreach (var line in children)
 						{
 							s.Append(line.Content);
 							s.Append('\n');
@@ -71,7 +71,7 @@ namespace MarkdownDeep
 
 		internal void RenderChildren(Markdown m, StringBuilder b)
 		{
-			foreach (var block in m_childBlocks)
+			foreach (var block in children)
 			{
 				block.Render(m, b);
 			}
@@ -123,7 +123,7 @@ namespace MarkdownDeep
 
 				case BlockType.codeblock:
 					b.Append("<pre><code>");
-					foreach (var line in m_childBlocks)
+					foreach (var line in children)
 					{
 						m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
 						b.Append("\n");
@@ -229,6 +229,6 @@ namespace MarkdownDeep
 		internal int contentLen;
 		internal int lineStart;
 		internal int lineLen;
-		internal List<Block> m_childBlocks;
+		internal List<Block> children;
 	}
 }

@@ -328,7 +328,7 @@ namespace MarkdownDeep
 				{
 					// Create a new quote block
 					var quote = new Block(BlockType.quote);
-					quote.m_childBlocks = new BlockProcessor(m_markdown, BlockType.quote).Process(RenderLines(lines));
+					quote.children = new BlockProcessor(m_markdown, BlockType.quote).Process(RenderLines(lines));
 					FreeBlocks(lines);
 					blocks.Add(quote);
 					break;
@@ -342,8 +342,8 @@ namespace MarkdownDeep
 				case BlockType.indent:
 				{
 					var codeblock = new Block(BlockType.codeblock);
-					codeblock.m_childBlocks = new List<Block>();
-					codeblock.m_childBlocks.AddRange(lines);
+					codeblock.children = new List<Block>();
+					codeblock.children.AddRange(lines);
 					blocks.Add(codeblock);
 					lines.Clear();
 					break;
@@ -739,7 +739,7 @@ namespace MarkdownDeep
 
 			// Create the wrapping list item
 			var List = new Block(listType == BlockType.ul_li ? BlockType.ul : BlockType.ol);
-			List.m_childBlocks = new List<Block>();
+			List.children = new List<Block>();
 
 			// Process all lines in the range		
 			for (int i = 0; i < lines.Count; i++)
@@ -761,7 +761,7 @@ namespace MarkdownDeep
 				{
 					// It's a simple, single line item item
 					System.Diagnostics.Debug.Assert(start_of_li == i);
-					List.m_childBlocks.Add(CreateBlock().CopyFrom(lines[i]));
+					List.children.Add(CreateBlock().CopyFrom(lines[i]));
 				}
 				else
 				{
@@ -782,12 +782,12 @@ namespace MarkdownDeep
 
 					// Create the item and process child blocks
 					var item = new Block(BlockType.li);
-					item.m_childBlocks = new BlockProcessor(m_markdown, listType).Process(sb.ToString());
+					item.children = new BlockProcessor(m_markdown, listType).Process(sb.ToString());
 
 					// If no blank lines, change all contained paragraphs to plain text
 					if (!bAnyBlanks)
 					{
-						foreach (var child in item.m_childBlocks)
+						foreach (var child in item.children)
 						{
 							if (child.blockType == BlockType.p)
 							{
@@ -797,7 +797,7 @@ namespace MarkdownDeep
 					}
 
 					// Add the complex item
-					List.m_childBlocks.Add(item);
+					List.children.Add(item);
 				}
 
 				// Continue processing from end of li
