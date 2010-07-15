@@ -735,11 +735,18 @@ var MarkdownDeep = new function(){
 
     /////////////////////////////////////////////////////////////////////////////
     // HtmlTag
+    
+    HtmlTagFlags={};
+    HtmlTagFlags.Block		= 0x0001,			// Block tag
+    HtmlTagFlags.Inline		= 0x0002,			// Inline tag
+    HtmlTagFlags.NoClosing	= 0x0004,			// No closing tag (eg: <hr> and <!-- -->)
+
 
     function HtmlTag(name)
     {
         this.name=name;
         this.attributes={};
+        this.flags=0;
     }
 
     HtmlTag.IsSafeUrl = function(url)
@@ -761,11 +768,33 @@ var MarkdownDeep = new function(){
         "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
     };
     		
-    HtmlTag.block_tags = { 
-        "p":1, "div":1, "h1":1, "h2":1, "h3":1, "h4":1, "h5":1, "h6":1, 
-	    "blockquote":1, "pre":1, "table":1, "dl":1, "ol":1, "ul":1, "script":1, "noscript":1, 
-	    "form":1, "fieldset":1, "iframe":1, "math":1, "ins":1, "del":1 
-    };
+    HtmlTag.tag_flags= { 
+			"p": HtmlTagFlags.Block , 
+            "div": HtmlTagFlags.Block , 
+            "h1": HtmlTagFlags.Block , 
+            "h2": HtmlTagFlags.Block , 
+            "h3": HtmlTagFlags.Block , 
+            "h4": HtmlTagFlags.Block , 
+            "h5": HtmlTagFlags.Block , 
+            "h6": HtmlTagFlags.Block , 
+            "blockquote": HtmlTagFlags.Block , 
+            "pre": HtmlTagFlags.Block , 
+            "table": HtmlTagFlags.Block , 
+            "dl": HtmlTagFlags.Block , 
+            "ol": HtmlTagFlags.Block , 
+            "ul": HtmlTagFlags.Block , 
+            "script": HtmlTagFlags.Block , 
+            "noscript": HtmlTagFlags.Block , 
+            "form": HtmlTagFlags.Block , 
+            "fieldset": HtmlTagFlags.Block , 
+            "iframe": HtmlTagFlags.Block , 
+            "math": HtmlTagFlags.Block , 
+            "ins": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
+            "del": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
+            "img": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
+            "hr": HtmlTagFlags.Block | HtmlTagFlags.NoClosing, 
+            "!": HtmlTagFlags.Block | HtmlTagFlags.NoClosing
+            };
 
 
     p=HtmlTag.prototype;
@@ -785,9 +814,17 @@ var MarkdownDeep = new function(){
         return count;
     }
 
-    p.IsBlockTag = function()
+    p.get_Flags = function()
     {
-        return HtmlTag.block_tags[this.name]==1;
+        if (this.flags==0)
+        {
+            this.flags=HtmlTag.tag_flags[this.name.toLowerCase()]
+            if (this.flags==undefined)
+            {
+                this.flags=HtmlTagFlags.Inline;
+            }
+        }
+        return this.flags;
     }
 
     p.IsSafe = function()
@@ -2805,8 +2842,10 @@ var MarkdownDeep = new function(){
 		if (openingTag.closing)
 			return false;
 
+		var flags = openingTag.get_Flags();
+
 		// Closed tag, hr or comment?
-		if (openingTag.name == "!" || openingTag.name.toLowerCase() == "hr" || openingTag.closed)
+		if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
 		{
 			p.SkipLinespace();
 			p.SkipEol();
@@ -2814,9 +2853,17 @@ var MarkdownDeep = new function(){
 		}
 
 		// Is it a block level tag?
-		if (!openingTag.IsBlockTag())
+		if ((flags & HtmlTagFlags.Block)==0)
 			return false;
 
+		// Can it also be an inline tag?
+		if ((flags & HtmlTagFlags.Inline) != 0)
+		{
+			// Yes, opening tag must be on a line by itself
+			p.SkipLinespace();
+			if (!p.eol())
+				return false;
+		}
 
 		// Now capture everything up to the closing tag and put it all in a single HTML block
 		var depth = 1;

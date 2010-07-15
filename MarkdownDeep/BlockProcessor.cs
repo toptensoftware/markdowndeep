@@ -631,8 +631,10 @@ namespace MarkdownDeep
 			if (openingTag.closing)
 				return false;
 
+			HtmlTagFlags flags = openingTag.Flags;
+
 			// Closed tag, hr or comment?
-			if (openingTag.name == "!" || openingTag.name.ToLower() == "hr" || openingTag.closed)
+			if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
 			{
 				SkipLinespace();
 				SkipEol();
@@ -640,9 +642,17 @@ namespace MarkdownDeep
 			}
 
 			// Is it a block level tag?
-			if (!openingTag.IsBlockTag())
+			if ((flags & HtmlTagFlags.Block)==0)
 				return false;
 
+			// Can it also be an inline tag?
+			if ((flags & HtmlTagFlags.Inline) != 0)
+			{
+				// Yes, opening tag must be on a line by itself
+				SkipLinespace();
+				if (!eol)
+					return false;
+			}
 
 			// Now capture everything up to the closing tag and put it all in a single HTML block
 			int depth = 1;

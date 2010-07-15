@@ -5,6 +5,14 @@ using System.Text;
 
 namespace MarkdownDeep
 {
+	[Flags]
+	public enum HtmlTagFlags
+	{
+		Block		= 0x0001,			// Block tag
+		Inline		= 0x0002,			// Inline tag
+		NoClosing	= 0x0004,			// No closing tag (eg: <hr> and <!-- -->)
+	};
+
 	public class HtmlTag
 	{
 		public HtmlTag(string name)
@@ -40,10 +48,22 @@ namespace MarkdownDeep
 		Dictionary<string, string> m_attributes = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
 		bool m_closed;
 		bool m_closing;
+		HtmlTagFlags m_flags = 0;
 
-		public bool IsBlockTag()
+		public HtmlTagFlags Flags
 		{
-			return Utils.IsInList(name.ToLower(), m_block_tags);
+			get
+			{
+				if (m_flags == 0)
+				{
+					if (!m_tag_flags.TryGetValue(name.ToLower(), out m_flags))
+					{
+						m_flags |= HtmlTagFlags.Inline;
+					}
+				}
+
+				return m_flags;
+			}
 		}
 
 		static string[] m_allowed_tags = new string [] {
@@ -56,8 +76,33 @@ namespace MarkdownDeep
 			{ "img", new string[] { "src", "width", "height", "alt", "title" } },
 		};
 
-		static string[] m_block_tags= new string[] { "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", 
-			"blockquote", "pre", "table", "dl", "ol", "ul", "script", "noscript", "form", "fieldset", "iframe", "math", "ins", "del" };
+		static Dictionary<string, HtmlTagFlags> m_tag_flags = new Dictionary<string, HtmlTagFlags>() {
+			{ "p", HtmlTagFlags.Block }, 
+			{ "div", HtmlTagFlags.Block }, 
+			{ "h1", HtmlTagFlags.Block }, 
+			{ "h2", HtmlTagFlags.Block }, 
+			{ "h3", HtmlTagFlags.Block }, 
+			{ "h4", HtmlTagFlags.Block }, 
+			{ "h5", HtmlTagFlags.Block }, 
+			{ "h6", HtmlTagFlags.Block }, 
+			{ "blockquote", HtmlTagFlags.Block }, 
+			{ "pre", HtmlTagFlags.Block }, 
+			{ "table", HtmlTagFlags.Block }, 
+			{ "dl", HtmlTagFlags.Block }, 
+			{ "ol", HtmlTagFlags.Block }, 
+			{ "ul", HtmlTagFlags.Block }, 
+			{ "script", HtmlTagFlags.Block }, 
+			{ "noscript", HtmlTagFlags.Block }, 
+			{ "form", HtmlTagFlags.Block }, 
+			{ "fieldset", HtmlTagFlags.Block }, 
+			{ "iframe", HtmlTagFlags.Block }, 
+			{ "math", HtmlTagFlags.Block }, 
+			{ "ins", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "del", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "img", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "hr", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
+			{ "!", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
+		};
 
 		// Check if this tag is safe
 		public bool IsSafe()
