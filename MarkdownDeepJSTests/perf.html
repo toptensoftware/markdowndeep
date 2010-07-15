@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<title>MarkdownDeep JavaScript Test Page</title>
+<script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+
+	String.prototype.repeat = function(num) {
+		return new Array(num + 1).join(this);
+	}
+	$(function() {
+
+		$("#go").click(function() {
+
+			// Create a really long string
+			var long_string = "This is a line of typical length for a piece of markdown code\n";
+			long_string = long_string.repeat(10000);
+
+			var start = (new Date).getTime();
+
+			var pos = 0;
+			var lines = 0;
+			while (true) {
+				pos = long_string.indexOf("\n", pos);
+				if (pos < 0)
+					break;
+				lines++;
+				pos++;
+			}
+
+			var t1 = (new Date).getTime() - start;
+
+			start = (new Date).getTime();
+			pos = 0;
+			lines = 0;
+			while (pos < long_string.length) {
+				if (long_string[pos] == '\n')
+					lines++;
+				pos++;
+			}
+
+			var t2 = (new Date).getTime() - start;
+
+			start = (new Date).getTime();
+			pos = 0;
+			lines = 0;
+			while (pos < long_string.length) {
+				if (long_string.charCodeAt(pos) == 10)
+					lines++;
+				pos++;
+			}
+
+			var t3 = (new Date).getTime() - start;
+
+			start = (new Date).getTime();
+			pos = 0;
+			lines = 0;
+			while (pos < long_string.length) {
+				if (long_string.charAt(pos) == '\n')
+					lines++;
+				pos++;
+			}
+
+			var t4 = (new Date).getTime() - start;
+
+			$("#info").html("");
+			$("#info").append("Length:        " + long_string.length + "\n");
+			$("#info").append("str.indexOf(): " + t1 + "\n");
+			$("#info").append("string[i]:     " + t2 + "\n");
+			$("#info").append("charCodeAt:    " + t3 + "\n");
+			$("#info").append("charAt:        " + t3 + "\n");
+
+		});
+
+	})
+
+</script>
+</head>
+<body>
+
+<input type="button" value="Go!" id="go" />
+
+<pre id="info"></pre>
+
+</body>
+</html>

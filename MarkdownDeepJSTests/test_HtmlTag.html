@@ -1,0 +1,166 @@
+<!DOCTYPE html >
+<html>
+<head>
+  <title>JavaScript unit test file</title>
+  <link rel="stylesheet" href="/js/unittest.css" type="text/css" />
+  <script src="/js/jsunittest.js" type="text/javascript"></script>
+
+  <script src="/js/MarkdownDeep.js" type="text/javascript"></script>
+  
+</head>
+<body>
+
+<div id="content">
+
+  <div id="header">
+    <h1>MarkdownDeep unit test file</h1>
+    <p>
+      This file tests <strong>MarkdownDeep.HtmlTag</strong>.
+    </p>
+  </div>
+
+  <!-- Log output (one per Runner, via {testLog: "testlog"} option)-->
+  <div id="testlog"></div>
+  
+  <!-- Put sample/test html here -->
+  <div id="sample">
+  </div>
+</div>
+
+<script type="text/javascript">
+// <![CDATA[
+    
+	function parse(s) 
+	{ 
+		return MarkdownDeep.HtmlTag.Parse(new MarkdownDeep.StringParser(s));
+	};
+    
+  new Test.Unit.Runner({
+    setup: function() {
+    },
+    
+    teardown: function() {
+    },
+    
+    testUnquoted : function() { with(this) {
+		var str="<div x=1 y=2>";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(false, t.closed);
+		assertEqual(2, t.attributeCount());
+		assertEqual("1", t.attributes.x);
+		assertEqual("2", t.attributes.y);
+    }},
+    
+    testQuoted : function() { with(this) {
+		var str="<div x=\"1\" y=\"2\">";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(false, t.closed);
+		assertEqual(2, t.attributeCount());
+		assertEqual("1", t.attributes.x);
+		assertEqual("2", t.attributes.y);
+    }},
+    
+    testEmpty : function() { with(this) {
+		var str="<div>";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(false, t.closed);
+		assertEqual(0, t.attributeCount());
+    }},
+    
+    testClosed : function() { with(this) {
+		var str="<div/>";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(true, t.closed);
+		assertEqual(0, t.attributeCount());
+    }},
+    
+    testClosedWithAttribs : function() { with(this) {
+		var str="<div x=\"1\" y=\"2\" />";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(true, t.closed);
+		assertEqual(2, t.attributeCount());
+		assertEqual("1", t.attributes.x);
+		assertEqual("2", t.attributes.y);
+    }},
+    
+    testClosing : function() { with(this) {
+		var str="</div>";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("div", t.name);
+		assertEqual(true, t.closing);
+		assertEqual(false, t.closed);
+		assertEqual(0, t.attributeCount());
+    }},
+    
+    testComment : function() { with(this) {
+		var str="<!-- comment -->";
+		var t=parse(str);
+		
+		assertNotNull(t);
+		assertEqual("!", t.name);
+		assertEqual(false, t.closing);
+		assertEqual(true, t.closed);
+		assertEqual(1, t.attributeCount());
+		assertEqual(" comment ", t.attributes.content);
+    }},
+    
+    testInvalid : function() { with(this) {
+    
+		assertNull(parse("<"));
+		assertNull(parse("<div"));
+		assertNull(parse("<div x"));
+		assertNull(parse("<div x="));
+		assertNull(parse("<div x=\""));
+		assertNull(parse("<div x=\"123"));
+		assertNull(parse("<div x=\"123\""));
+		assertNull(parse("</div x=123>"));
+    
+    }},
+    
+    testBlockTags : function() { with(this) {
+    
+		assertEqual(true, parse("<div>").IsBlockTag());
+		assertEqual(false, parse("<strong>").IsBlockTag());
+    
+    }},
+    
+    testSafeTags : function() { with(this) {
+    
+		// NB: These tests are only to confirm the script runs 
+		//		-- not to ensure the accuracy of the safety checks.
+		
+		assertEqual(true, parse("<p>").IsSafe());
+		assertEqual(false, parse("<script>").IsSafe());
+
+		assertEqual(true, parse("<img src=\"http://blah\">").IsSafe());
+		assertEqual(false, parse("<img src=\"javascript:\">").IsSafe());
+		assertEqual(false, parse("<img onClick=\"dragons here\">").IsSafe());
+    }},
+    
+  }); 
+// ]]>
+</script>
+</body>
+</html>
