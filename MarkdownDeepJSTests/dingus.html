@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<title>MarkdownDeep JavaScript Test Page</title>
+<link rel="stylesheet" href="dingus.css" type="text/css" />
+<script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="/js/MarkdownDeep.js"></script>
+<script type="text/javascript">
+
+var last_content="";
+var markdown=new MarkdownDeep.Markdown();
+
+function onMarkdownChanged()
+{
+	var new_content=$("#markdown_input").attr("value");
+	if (new_content==last_content)
+		return;
+		
+	var startTime = new Date().getTime();
+	var output=markdown.Transform(new_content);
+	var processingTime = new Date().getTime()- startTime;
+		
+	$("#markdown_output").html(output);
+	$("#processingTime").text(processingTime);
+				
+	last_content=new_content;
+}
+
+$(function() {
+	$("#markdown_input").bind("keyup", onMarkdownChanged);
+	$("#markdown_input").bind("paste", onMarkdownChanged);
+	$("#markdown_input").bind("input", onMarkdownChanged);
+});
+
+
+</script>
+</head>
+<body>
+
+<textarea cols=20 rows=20 id="markdown_input">This **A** a test</textarea>
+<p>Time: <span id="processingTime">0</span>ms</p>
+<div id="markdown_output"></div>
+
+</body>
+</html>
