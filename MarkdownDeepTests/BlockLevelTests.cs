@@ -28,14 +28,5 @@ namespace MarkdownDeepTests
 		{
 			Utils.RunResourceTestJS(resourceName);
 		}
-
-
-		/*
-		[Test]
-		public void TestJS()
-		{
-			Utils.RunTestJS("Paragraph 1\n\nParagraph 2");
-		}
-		 */
 	}
 }

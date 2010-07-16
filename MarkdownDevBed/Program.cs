@@ -12,6 +12,7 @@ namespace MarkdownDevBed
 		static void Main(string[] args)
 		{
 			Markdown m = new Markdown();
+			m.SafeMode = true;
 			string str=m.Transform(FileContents("input.txt"));
 			Console.Write(str);
 		}

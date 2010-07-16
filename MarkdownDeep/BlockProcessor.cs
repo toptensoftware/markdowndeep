@@ -249,6 +249,7 @@ namespace MarkdownDeep
 					case BlockType.h5:
 					case BlockType.h6:
 					case BlockType.html:
+					case BlockType.unsafe_html:
 					case BlockType.hr:
 						CollapseLines(blocks, lines);
 						blocks.Add(b);
@@ -365,16 +366,17 @@ namespace MarkdownDeep
 			int end = -1;
 			b.blockType=EvaluateLine(ref b.contentStart, ref end);
 
-			// Move to end of line
-			SkipToEol();
 
 			// If end of line not returned, do it automatically
 			if (end < 0)
 			{
-				b.contentLen = position-b.contentStart;
+				// Move to end of line
+				SkipToEol();
+				b.contentLen = position - b.contentStart;
 			}
 			else
 			{
+				// Work out len
 				b.contentLen = end-b.contentStart;
 			}
 
@@ -516,10 +518,13 @@ namespace MarkdownDeep
 			if (ch == '<')
 			{
 				// Scan html block
-				if (ScanHtml())
+				var type=ScanHtml();
+				if (type!=BlockType.Blank)
 				{
+					// Could be either BlockType.Html for valid, allowed html or
+					// BlockType.Span for unsafe html that should be escaped.
 					end = position;
-					return BlockType.html;
+					return type;
 				}
 
 				// Rewind
@@ -620,30 +625,43 @@ namespace MarkdownDeep
 			return BlockType.p;
 		}
 
-		internal bool ScanHtml()
+		// Scan from the current position to the end of the html section
+		// Returns
+		//   BlockType.Blank - not a valid html block
+		//   BlockType.html - valid allowed html, write as is
+		//   BlockType.unsafe_html - invalid html, escape and write it
+		internal BlockType ScanHtml()
 		{
 			// Parse a HTML tag
 			HtmlTag openingTag = HtmlTag.Parse(this);
 			if (openingTag == null)
-				return false;
+				return BlockType.Blank;
 
 			// Closing tag?
 			if (openingTag.closing)
-				return false;
+				return BlockType.Blank;
+
+			// Safe mode?
+			bool bHasUnsafeContent = false;
+			if (m_markdown.SafeMode && !openingTag.IsSafe())
+				bHasUnsafeContent = true;
 
 			HtmlTagFlags flags = openingTag.Flags;
 
 			// Closed tag, hr or comment?
 			if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
 			{
+				if (bHasUnsafeContent)
+					return BlockType.Blank;
+
 				SkipLinespace();
 				SkipEol();
-				return true;
+				return BlockType.html;
 			}
 
 			// Is it a block level tag?
 			if ((flags & HtmlTagFlags.Block)==0)
-				return false;
+				return BlockType.Blank;
 
 			// Can it also be an inline tag?
 			if ((flags & HtmlTagFlags.Inline) != 0)
@@ -651,7 +669,7 @@ namespace MarkdownDeep
 				// Yes, opening tag must be on a line by itself
 				SkipLinespace();
 				if (!eol)
-					return false;
+					return BlockType.Blank;
 			}
 
 			// Now capture everything up to the closing tag and put it all in a single HTML block
@@ -672,6 +690,10 @@ namespace MarkdownDeep
 					continue;
 				}
 
+				// Safe mode checks
+				if (m_markdown.SafeMode && !tag.IsSafe())
+					bHasUnsafeContent = true;
+				
 				// Same tag?
 				if (tag.name == openingTag.name && !tag.closed)
 				{
@@ -683,7 +705,8 @@ namespace MarkdownDeep
 							// End of tag?
 							SkipLinespace();
 							SkipEol();
-							return true;
+
+							return bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
 						}
 					}
 					else
@@ -694,7 +717,7 @@ namespace MarkdownDeep
 			}
 
 			// Missing closing tag(s).  
-			return false;
+			return BlockType.Blank;
 		}
 
 		/*

@@ -31,9 +31,10 @@
 			this.txtMarkdown = new System.Windows.Forms.TextBox();
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.tabPage1 = new System.Windows.Forms.TabPage();
-			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.webPreview = new System.Windows.Forms.WebBrowser();
+			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.txtSource = new System.Windows.Forms.TextBox();
+			this.checkSafeMode = new System.Windows.Forms.CheckBox();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
 			this.tabPage2.SuspendLayout();
@@ -61,7 +62,7 @@
 			this.tabControl1.Location = new System.Drawing.Point(12, 199);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
-			this.tabControl1.Size = new System.Drawing.Size(473, 161);
+			this.tabControl1.Size = new System.Drawing.Size(473, 184);
 			this.tabControl1.TabIndex = 1;
 			// 
 			// tabPage1
@@ -70,21 +71,10 @@
 			this.tabPage1.Location = new System.Drawing.Point(4, 22);
 			this.tabPage1.Name = "tabPage1";
 			this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage1.Size = new System.Drawing.Size(465, 135);
+			this.tabPage1.Size = new System.Drawing.Size(465, 158);
 			this.tabPage1.TabIndex = 0;
 			this.tabPage1.Text = "Preview";
 			this.tabPage1.UseVisualStyleBackColor = true;
-			// 
-			// tabPage2
-			// 
-			this.tabPage2.Controls.Add(this.txtSource);
-			this.tabPage2.Location = new System.Drawing.Point(4, 22);
-			this.tabPage2.Name = "tabPage2";
-			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage2.Size = new System.Drawing.Size(465, 135);
-			this.tabPage2.TabIndex = 1;
-			this.tabPage2.Text = "Source";
-			this.tabPage2.UseVisualStyleBackColor = true;
 			// 
 			// webPreview
 			// 
@@ -94,8 +84,19 @@
 			this.webPreview.Location = new System.Drawing.Point(0, 0);
 			this.webPreview.MinimumSize = new System.Drawing.Size(20, 20);
 			this.webPreview.Name = "webPreview";
-			this.webPreview.Size = new System.Drawing.Size(465, 132);
+			this.webPreview.Size = new System.Drawing.Size(465, 158);
 			this.webPreview.TabIndex = 0;
+			// 
+			// tabPage2
+			// 
+			this.tabPage2.Controls.Add(this.txtSource);
+			this.tabPage2.Location = new System.Drawing.Point(4, 22);
+			this.tabPage2.Name = "tabPage2";
+			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPage2.Size = new System.Drawing.Size(465, 158);
+			this.tabPage2.TabIndex = 1;
+			this.tabPage2.Text = "Source";
+			this.tabPage2.UseVisualStyleBackColor = true;
 			// 
 			// txtSource
 			// 
@@ -109,14 +110,26 @@
 			this.txtSource.Name = "txtSource";
 			this.txtSource.ReadOnly = true;
 			this.txtSource.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.txtSource.Size = new System.Drawing.Size(465, 135);
+			this.txtSource.Size = new System.Drawing.Size(465, 158);
 			this.txtSource.TabIndex = 0;
+			// 
+			// checkSafeMode
+			// 
+			this.checkSafeMode.AutoSize = true;
+			this.checkSafeMode.Location = new System.Drawing.Point(12, 389);
+			this.checkSafeMode.Name = "checkSafeMode";
+			this.checkSafeMode.Size = new System.Drawing.Size(78, 17);
+			this.checkSafeMode.TabIndex = 2;
+			this.checkSafeMode.Text = "&Safe Mode";
+			this.checkSafeMode.UseVisualStyleBackColor = true;
+			this.checkSafeMode.CheckedChanged += new System.EventHandler(this.checkSafeMode_CheckedChanged);
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(497, 372);
+			this.ClientSize = new System.Drawing.Size(497, 414);
+			this.Controls.Add(this.checkSafeMode);
 			this.Controls.Add(this.tabControl1);
 			this.Controls.Add(this.txtMarkdown);
 			this.Name = "Form1";
@@ -138,6 +151,7 @@
 		private System.Windows.Forms.WebBrowser webPreview;
 		private System.Windows.Forms.TabPage tabPage2;
 		private System.Windows.Forms.TextBox txtSource;
+		private System.Windows.Forms.CheckBox checkSafeMode;
 	}
 }
 

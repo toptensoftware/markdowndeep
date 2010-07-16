@@ -118,10 +118,16 @@ namespace MarkdownDeepTests
 
 		public static void RunResourceTest(string resourceName)
 		{
+			RunResourceTest(resourceName, false);
+		}
+		
+		public static void RunResourceTest(string resourceName, bool SafeMode)
+		{
 			string input = Utils.LoadTextResource(resourceName);
 			string expected = Utils.LoadTextResource(System.IO.Path.ChangeExtension(resourceName, "html"));
 
 			var md = new MarkdownDeep.Markdown();
+			md.SafeMode = SafeMode;
 
 			string actual = md.Transform(input);
 			string actual_clean = Utils.strip_redundant_whitespace(actual);
@@ -136,7 +142,7 @@ namespace MarkdownDeepTests
 			Assert.AreEqual(expected_clean, actual_clean);
 		}
 
-		public static string TransformUsingJS(string inputText)
+		public static string TransformUsingJS(string inputText, bool SafeMode)
 		{
 			// Find test page
 			var url = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
@@ -155,7 +161,7 @@ namespace MarkdownDeepTests
 				Application.DoEvents();
 			}
 
-			var o = b.Document.InvokeScript("transform", new object[] { inputText } );
+			var o = b.Document.InvokeScript("transform", new object[] { inputText, SafeMode } );
 
 			string result = o as string;
 
@@ -165,16 +171,17 @@ namespace MarkdownDeepTests
 			return result;
 		}
 
-		public static void RunTestJS(string input)
+		public static void RunTestJS(string input, bool SafeMode)
 		{
 			string normalized_input = input.Replace("\r\n", "\n").Replace("\r", "\n");
 
 			// Work out the expected output using C# implementation
 			var md = new MarkdownDeep.Markdown();
+			md.SafeMode = SafeMode;
 			string expected = md.Transform(normalized_input);
 
 			// Transform using javascript implementation
-			string actual = TransformUsingJS(input);
+			string actual = TransformUsingJS(input, SafeMode);
 
 			actual = actual.Replace("\r", "");
 			expected = expected.Replace("\r", "");
@@ -191,25 +198,17 @@ namespace MarkdownDeepTests
 
 		public static void RunResourceTestJS(string resourceName)
 		{
+			RunResourceTestJS(resourceName, false);
+		}
+
+		public static void RunResourceTestJS(string resourceName, bool SafeMode)
+		{
 			// Get the input script
 			string input = Utils.LoadTextResource(resourceName);
-			RunTestJS(input);
+			RunTestJS(input, SafeMode);
 		}
 
 
 	}
 }
 
-
-/*
- * Issues:
- * 
- * 1. Don't allow multiline headings
- * 2. Nested list items without blank line.  Don't join indent to previous if looks like a list item
- * 3. Multiline HTML comments are broken.
- * 4. Reference links where the id is on the next line
- * 5. Formatting in link text  eg: [** link text **](url)
- * 6. Escapes in urls eg: [link](url\(parens\))
- * 7. Link titles with embedded quotes
- * 
-*/

@@ -51,6 +51,7 @@
     <Compile Include="BlockProcessorTests.cs" />
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
+    <Compile Include="SafeModeTests.cs" />
     <Compile Include="JavascriptTests.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -391,6 +392,8 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="testfiles\safemode\Basic.txt" />
+    <EmbeddedResource Include="testfiles\safemode\Basic.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

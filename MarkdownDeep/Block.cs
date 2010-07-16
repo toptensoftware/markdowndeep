@@ -25,6 +25,7 @@ namespace MarkdownDeep
 		indent,			// an indented line (parse only)
 		hr,				// horizontal rule (render and parse)
 		html,			// html content (render and parse)
+		unsafe_html,	// unsafe html that should be encoded
 		span,			// an undecorated span of text (used for simple list items 
 						//			where content is not wrapped in paragraph tags
 		codeblock,		// a code block (render only)
@@ -119,6 +120,10 @@ namespace MarkdownDeep
 
 				case BlockType.html:
 					b.Append(buf, contentStart, contentLen);
+					return;
+
+				case BlockType.unsafe_html:
+					m.HtmlEncode(b, buf, contentStart, contentLen);
 					return;
 
 				case BlockType.codeblock:

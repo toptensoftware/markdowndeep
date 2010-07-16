@@ -35,6 +35,11 @@ namespace MarkdownDeep
 			return sb.ToString();
 		}
 
+		public bool SafeMode
+		{
+			get;
+			set;
+		}
 
 		// Add a link definition
 		public void AddLinkDefinition(LinkDefinition link)

@@ -29,6 +29,7 @@ var MarkdownDeep = new function(){
         this.m_SpareBlocks=new Array();
         this.m_StringBuilder=new StringBuilder();
         this.m_LinkDefinitions=new Array();
+        this.SafeMode=false;
     }
     
     var p=Markdown.prototype;
@@ -1563,7 +1564,16 @@ var MarkdownDeep = new function(){
 					if (tag != null)
 					{
 						// Yes, create a token for it
-						token = this.CreateToken(TokenType.HtmlTag, save, p.position - save);
+						if (!this.m_Markdown.SafeMode || tag.IsSafe())
+						{
+							// Yes, create a token for it
+							token = this.CreateToken(TokenType.HtmlTag, save, p.position - save);
+						}
+						else
+						{
+							// No, rewrite and encode it
+							p.position = save;
+						}
 					}
 					else
 					{
@@ -2117,12 +2127,13 @@ var MarkdownDeep = new function(){
     BlockType.p=12;		
     BlockType.indent=13;			
     BlockType.hr=14;				
-    BlockType.html=15,			
-    BlockType.span=16;
-    BlockType.codeblock=17;		
-    BlockType.li=18;	
-    BlockType.ol=19;			
-    BlockType.ul=20;			
+    BlockType.html=15;
+    BlockType.unsafe_html=16;
+    BlockType.span=17;
+    BlockType.codeblock=18;		
+    BlockType.li=19;	
+    BlockType.ol=20;			
+    BlockType.ul=21;			
 
     function Block()
     {
@@ -2211,6 +2222,10 @@ var MarkdownDeep = new function(){
 
 			case BlockType.html:
 				b.Append(this.buf.substr(this.contentStart, this.contentLen));
+				return;
+
+			case BlockType.unsafe_html:
+				b.HtmlEncode(this.buf, this.contentStart, this.contentLen);
 				return;
 
 			case BlockType.codeblock:
@@ -2523,6 +2538,7 @@ var MarkdownDeep = new function(){
 				case BlockType.h5:
 				case BlockType.h6:
 				case BlockType.html:
+				case BlockType.unsafe_html:
 				case BlockType.hr:
 					this.CollapseLines(blocks, lines);
 					blocks.push(b);
@@ -2655,12 +2671,12 @@ var MarkdownDeep = new function(){
 		b.contentLen=-1;
 		b.blockType=this.EvaluateLineInternal(p, b);
 
-		// Move to end of line
-		p.SkipToEol();
 
 		// If end of line not returned, do it automatically
 		if (b.contentLen < 0)
 		{
+		    // Move to end of line
+		    p.SkipToEol();
 			b.contentLen = p.position-b.contentStart;
 		}
 
@@ -2802,10 +2818,13 @@ var MarkdownDeep = new function(){
 		if (ch == '<')
 		{
 			// Parse html block
-			if (this.ScanHtml(p))
+			var type=this.ScanHtml(p);
+			if (type!=BlockType.Blank)
 			{
+                // Could be either BlockType.Html for valid, allowed html or
+                // BlockType.Span for unsafe html that should be escaped.
 			    b.contentLen = p.position-b.contentStart;
-				return BlockType.html;
+				return type;
 			}
 
 			// Rewind
@@ -2906,30 +2925,43 @@ var MarkdownDeep = new function(){
 		return BlockType.p;
 	}
 
+	// Scan from the current position to the end of the html section
+	// Returns
+	//   BlockType.Blank - not a valid html block
+	//   BlockType.html - valid allowed html, write as is
+	//   BlockType.unsafe_html - invalid html, escape and write it
 	p.ScanHtml=function(p)
 	{
 		// Parse a HTML tag
 		var openingTag = HtmlTag.Parse(p);
 		if (openingTag == null)
-			return false;
+			return BlockType.Blank;
 
 		// Closing tag?
 		if (openingTag.closing)
-			return false;
+			return BlockType.Blank;
 
-		var flags = openingTag.get_Flags();
+		// Safe mode?
+		var bHasUnsafeContent = false;
+		if (this.m_Markdown.SafeMode && !openingTag.IsSafe())
+			bHasUnsafeContent = true;
+			
+ 		var flags = openingTag.get_Flags();
 
 		// Closed tag, hr or comment?
 		if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
 		{
+			if (bHasUnsafeContent)
+				return BlockType.Blank;
+				
 			p.SkipLinespace();
 			p.SkipEol();
-			return true;
+			return BlockType.html;
 		}
 
 		// Is it a block level tag?
 		if ((flags & HtmlTagFlags.Block)==0)
-			return false;
+			return BlockType.Blank;
 
 		// Can it also be an inline tag?
 		if ((flags & HtmlTagFlags.Inline) != 0)
@@ -2937,7 +2969,7 @@ var MarkdownDeep = new function(){
 			// Yes, opening tag must be on a line by itself
 			p.SkipLinespace();
 			if (!p.eol())
-				return false;
+				return BlockType.Blank;
 		}
 
 		// Now capture everything up to the closing tag and put it all in a single HTML block
@@ -2958,6 +2990,10 @@ var MarkdownDeep = new function(){
 				continue;
 			}
 
+			// Safe mode checks
+			if (this.m_Markdown.SafeMode && !tag.IsSafe())
+				bHasUnsafeContent = true;
+
 			// Same tag?
 			if (tag.name == openingTag.name && !tag.closed)
 			{
@@ -2969,7 +3005,7 @@ var MarkdownDeep = new function(){
 						// End of tag?
 						p.SkipLinespace();
 						p.SkipEol();
-						return true;
+						return bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
 					}
 				}
 				else
@@ -2980,7 +3016,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Missing closing tag(s).  
-		return false;
+		return BlockType.Blank;
 	}
 
 	/* 

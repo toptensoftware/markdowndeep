@@ -17,6 +17,7 @@ function onMarkdownChanged()
 		return;
 		
 	var startTime = new Date().getTime();
+	markdown.SafeMode=true;
 	var output=markdown.Transform(new_content);
 	var processingTime = new Date().getTime()- startTime;
 		

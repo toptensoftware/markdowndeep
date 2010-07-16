@@ -1,18 +1,23 @@
 ﻿pre
 
-<div class="nomarkdown">
+<script>
+A disallowed block-level tag
+</script>
 
-	**No Markdown**
+<blockquote>
+An allowed block-level tag
+</blockquote>
 
-	<div markdown=1 class="markdown">
-	
-		**Markdown**
-	
-	</div>
+<a href="http://google.com">An allowed span-level tag</a>
 
-</div>
+<a href="javascript:blah">A disallowed span-level tag</a>
+
+<blockquote>
+<a href="http://google.com">An allowed span-level tag</a>
+</blockquote>
+
+<blockquote>
+<a href="javascript:blah">A disallowed span-level tag</a>
+</blockquote>
 
 post
-
-
-

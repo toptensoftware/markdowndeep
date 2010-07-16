@@ -183,8 +183,16 @@ namespace MarkdownDeep
 						HtmlTag tag = HtmlTag.Parse(this);
 						if (tag != null)
 						{
-							// Yes, create a token for it
-							token = CreateToken(TokenType.HtmlTag, save, position - save);
+							if (!m_Markdown.SafeMode || tag.IsSafe())
+							{
+								// Yes, create a token for it
+								token = CreateToken(TokenType.HtmlTag, save, position - save);
+							}
+							else
+							{
+								// No, rewrite and encode it
+								position = save;
+							}
 						}
 						else
 						{
