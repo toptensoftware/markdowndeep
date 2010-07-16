@@ -12,7 +12,7 @@ namespace MarkdownDeep
 		public Markdown()
 		{
 			m_StringBuilder = new StringBuilder();
-			m_StringParser = new StringParser();
+			m_StringScanner = new StringScanner();
 			m_SpanFormatter = new SpanFormatter(this);
 			m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
 		}
@@ -56,8 +56,8 @@ namespace MarkdownDeep
 		// HtmlEncode a range in a string to a specified string builder
 		internal void HtmlEncode(StringBuilder dest, string str, int start, int len)
 		{
-			m_StringParser.Reset(str, start, len);
-			var p = m_StringParser;
+			m_StringScanner.Reset(str, start, len);
+			var p = m_StringScanner;
 			while (!p.eof)
 			{
 				char ch = p.current;
@@ -91,8 +91,8 @@ namespace MarkdownDeep
 		// HtmlEncode a string, also converting tabs to spaces (used by CodeBlocks)
 		internal void HtmlEncodeAndConvertTabsToSpaces(StringBuilder dest, string str, int start, int len)
 		{
-			m_StringParser.Reset(str, start, len);
-			var p = m_StringParser;
+			m_StringScanner.Reset(str, start, len);
+			var p = m_StringScanner;
 			int pos = 0;
 			while (!p.eof)
 			{
@@ -184,7 +184,7 @@ namespace MarkdownDeep
 
 		// Attributes
 		StringBuilder m_StringBuilder;
-		StringParser m_StringParser;
+		StringScanner m_StringScanner;
 		SpanFormatter m_SpanFormatter;
 		Dictionary<string, LinkDefinition> m_LinkDefinitions;
 	

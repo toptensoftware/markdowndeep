@@ -32,7 +32,7 @@
     
 	function parse(s) 
 	{ 
-		return MarkdownDeep.HtmlTag.Parse(new MarkdownDeep.StringParser(s));
+		return MarkdownDeep.HtmlTag.Parse(new MarkdownDeep.StringScanner(s));
 	};
     
   new Test.Unit.Runner({

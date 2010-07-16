@@ -297,7 +297,7 @@ namespace MarkdownDeep
 		}
 
 		// Extension method.  Skip an escapable character, or one normal character
-		public static void SkipEscapableChar(this StringParser p)
+		public static void SkipEscapableChar(this StringScanner p)
 		{
 			if (p.current == '\\' && IsEscapableChar(p.CharAtOffset(1)))
 			{
@@ -343,7 +343,7 @@ namespace MarkdownDeep
 				return str;
 
 			StringBuilder sb = new StringBuilder();
-			StringParser sp = new StringParser(str);
+			StringScanner sp = new StringScanner(str);
 			while (!sp.eof)
 			{
 				if (sp.eol)

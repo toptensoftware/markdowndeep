@@ -15,7 +15,7 @@
   <div id="header">
     <h1>MarkdownDeep unit test file</h1>
     <p>
-      This file tests <strong>MarkdownDeep.StringParser</strong>.
+      This file tests <strong>MarkdownDeep.StringScanner</strong>.
     </p>
   </div>
 
@@ -31,7 +31,7 @@
 // <![CDATA[
   new Test.Unit.Runner({
     setup: function() {
-		this.p=new MarkdownDeep.StringParser();
+		this.p=new MarkdownDeep.StringScanner();
     },
     
     teardown: function() {

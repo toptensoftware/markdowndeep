@@ -8,12 +8,12 @@ using MarkdownDeep;
 namespace MarkdownDeepTests
 {
 	[TestFixture]
-	class StringParserTests
+	class StringScannerTests
 	{
 		[Test]
 		public void Tests()
 		{
-			var p = new StringParser();
+			var p = new StringScanner();
 
 			p.Reset("This is a string with something [bracketed]");
 			Assert.IsTrue(p.bof);

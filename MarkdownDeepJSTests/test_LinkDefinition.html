@@ -34,7 +34,7 @@
 		this.sb=new MarkdownDeep.StringBuilder();
 		this.parse = function(str)
 		{
-			return MarkdownDeep.LinkDefinition.ParseLinkDefinition(new MarkdownDeep.StringParser(str))
+			return MarkdownDeep.LinkDefinition.ParseLinkDefinition(new MarkdownDeep.StringScanner(str))
 		}
     },
     

@@ -540,14 +540,14 @@ var MarkdownDeep = new function(){
 
 
     /////////////////////////////////////////////////////////////////////////////
-    // StringParser
+    // StringScanner
 
-    function StringParser()
+    function StringScanner()
     {
         this.reset.apply(this, arguments);
     }
 
-    p=StringParser.prototype;
+    p=StringScanner.prototype;
 	p.bof = function() 
 	{ 
 		return this.position==this.start; 
@@ -1376,7 +1376,7 @@ var MarkdownDeep = new function(){
     function SpanFormatter(markdown)
     {
         this.m_Markdown=markdown;
-        this.m_Parser=new StringParser();
+        this.m_Scanner=new StringScanner();
         this.m_SpareTokens=new Array();
         this.DisableLinks=false;
     }
@@ -1386,8 +1386,8 @@ var MarkdownDeep = new function(){
     // Format part of a string into a destination string builder
     p.Format = function(dest, str, start, len) 
     {
-        // Reset the string parser
-        this.m_Parser.reset(str, start, len);
+        // Reset the string scanner
+        this.m_Scanner.reset(str, start, len);
 
         // Parse the string into a list of tokens
         var tokens = this.Tokenize();
@@ -1493,7 +1493,7 @@ var MarkdownDeep = new function(){
 
     p.Tokenize=function()
     {
-        var p=this.m_Parser;
+        var p=this.m_Scanner;
         
 		var tokens = null;
 		var emphasis_marks = null;
@@ -1684,7 +1684,7 @@ var MarkdownDeep = new function(){
 	// Create emphasis mark for sequences of '*' and '_' (part 1)
 	p.CreateEmphasisMark=function()
 	{
-	    var p=this.m_Parser;
+	    var p=this.m_Scanner;
 	    
 		// Capture current state
 		var ch = p.current();
@@ -1758,7 +1758,7 @@ var MarkdownDeep = new function(){
 	// Resolve emphasis marks (part 2)
 	p.ResolveEmphasisMarks=function(tokens, marks)
 	{
-	    var input=this.m_Parser.buf;
+	    var input=this.m_Scanner.buf;
 	
 		var bContinue = true;
 		while (bContinue)
@@ -1826,7 +1826,7 @@ var MarkdownDeep = new function(){
 		if (this.DisableLinks)
 			return null;
 			
-	    var p=this.m_Parser;
+	    var p=this.m_Scanner;
 
 		// Skip the angle bracket and remember the start
 		p.SkipForward(1);
@@ -1889,7 +1889,7 @@ var MarkdownDeep = new function(){
 		if (this.DisableLinks)
 			return null;
 			
-		var p=this.m_Parser;
+		var p=this.m_Scanner;
 
 		// Link or image?
 		var token_type = p.SkipChar('!') ? TokenType.img : TokenType.link;
@@ -2022,7 +2022,7 @@ var MarkdownDeep = new function(){
 	// Process a ``` code span ```
     p.ProcessCodeSpan=function()
 	{
-	    var p=this.m_Parser;
+	    var p=this.m_Scanner;
 		var start = p.position;
 
 		// Count leading ticks
@@ -2311,8 +2311,8 @@ var MarkdownDeep = new function(){
     p=BlockProcessor.prototype;
     p.Process=function(str)
 	{
-		// Reset string parser
-		var p=new StringParser(str);
+		// Reset string scanner
+		var p=new StringScanner(str);
 
 		// The final set of blocks will be collected here
 		var blocks = new Array();
@@ -3106,7 +3106,7 @@ var MarkdownDeep = new function(){
     this.Markdown=Markdown;
     this.StringBuilder=StringBuilder;
     this.SpanFormatter=SpanFormatter;
-    this.StringParser=StringParser;
+    this.StringScanner=StringScanner;
     this.BlockProcessor=BlockProcessor;
     this.LinkDefinition=LinkDefinition;
     this.HtmlTag=HtmlTag;

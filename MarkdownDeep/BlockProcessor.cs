@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MarkdownDeep
 {
-	public class BlockProcessor : StringParser
+	public class BlockProcessor : StringScanner
 	{
 		public BlockProcessor(Markdown m)
 		{
@@ -21,12 +21,12 @@ namespace MarkdownDeep
 
 		internal List<Block> Process(string str)
 		{
-			return ParseLines(str);
+			return ScanLines(str);
 		}
 
-		internal List<Block> ParseLines(string str)
+		internal List<Block> ScanLines(string str)
 		{
-			// Reset string parser
+			// Reset string scanner
 			Reset(str);
 
 			// The final set of blocks will be collected here
@@ -515,7 +515,7 @@ namespace MarkdownDeep
 			// Html block?
 			if (ch == '<')
 			{
-				// Parse html block
+				// Scan html block
 				if (ScanHtml())
 				{
 					end = position;

@@ -6,32 +6,32 @@ using System.Text;
 namespace MarkdownDeep
 {
 	/*
-	 * StringParser is a simple class to help scan through an input string.
+	 * StringScanner is a simple class to help scan through an input string.
 	 * 
 	 * Maintains a current position with various operations to inspect the current
 	 * character, skip forward, check for matches, skip whitespace etc...
 	 */
-	public class StringParser
+	public class StringScanner
 	{
 		// Constructor
-		public StringParser()
+		public StringScanner()
 		{
 		}
 
 		// Constructor
-		public StringParser(string str)
+		public StringScanner(string str)
 		{
 			Reset(str);
 		}
 
 		// Constructor
-		public StringParser(string str, int pos)
+		public StringScanner(string str, int pos)
 		{
 			Reset(str, pos);
 		}
 
 		// Constructor
-		public StringParser(string str, int pos, int len)
+		public StringScanner(string str, int pos, int len)
 		{
 			Reset(str, pos, len);
 		}

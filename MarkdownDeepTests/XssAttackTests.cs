@@ -85,7 +85,7 @@ namespace MarkdownDeepTests
 		[Test, TestCaseSource("GetAttacks")]
 		public void TestAttacksAreBlocked(string input)
 		{
-			StringParser p = new StringParser(input);
+			StringScanner p = new StringScanner(input);
 
 			while (!p.eof)
 			{
@@ -115,7 +115,7 @@ namespace MarkdownDeepTests
 		[Test, TestCaseSource("GetAllowed")]
 		public void TestNonAttacksAreAllowed(string input)
 		{
-			StringParser p = new StringParser(input);
+			StringScanner p = new StringScanner(input);
 
 			while (!p.eof)
 			{

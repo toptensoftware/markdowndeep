@@ -102,12 +102,12 @@ namespace MarkdownDeep
 		// Parse a link definition from a string (used by test cases)
 		public static LinkDefinition ParseLinkDefinition(string str)
 		{
-			StringParser p = new StringParser(str);
+			StringScanner p = new StringScanner(str);
 			return ParseLinkDefinitionInternal(p);
 		}
 
 		// Parse a link definition
-		internal static LinkDefinition ParseLinkDefinition(StringParser p)
+		internal static LinkDefinition ParseLinkDefinition(StringScanner p)
 		{
 			int savepos=p.position;
 			var l = ParseLinkDefinitionInternal(p);
@@ -117,7 +117,7 @@ namespace MarkdownDeep
 
 		}
 
-		internal static LinkDefinition ParseLinkDefinitionInternal(StringParser p)
+		internal static LinkDefinition ParseLinkDefinitionInternal(StringScanner p)
 		{
 			// Skip leading white space
 			p.SkipWhitespace();
@@ -152,7 +152,7 @@ namespace MarkdownDeep
 		// Parse just the link target
 		// For reference link definition, this is the bit after "[id]: thisbit"
 		// For inline link, this is the bit in the parens: [link text](thisbit)
-		public static LinkDefinition ParseLinkTarget(StringParser p, string id)
+		public static LinkDefinition ParseLinkTarget(StringScanner p, string id)
 		{
 			// Skip whitespace
 			p.SkipWhitespace();

@@ -150,7 +150,7 @@ namespace MarkdownDeep
 
 		public static HtmlTag Parse(string str, ref int pos)
 		{
-			StringParser sp = new StringParser(str, pos);
+			StringScanner sp = new StringScanner(str, pos);
 			var ret = Parse(sp);
 
 			if (ret!=null)
@@ -162,7 +162,7 @@ namespace MarkdownDeep
 			return null;
 		}
 
-		public static HtmlTag Parse(StringParser p)
+		public static HtmlTag Parse(StringScanner p)
 		{
 			// Save position
 			int savepos = p.position;
@@ -177,7 +177,7 @@ namespace MarkdownDeep
 			return null;
 		}
 
-		private static HtmlTag ParseHelper(StringParser p)
+		private static HtmlTag ParseHelper(StringScanner p)
 		{
 			// Does it look like a tag?
 			if (p.current != '<')

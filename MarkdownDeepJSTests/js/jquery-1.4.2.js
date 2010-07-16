@@ -507,7 +507,7 @@ jQuery.extend({
 			.replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, "]")
 			.replace(/(?:^|:|,)(?:\s*\[)+/g, "")) ) {
 
-			// Try to use the native JSON parser first
+			// Try to use the native JSON scanner first
 			return window.JSON && window.JSON.parse ?
 				window.JSON.parse( data ) :
 				(new Function("return " + data))();
@@ -5195,7 +5195,7 @@ jQuery.extend({
 						// process the data (runs the xml through httpData regardless of callback)
 						data = jQuery.httpData( xhr, s.dataType, s );
 					} catch(err) {
-						status = "parsererror";
+						status = "scannererror";
 						errMsg = err;
 					}
 				}
@@ -5348,8 +5348,8 @@ jQuery.extend({
 			xml = type === "xml" || !type && ct.indexOf("xml") >= 0,
 			data = xml ? xhr.responseXML : xhr.responseText;
 
-		if ( xml && data.documentElement.nodeName === "parsererror" ) {
-			jQuery.error( "parsererror" );
+		if ( xml && data.documentElement.nodeName === "scannererror" ) {
+			jQuery.error( "scannererror" );
 		}
 
 		// Allow a pre-filtering function to sanitize the response

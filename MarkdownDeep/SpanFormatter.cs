@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MarkdownDeep
 {
-	internal class SpanFormatter : StringParser
+	internal class SpanFormatter : StringScanner
 	{
 		// Constructor
 		// A reference to the owning markdown object is passed incase
@@ -18,7 +18,7 @@ namespace MarkdownDeep
 		// Format a range in an input string and write it to the destination string builder.
 		internal void Format(StringBuilder dest, string str, int start, int len)
 		{
-			// Reset the string parser
+			// Reset the string scanner
 			base.Reset(str, start, len);
 
 			// Parse the string into a list of tokens
@@ -544,7 +544,7 @@ namespace MarkdownDeep
 		// This is horrible and probably much better done through regex, but I'm stubborn.
 		// For normal cases this routine works as expected.  For unusual cases (eg: overlapped
 		// strong and emphasis blocks), the behaviour is probably not the same as the original
-		// markdown parser.
+		// markdown scanner.
 		/*
 		public Token ProcessEmphasisOld(ref Token prev_single, ref Token prev_double)
 		{
