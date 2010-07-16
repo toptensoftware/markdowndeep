@@ -1,0 +1,23 @@
+﻿pre
+
+<script>
+A disallowed block-level tag
+</script>
+
+<blockquote>
+An allowed block-level tag
+</blockquote>
+
+<a href="http://google.com">An allowed span-level tag</a>
+
+<a href="javascript:blah">A disallowed span-level tag</a>
+
+<blockquote>
+<a href="http://google.com">An allowed span-level tag</a>
+</blockquote>
+
+<blockquote>
+<a href="javascript:blah">A disallowed span-level tag</a>
+</blockquote>
+
+post
