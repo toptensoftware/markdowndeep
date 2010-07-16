@@ -53,13 +53,18 @@
     <Reference Include="System.Web.Mobile" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="test_Experiment.html" />
+    <Content Include="dingus.html">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
+    <Content Include="js\unittest.css" />
     <Content Include="test_Transform.html" />
     <Content Include="test_BlockProcessor.html" />
     <Content Include="js\jquery-1.4.2.js" />
     <Content Include="js\jquery-1.4.2.min.js" />
     <Content Include="test_SpanFormatter.html" />
     <Content Include="js\jsunittest.js" />
-    <Content Include="js\unittest.css" />
+    <Content Include="dingus.css" />
     <Content Include="test_LinkDefinition.html" />
     <Content Include="test_HtmlTag.html" />
     <Content Include="test_StringBuilder.html" />

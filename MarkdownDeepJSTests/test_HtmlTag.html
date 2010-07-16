@@ -141,8 +141,8 @@
     
     testBlockTags : function() { with(this) {
     
-		assertEqual(true, parse("<div>").IsBlockTag());
-		assertEqual(false, parse("<strong>").IsBlockTag());
+		assert((parse("<div>").get_Flags() & MarkdownDeep.HtmlTagFlags.Block)!=0);
+		assert((parse("<strong>").get_Flags() & MarkdownDeep.HtmlTagFlags.Inline)!=0);
     
     }},
     

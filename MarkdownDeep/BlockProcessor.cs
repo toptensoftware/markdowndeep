@@ -422,13 +422,13 @@ namespace MarkdownDeep
 
 				// Jump to end and rewind over trailing hashes
 				SkipToEol();
-				while (CharAtOffset(-1) == '#')
+				while (position>start && CharAtOffset(-1) == '#')
 				{
 					SkipForward(-1);
 				}
 
 				// Rewind over trailing spaces
-				while (char.IsWhiteSpace(CharAtOffset(-1)))
+				while (position>start && char.IsWhiteSpace(CharAtOffset(-1)))
 				{
 					SkipForward(-1);
 				}

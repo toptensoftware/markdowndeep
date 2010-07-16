@@ -570,6 +570,7 @@ var MarkdownDeep = new function(){
 		this.start=arguments.length>1 ? arguments[1] : 0;
 		this.end=arguments.length>2 ? this.start + arguments[2] : (this.buf==null ? 0 : this.buf.length);
 		this.position=this.start;
+		this.charset_offsets={};
 	}
 
 	p.current = function()
@@ -666,6 +667,67 @@ var MarkdownDeep = new function(){
 		}
 		return this.position!=save;
 	}
+	p.FindRE=function(re)
+	{
+	    re.lastIndex=this.position;
+	    var result=re.exec(this.buf);
+	    if (result==null)
+	    {
+	        this.position=this.end;
+	        return false;
+	    }
+	    
+	    if (result.index + result[0].length > this.end)
+	    {
+	        this.position=this.end;
+	        return false;
+	    }
+	
+	    this.position=result.index;
+        return true;
+	}
+	p.FindOneOf=function(charset)
+	{
+	    var next=-1;
+        for (var ch in charset)
+        {
+            var charset_info=charset[ch];
+            
+            // Setup charset_info for this character
+            if (charset_info==null)
+            {
+                charset_info={};
+                charset_info.searched_from=-1;
+                charset_info.found_at=-1;
+                charset[ch]=charset_info;
+            }
+            
+            // Search again?
+            if (charset_info.searched_from==-1 || 
+                this.position < charset_info.searched_from || 
+                (this.position >= charset_info.found_at && charset_info.found_at!=-1))
+            {
+                charset_info.searched_from=this.position;
+                charset_info.found_at=this.buf.indexOf(ch, this.position);
+            }
+
+            // Is this character next?            
+            if (next==-1 || charset_info.found_at<next)
+            {
+                next=charset_info.found_at;
+            }
+            
+        }
+        
+        if (next==-1)
+        {
+            next=this.end;
+            return false;
+        }
+        
+        p.position=next;
+        return true;
+	}
 	p.Find= function(s)
 	{
 		this.position=this.buf.indexOf(s, this.position);
@@ -737,9 +799,9 @@ var MarkdownDeep = new function(){
     // HtmlTag
     
     HtmlTagFlags={};
-    HtmlTagFlags.Block		= 0x0001,			// Block tag
-    HtmlTagFlags.Inline		= 0x0002,			// Inline tag
-    HtmlTagFlags.NoClosing	= 0x0004,			// No closing tag (eg: <hr> and <!-- -->)
+    HtmlTagFlags.Block		= 0x0001;			// Block tag
+    HtmlTagFlags.Inline		= 0x0002;			// Inline tag
+    HtmlTagFlags.NoClosing	= 0x0004;			// No closing tag (eg: <hr> and <!-- -->)
 
 
     function HtmlTag(name)
@@ -748,54 +810,6 @@ var MarkdownDeep = new function(){
         this.attributes={};
         this.flags=0;
     }
-
-    HtmlTag.IsSafeUrl = function(url)
-    {
-        url=url.toLowerCase();
-        return (url.substr(0, 7)=="http://" ||
-                url.substr(0, 8)=="https://" ||
-                url.substr(0, 6)=="ftp://")
-    }
-
-    HtmlTag.allowed_tags = {
-	    "b":1,"blockquote":1,"code":1,"dd":1,"dt":1,"dl":1,"del":1,"em":1,
-	    "h1":1,"h2":1,"h3":1,"h4":1,"h5":1,"h6":1,"i":1,"kbd":1,"li":1,"ol":1,"ul":1,
-	    "p":1, "pre":1, "s":1, "sub":1, "sup":1, "strong":1, "strike":1, "img":1, "a":1
-    };
-
-    HtmlTag.allowed_attributes = {
-        "a": { "href":1, "title":1 },
-        "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
-    };
-    		
-    HtmlTag.tag_flags= { 
-			"p": HtmlTagFlags.Block , 
-            "div": HtmlTagFlags.Block , 
-            "h1": HtmlTagFlags.Block , 
-            "h2": HtmlTagFlags.Block , 
-            "h3": HtmlTagFlags.Block , 
-            "h4": HtmlTagFlags.Block , 
-            "h5": HtmlTagFlags.Block , 
-            "h6": HtmlTagFlags.Block , 
-            "blockquote": HtmlTagFlags.Block , 
-            "pre": HtmlTagFlags.Block , 
-            "table": HtmlTagFlags.Block , 
-            "dl": HtmlTagFlags.Block , 
-            "ol": HtmlTagFlags.Block , 
-            "ul": HtmlTagFlags.Block , 
-            "script": HtmlTagFlags.Block , 
-            "noscript": HtmlTagFlags.Block , 
-            "form": HtmlTagFlags.Block , 
-            "fieldset": HtmlTagFlags.Block , 
-            "iframe": HtmlTagFlags.Block , 
-            "math": HtmlTagFlags.Block , 
-            "ins": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
-            "del": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
-            "img": HtmlTagFlags.Block | HtmlTagFlags.Inline , 
-            "hr": HtmlTagFlags.Block | HtmlTagFlags.NoClosing, 
-            "!": HtmlTagFlags.Block | HtmlTagFlags.NoClosing
-            };
-
 
     p=HtmlTag.prototype;
     p.attributes=null;
@@ -818,7 +832,7 @@ var MarkdownDeep = new function(){
     {
         if (this.flags==0)
         {
-            this.flags=HtmlTag.tag_flags[this.name.toLowerCase()]
+            this.flags=tag_flags[this.name.toLowerCase()]
             if (this.flags==undefined)
             {
                 this.flags=HtmlTagFlags.Inline;
@@ -832,12 +846,12 @@ var MarkdownDeep = new function(){
 	    var name_lower=this.name.toLowerCase();
     	
 	    // Check if tag is in whitelist
-	    if (!HtmlTag.allowed_tags[name_lower])
+	    if (!allowed_tags[name_lower])
 	        return false;
 
 	    // Find allowed attributes
-	    var allowed_attributes=HtmlTag.allowed_attributes[name_lower];
-	    if (!allowed_attributes)
+	    var allowed=allowed_attributes[name_lower];
+	    if (!allowed)
 	    {
 	        return this.attributeCount()==0;
 	    }
@@ -849,7 +863,7 @@ var MarkdownDeep = new function(){
 	    // Check all are allowed
 	    for (var i in this.attributes)
 	    {
-	        if (!allowed_attributes[i.toLowerCase()])
+	        if (!allowed[i.toLowerCase()])
 			    return false;
 	    }
 
@@ -868,6 +882,14 @@ var MarkdownDeep = new function(){
 
 	    // Passed all white list checks, allow it
 	    return true;
+    }
+
+    HtmlTag.IsSafeUrl = function(url)
+    {
+        url=url.toLowerCase();
+        return (url.substr(0, 7)=="http://" ||
+                url.substr(0, 8)=="https://" ||
+                url.substr(0, 6)=="ftp://")
     }
 
     HtmlTag.Parse=function(p)
@@ -997,6 +1019,52 @@ var MarkdownDeep = new function(){
 
 	    return null;
     }
+
+
+    allowed_tags = {
+	    "b":1,"blockquote":1,"code":1,"dd":1,"dt":1,"dl":1,"del":1,"em":1,
+	    "h1":1,"h2":1,"h3":1,"h4":1,"h5":1,"h6":1,"i":1,"kbd":1,"li":1,"ol":1,"ul":1,
+	    "p":1, "pre":1, "s":1, "sub":1, "sup":1, "strong":1, "strike":1, "img":1, "a":1
+    };
+
+    allowed_attributes = {
+        "a": { "href":1, "title":1 },
+        "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
+    };
+    		
+    var b=HtmlTagFlags.Block;
+    var i=HtmlTagFlags.Inline;
+    var n=HtmlTagFlags.NoClosing;
+    tag_flags= { 
+			"p": b , 
+            "div": b , 
+            "h1": b , 
+            "h2": b , 
+            "h3": b , 
+            "h4": b , 
+            "h5": b , 
+            "h6": b , 
+            "blockquote": b , 
+            "pre": b , 
+            "table": b , 
+            "dl": b , 
+            "ol": b , 
+            "ul": b , 
+            "script": b , 
+            "noscript": b , 
+            "form": b , 
+            "fieldset": b , 
+            "iframe": b , 
+            "math": b , 
+            "ins": b | i , 
+            "del": b | i , 
+            "img": b | i , 
+            "hr": b | n, 
+            "!": b | n
+            };
+    delete b;
+    delete i;
+    delete n;  
 
 
 
@@ -1429,14 +1497,21 @@ var MarkdownDeep = new function(){
         
 		var tokens = null;
 		var emphasis_marks = null;
-				
+			
+		//var charset={   '*':null, '_':null, '`':null, '[':null, '!':null, 
+		//                '<':null, '&':null, ' ':null, '\\':null };
+		
+		var re=/[\*\_\`\[\!\<\&\ \\]/g;
 
 		// Scan string
 		var start_text_token = p.position;
 		while (!p.eof())
 		{
-			var end_text_token=p.position;
+			if (!p.FindRE(re))
+			    break;  
 
+			var end_text_token=p.position;
+			
 			// Work out token
 			var token = null;
 			switch (p.current())
@@ -2633,13 +2708,13 @@ var MarkdownDeep = new function(){
 
 			// Jump to end and rewind over trailing hashes
 			p.SkipToEol();
-			while (p.CharAtOffset(-1) == '#')
+			while (p.position>b.contentStart && p.CharAtOffset(-1) == '#')
 			{
 				p.SkipForward(-1);
 			}
 
 			// Rewind over trailing spaces
-			while (CharTypes.is_whitespace(p.CharAtOffset(-1)))
+			while (p.position>b.contentStart && CharTypes.is_whitespace(p.CharAtOffset(-1)))
 			{
 				p.SkipForward(-1);
 			}
@@ -2921,7 +2996,7 @@ var MarkdownDeep = new function(){
 		// 2. Promote any unindented lines that have more leading space 
 		//    than the original list item to indented, including leading 
 		//    specal chars
-		var leadingSpace = lines[0].leadingSpaces;
+		var leadingSpace = lines[0].get_leadingSpaces();
 		for (var i = 1; i < lines.length; i++)
 		{
 			// Join plain paragraphs
@@ -2937,7 +3012,7 @@ var MarkdownDeep = new function(){
 
 			if (lines[i].blockType != BlockType.indent && lines[i].blockType!=BlockType.Blank)
 			{
-				var thisLeadingSpace=lines[i].leadingSpaces;
+				var thisLeadingSpace=lines[i].get_leadingSpaces();
 				if (thisLeadingSpace > leadingSpace)
 				{
 					// Change line to indented, including original leading chars 
@@ -3035,6 +3110,7 @@ var MarkdownDeep = new function(){
     this.BlockProcessor=BlockProcessor;
     this.LinkDefinition=LinkDefinition;
     this.HtmlTag=HtmlTag;
+    this.HtmlTagFlags=HtmlTagFlags;
     this.UnescapeString=UnescapeString;
     this.BlockType=BlockType;
 }();
