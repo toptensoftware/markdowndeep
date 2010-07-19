@@ -13,7 +13,7 @@ namespace MarkdownDeepTests
 		[SetUp]
 		public void Setup()
 		{
-			p = new BlockProcessor(new Markdown());
+			p = new BlockProcessor(new Markdown(), false);
 		}
 
 		[Test]

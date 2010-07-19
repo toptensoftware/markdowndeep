@@ -118,16 +118,13 @@ namespace MarkdownDeepTests
 
 		public static void RunResourceTest(string resourceName)
 		{
-			RunResourceTest(resourceName, false);
-		}
-		
-		public static void RunResourceTest(string resourceName, bool SafeMode)
-		{
 			string input = Utils.LoadTextResource(resourceName);
 			string expected = Utils.LoadTextResource(System.IO.Path.ChangeExtension(resourceName, "html"));
 
 			var md = new MarkdownDeep.Markdown();
-			md.SafeMode = SafeMode;
+			md.SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;;
+			md.ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;;
+			md.MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
 
 			string actual = md.Transform(input);
 			string actual_clean = Utils.strip_redundant_whitespace(actual);
@@ -142,7 +139,7 @@ namespace MarkdownDeepTests
 			Assert.AreEqual(expected_clean, actual_clean);
 		}
 
-		public static string TransformUsingJS(string inputText, bool SafeMode)
+		public static string TransformUsingJS(string inputText, bool SafeMode, bool ExtraMode, bool MarkdownInHtml)
 		{
 			// Find test page
 			var url = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
@@ -161,7 +158,7 @@ namespace MarkdownDeepTests
 				Application.DoEvents();
 			}
 
-			var o = b.Document.InvokeScript("transform", new object[] { inputText, SafeMode } );
+			var o = b.Document.InvokeScript("transform", new object[] { inputText, SafeMode, ExtraMode, MarkdownInHtml} );
 
 			string result = o as string;
 
@@ -171,17 +168,19 @@ namespace MarkdownDeepTests
 			return result;
 		}
 
-		public static void RunTestJS(string input, bool SafeMode)
+		public static void RunTestJS(string input, bool SafeMode, bool ExtraMode, bool MarkdownInHtml)
 		{
 			string normalized_input = input.Replace("\r\n", "\n").Replace("\r", "\n");
 
 			// Work out the expected output using C# implementation
 			var md = new MarkdownDeep.Markdown();
 			md.SafeMode = SafeMode;
+			md.ExtraMode = ExtraMode;
+			md.MarkdownInHtml = MarkdownInHtml;
 			string expected = md.Transform(normalized_input);
 
 			// Transform using javascript implementation
-			string actual = TransformUsingJS(input, SafeMode);
+			string actual = TransformUsingJS(input, SafeMode, ExtraMode, MarkdownInHtml);
 
 			actual = actual.Replace("\r", "");
 			expected = expected.Replace("\r", "");
@@ -198,14 +197,13 @@ namespace MarkdownDeepTests
 
 		public static void RunResourceTestJS(string resourceName)
 		{
-			RunResourceTestJS(resourceName, false);
-		}
+			bool SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;
+			bool ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;
+			bool MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
 
-		public static void RunResourceTestJS(string resourceName, bool SafeMode)
-		{
 			// Get the input script
 			string input = Utils.LoadTextResource(resourceName);
-			RunTestJS(input, SafeMode);
+			RunTestJS(input, SafeMode, ExtraMode, MarkdownInHtml);
 		}
 
 

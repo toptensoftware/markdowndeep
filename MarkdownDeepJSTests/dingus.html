@@ -3,12 +3,14 @@
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
 <link rel="stylesheet" href="dingus.css" type="text/css" />
-<script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="/js/jquery-1.4.2.js"></script>
 <script type="text/javascript" src="/js/MarkdownDeep.js"></script>
 <script type="text/javascript">
 
 var last_content="";
 var markdown=new MarkdownDeep.Markdown();
+markdown.SafeMode=false;
+markdown.ExtraMode=true;
 
 function onMarkdownChanged()
 {
@@ -17,11 +19,11 @@ function onMarkdownChanged()
 		return;
 		
 	var startTime = new Date().getTime();
-	markdown.SafeMode=true;
 	var output=markdown.Transform(new_content);
 	var processingTime = new Date().getTime()- startTime;
 		
 	$("#markdown_output").html(output);
+	$("#markdown_output_source").text(output);
 	$("#processingTime").text(processingTime);
 				
 	last_content=new_content;
@@ -41,6 +43,8 @@ $(function() {
 <textarea cols=20 rows=20 id="markdown_input">This **A** a test</textarea>
 <p>Time: <span id="processingTime">0</span>ms</p>
 <div id="markdown_output"></div>
+<hr />
+<pre id="markdown_output_source"></pre>
 
 </body>
 </html>

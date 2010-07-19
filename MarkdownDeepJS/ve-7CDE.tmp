@@ -563,8 +563,6 @@ var MarkdownDeep = new function(){
 
 	p.eol = function() 
 	{ 
-	    if (this.position>=this.end)
-	        return true;
 	    var ch=this.buf.charAt(this.position);
 	    return ch=='\r' || ch=='\n' || ch==undefined || ch=='';
 	}
@@ -2312,7 +2310,7 @@ var MarkdownDeep = new function(){
 				return;
 
 		    case BlockType.Composite:
-			    this.RenderChildren(m, b);
+			    RenderChildren(m, b);
 			    return;
 		}
 	}
@@ -3023,7 +3021,7 @@ var MarkdownDeep = new function(){
 		var inner_pos = p.position;
 		var depth = 1;
 		var bHasUnsafeContent = false;
-		while (!p.eof())
+		while (!eof)
 		{
 			// Find next angle bracket
 			if (!p.Find('<'))
@@ -3035,12 +3033,12 @@ var MarkdownDeep = new function(){
 			if (tag == null)
 			{
 				// Nope, skip it 
-				p.SkipForward(1);
+				SkipForward(1);
 				continue;
 			}
 
 			// In markdown off mode, we need to check for unsafe tags
-			if (this.m_Markdown.SafeMode && mode == MarkdownInHtmlMode.Off && !bHasUnsafeContent)
+			if (this.m_markdown.SafeMode && mode == MarkdownInHtmlMode.Off && !bHasUnsafeContent)
 			{
 				if (!tag.IsSafe())
 					bHasUnsafeContent = true;
@@ -3071,13 +3069,13 @@ var MarkdownDeep = new function(){
 							case MarkdownInHtmlMode.Span:
 							{
 								var span = this.CreateBlock();
-								span.buf = p.buf;
+								span.buf = p.input;
 								span.blockType = BlockType.span;
 								span.contentStart = inner_pos;
 								span.contentLen = tagpos - inner_pos;
 
 								b.children = new Array();
-								b.children.push(span);
+								b.children.Add(span);
 								break;
 							}
 
@@ -3085,8 +3083,8 @@ var MarkdownDeep = new function(){
 							case MarkdownInHtmlMode.Deep:
 							{
 								// Scan the internal content
-								var bp = new BlockProcessor(this.m_Markdown, mode == MarkdownInHtmlMode.Deep);
-								b.children = bp.ProcessRange(p.buf, inner_pos, tagpos - inner_pos);
+								var bp = new BlockProcessor(m_markdown, mode == MarkdownInHtmlMode.Deep);
+								b.children = bp.ProcessRange(input, inner_pos, tagpos - inner_pos);
 								break;
 							}
 
@@ -3100,13 +3098,13 @@ var MarkdownDeep = new function(){
 								else
 								{
 									var span = this.CreateBlock();
-									span.buf = p.buf;
+									span.buf = p.input;
 									span.blockType = BlockType.html;
 									span.contentStart = inner_pos;
 									span.contentLen = tagpos - inner_pos;
 
 									b.children = new Array();
-									b.children.push(span);
+									b.children.Add(span);
 								}
 								break;
 							}
@@ -3157,7 +3155,7 @@ var MarkdownDeep = new function(){
 		{
 			p.SkipLinespace();
 			p.SkipEol();
-			b.contentLen = p.position-b.contentStart;
+			b.contentLen = p.position-p.contentStart;
 			b.blockType = bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
 			return true;
 		}
@@ -3172,7 +3170,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Work out the markdown mode for this element
-		if (this.m_Markdown.ExtraMode)
+		if (this.m_markdown.ExtraMode)
 		{
 			var MarkdownMode = this.GetMarkdownMode(openingTag);
 			if (MarkdownMode != MarkdownInHtmlMode.NA)
@@ -3211,13 +3209,13 @@ var MarkdownDeep = new function(){
 				continue;
 
 			// Markdown enabled content?
-			if (!tag.closing && this.m_Markdown.ExtraMode && !bHasUnsafeContent)
+			if (!tag.closing && this.m_markdown.ExtraMode && !bHasUnsafeContent)
 			{
 				var MarkdownMode = this.GetMarkdownMode(tag);
 				if (MarkdownMode != MarkdownInHtmlMode.NA)
 				{
 					var markdownBlock = this.CreateBlock();
-					if (this.ProcessMarkdownEnabledHtml(p, markdownBlock, tag, MarkdownMode))
+					if (this.ProcessMarkdownEnabledHtml(markdownBlock, tag, MarkdownMode))
 					{
 						if (childBlocks==null)
 						{
@@ -3228,19 +3226,19 @@ var MarkdownDeep = new function(){
 						if (posStartCurrentTag > posStartPiece)
 						{
 							var htmlBlock = this.CreateBlock();
-							htmlBlock.buf = p.buf;
+							htmlBlock.buf = input;
 							htmlBlock.blockType = BlockType.html;
 							htmlBlock.contentStart = posStartPiece;
 							htmlBlock.contentLen = posStartCurrentTag - posStartPiece;
 
-							childBlocks.push(htmlBlock);
+							childBlocks.Add(htmlBlock);
 						}
 
 						// Add the markdown enabled child block
-						childBlocks.push(markdownBlock);
+						childBlocks.Add(markdownBlock);
 
 						// Remember start of the next piece
-						posStartPiece = p.position;
+						posStartPiece = position;
 
 						continue;
 					}
@@ -3267,7 +3265,7 @@ var MarkdownDeep = new function(){
 						if (bHasUnsafeContent)
 						{
 							b.blockType = BlockType.unsafe_html;
-							b.contentEnd = p.position;
+							b.contentEnd = position;
 							return true;
 						}
 
@@ -3278,12 +3276,12 @@ var MarkdownDeep = new function(){
 							if (p.position > posStartPiece)
 							{
 								var htmlBlock = this.CreateBlock();
-								htmlBlock.buf = p.buf;
+								htmlBlock.buf = input;
 								htmlBlock.blockType = BlockType.html;
 								htmlBlock.contentStart = posStartPiece;
 								htmlBlock.contentLen = p.position - posStartPiece;
 
-								childBlocks.push(htmlBlock);
+								childBlocks.Add(htmlBlock);
 							}
 
 							// Return a composite block
@@ -3295,7 +3293,7 @@ var MarkdownDeep = new function(){
 
 						// Straight html block
 						b.blockType = BlockType.html;
-						b.contentLen = p.position - b.contentStart;
+						b.contentEnd = position;
 						return true;
 					}
 				}

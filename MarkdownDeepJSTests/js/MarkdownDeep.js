@@ -30,6 +30,8 @@ var MarkdownDeep = new function(){
         this.m_StringBuilder=new StringBuilder();
         this.m_LinkDefinitions=new Array();
         this.SafeMode=false;
+        this.ExtraMode=false;
+        this.MarkdownInHtml=false;
     }
     
     var p=Markdown.prototype;
@@ -60,7 +62,7 @@ var MarkdownDeep = new function(){
 		this.m_LinkDefinitions.length=0;
 
 		// Process blocks
-		var blocks = new BlockProcessor(this).Process(input);
+		var blocks = new BlockProcessor(this, this.MarkdownInHtml).Process(input);
 
 		// Render
 		var sb = this.GetStringBuilder();
@@ -561,6 +563,8 @@ var MarkdownDeep = new function(){
 
 	p.eol = function() 
 	{ 
+	    if (this.position>=this.end)
+	        return true;
 	    var ch=this.buf.charAt(this.position);
 	    return ch=='\r' || ch=='\n' || ch==undefined || ch=='';
 	}
@@ -800,9 +804,10 @@ var MarkdownDeep = new function(){
     // HtmlTag
     
     HtmlTagFlags={};
-    HtmlTagFlags.Block		= 0x0001;			// Block tag
-    HtmlTagFlags.Inline		= 0x0002;			// Inline tag
-    HtmlTagFlags.NoClosing	= 0x0004;			// No closing tag (eg: <hr> and <!-- -->)
+    HtmlTagFlags.Block		    = 0x0001;		// Block tag
+    HtmlTagFlags.Inline		    = 0x0002;		// Inline tag
+    HtmlTagFlags.NoClosing	    = 0x0004;		// No closing tag (eg: <hr> and <!-- -->)
+    HtmlTagFlags.ContentAsSpan = 0x0008;        // When markdown=1 treat content as span, not block
 
 
     function HtmlTag(name)
@@ -884,6 +889,32 @@ var MarkdownDeep = new function(){
 	    // Passed all white list checks, allow it
 	    return true;
     }
+    
+	// Render opening tag (eg: <tag attr="value">
+	p.RenderOpening=function(dest)
+	{
+		dest.Append("<");
+		dest.Append(this.name);
+		for (var i in this.m_attributes)
+		{
+			dest.Append(" ");
+			dest.Append(i);
+			dest.Append("=\"");
+			dest.Append(this.m_attributes[i]);
+			dest.Append("\"");
+		}
+		dest.Append(">\n");
+	}
+
+	// Render closing tag (eg: </tag>)
+	p.RenderClosing=function(dest)
+	{
+		dest.Append("</");
+		dest.Append(this.name);
+		dest.Append(">\n");
+	}
+
+
 
     HtmlTag.IsSafeUrl = function(url)
     {
@@ -1036,30 +1067,38 @@ var MarkdownDeep = new function(){
     var b=HtmlTagFlags.Block;
     var i=HtmlTagFlags.Inline;
     var n=HtmlTagFlags.NoClosing;
+    var s=HtmlTagFlags.ContentAsSpan;
     tag_flags= { 
-			"p": b , 
+			"p": b | s , 
             "div": b , 
-            "h1": b , 
-            "h2": b , 
-            "h3": b , 
-            "h4": b , 
-            "h5": b , 
-            "h6": b , 
+            "h1": b | s, 
+            "h2": b | s, 
+            "h3": b | s, 
+            "h4": b | s, 
+            "h5": b | s, 
+            "h6": b | s, 
             "blockquote": b , 
             "pre": b , 
             "table": b , 
             "dl": b , 
             "ol": b , 
             "ul": b , 
-            "script": b , 
-            "noscript": b , 
             "form": b , 
             "fieldset": b , 
             "iframe": b , 
-            "math": b , 
-            "ins": b | i , 
-            "del": b | i , 
-            "img": b | i , 
+            "script": b | i , 
+            "noscript": b | i, 
+            "math": b | i, 
+            "ins": b | i, 
+            "del": b | i, 
+            "img": b | i, 
+            "li": s,
+            "dd": s,
+            "dt": s,
+            "td": s,
+            "th": s,
+            "legend" : s,
+            "address" : s,
             "hr": b | n, 
             "!": b | n
             };
@@ -2133,7 +2172,9 @@ var MarkdownDeep = new function(){
     BlockType.codeblock=18;		
     BlockType.li=19;	
     BlockType.ol=20;			
-    BlockType.ul=21;			
+    BlockType.ul=21;
+    BlockType.HtmlTag=22;
+    BlockType.Composite=23;
 
     function Block()
     {
@@ -2148,6 +2189,7 @@ var MarkdownDeep = new function(){
 	p.lineStart=0;
 	p.lineLen=0;
 	p.children=null;
+	p.data=null;
 
 	p.get_Content=function()
 	{
@@ -2262,6 +2304,16 @@ var MarkdownDeep = new function(){
 				this.RenderChildren(m, b);
 				b.Append("</ul>\n");
 				return;
+				
+            case BlockType.HtmlTag:
+				this.data.RenderOpening(b);
+				this.RenderChildren(m, b);
+				this.data.RenderClosing(b);
+				return;
+
+		    case BlockType.Composite:
+			    this.RenderChildren(m, b);
+			    return;
 		}
 	}
 
@@ -2317,18 +2369,33 @@ var MarkdownDeep = new function(){
     // BlockProcessor
 
 
-    function BlockProcessor(m)
+    function BlockProcessor(m, MarkdownInHtml)
     {
         this.m_Markdown=m;
         this.m_parentType=BlockType.Blank;
+        this.m_bMarkdownInHtml=MarkdownInHtml;
     }
 
     p=BlockProcessor.prototype;
+    
     p.Process=function(str)
 	{
 		// Reset string scanner
 		var p=new StringScanner(str);
+		
+		return this.ScanLines(p);
+	}
 
+    p.ProcessRange=function(str, startOffset, len)
+	{
+		// Reset string scanner
+		var p=new StringScanner(str, startOffset, len);
+		
+		return this.ScanLines(p);
+	}
+
+    p.ScanLines=function(p)
+    {
 		// The final set of blocks will be collected here
 		var blocks = new Array();
 
@@ -2531,15 +2598,7 @@ var MarkdownDeep = new function(){
 					}
 					break;
 
-				case BlockType.h1:
-				case BlockType.h2:
-				case BlockType.h3:
-				case BlockType.h4:
-				case BlockType.h5:
-				case BlockType.h6:
-				case BlockType.html:
-				case BlockType.unsafe_html:
-				case BlockType.hr:
+                default:
 					this.CollapseLines(blocks, lines);
 					blocks.push(b);
 					break;
@@ -2624,7 +2683,7 @@ var MarkdownDeep = new function(){
 			    var str=this.RenderLines(lines);
 			    
 			    // Create the new block processor
-			    var bp=new BlockProcessor(this.m_Markdown);
+			    var bp=new BlockProcessor(this.m_Markdown, this.m_bMarkdownInHtml);
 			    bp.m_parentType=BlockType.quote;
 			
 				// Create a new quote block
@@ -2817,15 +2876,8 @@ var MarkdownDeep = new function(){
 		// Html block?
 		if (ch == '<')
 		{
-			// Parse html block
-			var type=this.ScanHtml(p);
-			if (type!=BlockType.Blank)
-			{
-                // Could be either BlockType.Html for valid, allowed html or
-                // BlockType.Span for unsafe html that should be escaped.
-			    b.contentLen = p.position-b.contentStart;
-				return type;
-			}
+		    if (this.ScanHtml(p, b))
+		        return b.blockType;
 
 			// Rewind
 			p.position = b.contentStart;
@@ -2925,21 +2977,169 @@ var MarkdownDeep = new function(){
 		return BlockType.p;
 	}
 
-	// Scan from the current position to the end of the html section
-	// Returns
-	//   BlockType.Blank - not a valid html block
-	//   BlockType.html - valid allowed html, write as is
-	//   BlockType.unsafe_html - invalid html, escape and write it
-	p.ScanHtml=function(p)
+    var MarkdownInHtmlMode={};
+	MarkdownInHtmlMode.NA=0;
+	MarkdownInHtmlMode.Block=1;
+	MarkdownInHtmlMode.Span=2;
+	MarkdownInHtmlMode.Deep=3;
+	MarkdownInHtmlMode.Off=4;
+
+	p.GetMarkdownMode=function(tag)
 	{
+		// Get the markdown attribute
+		var md=tag.attributes["markdown"];
+		if (md==undefined)
+		{
+			if (this.m_bMarkdownInHtml)
+				return MarkdownInHtmlMode.Deep;
+			else
+				return MarkdownInHtmlMode.NA;
+		}
+
+		// Remove it
+		delete tag.attributes["markdown"];
+
+		// Parse mode
+		if (md == "1")
+			return (tag.get_Flags() & HtmlTagFlags.ContentAsSpan)!=0 ? MarkdownInHtmlMode.Span : MarkdownInHtmlMode.Block;
+
+		if (md == "block")
+			return MarkdownInHtmlMode.Block;
+
+		if (md == "deep")
+			return MarkdownInHtmlMode.Deep;
+
+		if (md == "span")
+			return MarkdownInHtmlMode.Span;
+
+		return MarkdownInHtmlMode.Off;
+	}
+
+	p.ProcessMarkdownEnabledHtml=function(p, b, openingTag, mode)
+	{
+		// Current position is just after the opening tag
+
+		// Scan until we find matching closing tag
+		var inner_pos = p.position;
+		var depth = 1;
+		var bHasUnsafeContent = false;
+		while (!p.eof())
+		{
+			// Find next angle bracket
+			if (!p.Find('<'))
+				break;
+
+			// Is it a html tag?
+			var tagpos = p.position;
+			var tag = HtmlTag.Parse(p);
+			if (tag == null)
+			{
+				// Nope, skip it 
+				p.SkipForward(1);
+				continue;
+			}
+
+			// In markdown off mode, we need to check for unsafe tags
+			if (this.m_Markdown.SafeMode && mode == MarkdownInHtmlMode.Off && !bHasUnsafeContent)
+			{
+				if (!tag.IsSafe())
+					bHasUnsafeContent = true;
+			}
+
+			// Ignore self closing tags
+			if (tag.closed)
+				continue;
+
+			// Same tag?
+			if (tag.name == openingTag.name)
+			{
+				if (tag.closing)
+				{
+					depth--;
+					if (depth == 0)
+					{
+						// End of tag?
+						p.SkipLinespace();
+						p.SkipEol();
+
+						b.blockType = BlockType.HtmlTag;
+						b.data = openingTag;
+						b.contentEnd = p.position;
+
+						switch (mode)
+						{
+							case MarkdownInHtmlMode.Span:
+							{
+								var span = this.CreateBlock();
+								span.buf = p.buf;
+								span.blockType = BlockType.span;
+								span.contentStart = inner_pos;
+								span.contentLen = tagpos - inner_pos;
+
+								b.children = new Array();
+								b.children.push(span);
+								break;
+							}
+
+							case MarkdownInHtmlMode.Block:
+							case MarkdownInHtmlMode.Deep:
+							{
+								// Scan the internal content
+								var bp = new BlockProcessor(this.m_Markdown, mode == MarkdownInHtmlMode.Deep);
+								b.children = bp.ProcessRange(p.buf, inner_pos, tagpos - inner_pos);
+								break;
+							}
+
+							case MarkdownInHtmlMode.Off:
+							{
+								if (bHasUnsafeContent)
+								{
+									b.blockType = BlockType.unsafe_html;
+									b.contentEnd = p.position;
+								}
+								else
+								{
+									var span = this.CreateBlock();
+									span.buf = p.buf;
+									span.blockType = BlockType.html;
+									span.contentStart = inner_pos;
+									span.contentLen = tagpos - inner_pos;
+
+									b.children = new Array();
+									b.children.push(span);
+								}
+								break;
+							}
+						}
+
+
+						return true;
+					}
+				}
+				else
+				{
+					depth++;
+				}
+			}
+		}
+
+		// Missing closing tag(s).  
+		return false;
+	}
+
+	p.ScanHtml=function(p, b)
+	{
+	    // Remember start of html
+	    var posStartPiece=p.position;
+	
 		// Parse a HTML tag
 		var openingTag = HtmlTag.Parse(p);
 		if (openingTag == null)
-			return BlockType.Blank;
+			return false;
 
 		// Closing tag?
 		if (openingTag.closing)
-			return BlockType.Blank;
+			return false;
 
 		// Safe mode?
 		var bHasUnsafeContent = false;
@@ -2948,20 +3148,19 @@ var MarkdownDeep = new function(){
 			
  		var flags = openingTag.get_Flags();
 
+		// Is it a block level tag?
+		if ((flags & HtmlTagFlags.Block)==0)
+			return false;
+
 		// Closed tag, hr or comment?
 		if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
 		{
-			if (bHasUnsafeContent)
-				return BlockType.Blank;
-				
 			p.SkipLinespace();
 			p.SkipEol();
-			return BlockType.html;
+			b.contentLen = p.position-b.contentStart;
+			b.blockType = bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
+			return true;
 		}
-
-		// Is it a block level tag?
-		if ((flags & HtmlTagFlags.Block)==0)
-			return BlockType.Blank;
 
 		// Can it also be an inline tag?
 		if ((flags & HtmlTagFlags.Inline) != 0)
@@ -2969,19 +3168,31 @@ var MarkdownDeep = new function(){
 			// Yes, opening tag must be on a line by itself
 			p.SkipLinespace();
 			if (!p.eol())
-				return BlockType.Blank;
+				return false;
 		}
+
+		// Work out the markdown mode for this element
+		if (this.m_Markdown.ExtraMode)
+		{
+			var MarkdownMode = this.GetMarkdownMode(openingTag);
+			if (MarkdownMode != MarkdownInHtmlMode.NA)
+			{
+				return this.ProcessMarkdownEnabledHtml(p, b, openingTag, MarkdownMode);
+			}
+		}
+
+		var childBlocks = null;
 
 		// Now capture everything up to the closing tag and put it all in a single HTML block
 		var depth = 1;
 
 		while (!p.eof())
 		{
-			if (p.current() != '<')
-			{
-				p.SkipForward(1);
-				continue;
-			}
+		    if (!p.Find('<'))
+		        break;
+		
+            // Save position of current tag
+        	var posStartCurrentTag = p.position;
 
 			var tag = HtmlTag.Parse(p);
 			if (tag == null)
@@ -2994,6 +3205,52 @@ var MarkdownDeep = new function(){
 			if (this.m_Markdown.SafeMode && !tag.IsSafe())
 				bHasUnsafeContent = true;
 
+
+			// Ignore self closing tags
+			if (tag.closed)
+				continue;
+
+			// Markdown enabled content?
+			if (!tag.closing && this.m_Markdown.ExtraMode && !bHasUnsafeContent)
+			{
+				var MarkdownMode = this.GetMarkdownMode(tag);
+				if (MarkdownMode != MarkdownInHtmlMode.NA)
+				{
+					var markdownBlock = this.CreateBlock();
+					if (this.ProcessMarkdownEnabledHtml(p, markdownBlock, tag, MarkdownMode))
+					{
+						if (childBlocks==null)
+						{
+							childBlocks = new Array();
+						}
+
+						// Create a block for everything before the markdown tag
+						if (posStartCurrentTag > posStartPiece)
+						{
+							var htmlBlock = this.CreateBlock();
+							htmlBlock.buf = p.buf;
+							htmlBlock.blockType = BlockType.html;
+							htmlBlock.contentStart = posStartPiece;
+							htmlBlock.contentLen = posStartCurrentTag - posStartPiece;
+
+							childBlocks.push(htmlBlock);
+						}
+
+						// Add the markdown enabled child block
+						childBlocks.push(markdownBlock);
+
+						// Remember start of the next piece
+						posStartPiece = p.position;
+
+						continue;
+					}
+					else
+					{
+						this.FreeBlock(markdownBlock);
+					}
+				}
+			}
+
 			// Same tag?
 			if (tag.name == openingTag.name && !tag.closed)
 			{
@@ -3005,7 +3262,41 @@ var MarkdownDeep = new function(){
 						// End of tag?
 						p.SkipLinespace();
 						p.SkipEol();
-						return bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
+						
+						// If anything unsafe detected, just encode the whole block
+						if (bHasUnsafeContent)
+						{
+							b.blockType = BlockType.unsafe_html;
+							b.contentEnd = p.position;
+							return true;
+						}
+
+						// Did we create any child blocks
+						if (childBlocks != null)
+						{
+							// Create a block for the remainder
+							if (p.position > posStartPiece)
+							{
+								var htmlBlock = this.CreateBlock();
+								htmlBlock.buf = p.buf;
+								htmlBlock.blockType = BlockType.html;
+								htmlBlock.contentStart = posStartPiece;
+								htmlBlock.contentLen = p.position - posStartPiece;
+
+								childBlocks.push(htmlBlock);
+							}
+
+							// Return a composite block
+							b.blockType = BlockType.Composite;
+							b.contentEnd = p.position;
+							b.children = childBlocks;
+							return true;
+						}
+
+						// Straight html block
+						b.blockType = BlockType.html;
+						b.contentLen = p.position - b.contentStart;
+						return true;
 					}
 				}
 				else

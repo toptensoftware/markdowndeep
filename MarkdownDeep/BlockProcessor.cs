@@ -7,15 +7,17 @@ namespace MarkdownDeep
 {
 	public class BlockProcessor : StringScanner
 	{
-		public BlockProcessor(Markdown m)
+		public BlockProcessor(Markdown m, bool MarkdownInHtml)
 		{
 			m_markdown = m;
+			m_bMarkdownInHtml = MarkdownInHtml;
 			m_parentType = BlockType.Blank;
 		}
 
-		internal BlockProcessor(Markdown m, BlockType parentType)
+		internal BlockProcessor(Markdown m, bool MarkdownInHtml, BlockType parentType)
 		{
 			m_markdown = m;
+			m_bMarkdownInHtml = MarkdownInHtml;
 			m_parentType = parentType;
 		}
 
@@ -28,7 +30,17 @@ namespace MarkdownDeep
 		{
 			// Reset string scanner
 			Reset(str);
+			return ScanLines();
+		}
 
+		internal List<Block> ScanLines(string str, int start, int len)
+		{
+			Reset(str, start, len);
+			return ScanLines();
+		}
+
+		internal List<Block> ScanLines()
+		{
 			// The final set of blocks will be collected here
 			var blocks = new List<Block>();
 
@@ -242,21 +254,9 @@ namespace MarkdownDeep
 						}
 						break;
 
-					case BlockType.h1:
-					case BlockType.h2:
-					case BlockType.h3:
-					case BlockType.h4:
-					case BlockType.h5:
-					case BlockType.h6:
-					case BlockType.html:
-					case BlockType.unsafe_html:
-					case BlockType.hr:
+					default:
 						CollapseLines(blocks, lines);
 						blocks.Add(b);
-						break;
-
-					default:
-						System.Diagnostics.Debug.Assert(false);
 						break;
 				}
 			}
@@ -329,7 +329,7 @@ namespace MarkdownDeep
 				{
 					// Create a new quote block
 					var quote = new Block(BlockType.quote);
-					quote.children = new BlockProcessor(m_markdown, BlockType.quote).Process(RenderLines(lines));
+					quote.children = new BlockProcessor(m_markdown, m_bMarkdownInHtml, BlockType.quote).Process(RenderLines(lines));
 					FreeBlocks(lines);
 					blocks.Add(quote);
 					break;
@@ -363,21 +363,15 @@ namespace MarkdownDeep
 
 			// Scan the line
 			b.contentStart = position;
-			int end = -1;
-			b.blockType=EvaluateLine(ref b.contentStart, ref end);
-
+			b.contentLen = -1;
+			b.blockType=EvaluateLine(b);
 
 			// If end of line not returned, do it automatically
-			if (end < 0)
+			if (b.contentLen < 0)
 			{
 				// Move to end of line
 				SkipToEol();
 				b.contentLen = position - b.contentStart;
-			}
-			else
-			{
-				// Work out len
-				b.contentLen = end-b.contentStart;
 			}
 
 			// Setup line length
@@ -390,7 +384,7 @@ namespace MarkdownDeep
 			return b;
 		}
 
-		BlockType EvaluateLine(ref int start, ref int end)
+		BlockType EvaluateLine(Block b)
 		{
 			// Empty line?
 			if (eol)
@@ -420,23 +414,23 @@ namespace MarkdownDeep
 				SkipWhitespace();
 
 				// Save start position
-				start = position;
+				b.contentStart = position;
 
 				// Jump to end and rewind over trailing hashes
 				SkipToEol();
-				while (position>start && CharAtOffset(-1) == '#')
+				while (position>b.contentStart && CharAtOffset(-1) == '#')
 				{
 					SkipForward(-1);
 				}
 
 				// Rewind over trailing spaces
-				while (position>start && char.IsWhiteSpace(CharAtOffset(-1)))
+				while (position>b.contentStart && char.IsWhiteSpace(CharAtOffset(-1)))
 				{
 					SkipForward(-1);
 				}
 
 				// Create the heading block
-				end = position;
+				b.contentEnd = position;
 
 				SkipToEol();
 				return BlockType.h1 + (level - 1);
@@ -490,26 +484,26 @@ namespace MarkdownDeep
 			// Blank line?
 			if (eol)
 			{
-				end = start;
+				b.contentEnd = b.contentStart;
 				return BlockType.Blank;
 			}
 
 			// 4 leading spaces?
 			if (leadingSpaces >= 4)
 			{
-				start = line_start + 4;
+				b.contentStart = line_start + 4;
 				return BlockType.indent;
 			}
 
 			// Tab in the first 4 characters?
 			if (tabPos >= 0 && tabPos - line_start<4)
 			{
-				start = tabPos + 1;
+				b.contentStart = tabPos + 1;
 				return BlockType.indent;
 			}
 
 			// Treat start of line as after leading whitespace
-			start = position;
+			b.contentStart = position;
 
 			// Get the next character
 			ch = current;
@@ -518,17 +512,11 @@ namespace MarkdownDeep
 			if (ch == '<')
 			{
 				// Scan html block
-				var type=ScanHtml();
-				if (type!=BlockType.Blank)
-				{
-					// Could be either BlockType.Html for valid, allowed html or
-					// BlockType.Span for unsafe html that should be escaped.
-					end = position;
-					return type;
-				}
+				if (ScanHtml(b))
+					return b.blockType;
 
 				// Rewind
-				position = start;
+				position = b.contentStart;
 			}
 
 			// Block quotes start with '>' and have one space or one tab following
@@ -539,12 +527,12 @@ namespace MarkdownDeep
 				{
 					// Skip it and create quote block
 					SkipForward(2);
-					start = position;
+					b.contentStart = position;
 					return BlockType.quote;
 				}
 
 				SkipForward(1);
-				start = position;
+				b.contentStart = position;
 				return BlockType.quote;
 			}
 
@@ -577,7 +565,7 @@ namespace MarkdownDeep
 				}
 
 				// Rewind
-				position = start;
+				position = b.contentStart;
 			}
 
 			// Unordered list
@@ -586,7 +574,7 @@ namespace MarkdownDeep
 				// Skip it
 				SkipForward(1);
 				SkipLinespace();
-				start = position;
+				b.contentStart = position;
 				return BlockType.ul_li;
 			}
 
@@ -602,11 +590,11 @@ namespace MarkdownDeep
 
 				if (SkipChar('.') && SkipLinespace())
 				{
-					start = position;
+					b.contentStart = position;
 					return BlockType.ol_li;
 				}
 
-				position=start;
+				position=b.contentStart;
 			}
 
 			// Reference link definition?
@@ -625,77 +613,83 @@ namespace MarkdownDeep
 			return BlockType.p;
 		}
 
-		// Scan from the current position to the end of the html section
-		// Returns
-		//   BlockType.Blank - not a valid html block
-		//   BlockType.html - valid allowed html, write as is
-		//   BlockType.unsafe_html - invalid html, escape and write it
-		internal BlockType ScanHtml()
+		internal enum MarkdownInHtmlMode
 		{
-			// Parse a HTML tag
-			HtmlTag openingTag = HtmlTag.Parse(this);
-			if (openingTag == null)
-				return BlockType.Blank;
+			NA,			// No markdown attribute on the tag
+			Block,		// markdown=1 or markdown=block
+			Span,		// markdown=1 or markdown=span
+			Deep,		// markdown=deep - recursive block mode
+			Off,		// Markdown="something else"
+		}
 
-			// Closing tag?
-			if (openingTag.closing)
-				return BlockType.Blank;
-
-			// Safe mode?
-			bool bHasUnsafeContent = false;
-			if (m_markdown.SafeMode && !openingTag.IsSafe())
-				bHasUnsafeContent = true;
-
-			HtmlTagFlags flags = openingTag.Flags;
-
-			// Closed tag, hr or comment?
-			if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
+		internal MarkdownInHtmlMode GetMarkdownMode(HtmlTag tag)
+		{
+			// Get the markdown attribute
+			string strMarkdownMode;
+			if (!m_markdown.ExtraMode || !tag.attributes.TryGetValue("markdown", out strMarkdownMode))
 			{
-				if (bHasUnsafeContent)
-					return BlockType.Blank;
-
-				SkipLinespace();
-				SkipEol();
-				return BlockType.html;
+				if (m_bMarkdownInHtml)
+					return MarkdownInHtmlMode.Deep;
+				else
+					return MarkdownInHtmlMode.NA;
 			}
 
-			// Is it a block level tag?
-			if ((flags & HtmlTagFlags.Block)==0)
-				return BlockType.Blank;
+			// Remove it
+			tag.attributes.Remove("markdown");
 
-			// Can it also be an inline tag?
-			if ((flags & HtmlTagFlags.Inline) != 0)
-			{
-				// Yes, opening tag must be on a line by itself
-				SkipLinespace();
-				if (!eol)
-					return BlockType.Blank;
-			}
+			// Parse mode
+			if (strMarkdownMode == "1")
+				return (tag.Flags & HtmlTagFlags.ContentAsSpan)!=0 ? MarkdownInHtmlMode.Span : MarkdownInHtmlMode.Block;
 
-			// Now capture everything up to the closing tag and put it all in a single HTML block
+			if (strMarkdownMode == "block")
+				return MarkdownInHtmlMode.Block;
+
+			if (strMarkdownMode == "deep")
+				return MarkdownInHtmlMode.Deep;
+
+			if (strMarkdownMode == "span")
+				return MarkdownInHtmlMode.Span;
+
+			return MarkdownInHtmlMode.Off;
+		}
+
+		internal bool ProcessMarkdownEnabledHtml(Block b, HtmlTag openingTag, MarkdownInHtmlMode mode)
+		{
+			// Current position is just after the opening tag
+
+			// Scan until we find matching closing tag
+			int inner_pos = position;
 			int depth = 1;
-
+			bool bHasUnsafeContent = false;
 			while (!eof)
 			{
-				if (current != '<')
-				{
-					SkipForward(1);
-					continue;
-				}
+				// Find next angle bracket
+				if (!Find('<'))
+					break;
 
+				// Is it a html tag?
+				int tagpos = position;
 				HtmlTag tag = HtmlTag.Parse(this);
 				if (tag == null)
 				{
+					// Nope, skip it 
 					SkipForward(1);
 					continue;
 				}
 
-				// Safe mode checks
-				if (m_markdown.SafeMode && !tag.IsSafe())
-					bHasUnsafeContent = true;
-				
+				// In markdown off mode, we need to check for unsafe tags
+				if (m_markdown.SafeMode && mode == MarkdownInHtmlMode.Off && !bHasUnsafeContent)
+				{
+					if (!tag.IsSafe())
+						bHasUnsafeContent = true;
+				}
+
+				// Ignore self closing tags
+				if (tag.closed)
+					continue;
+
 				// Same tag?
-				if (tag.name == openingTag.name && !tag.closed)
+				if (tag.name == openingTag.name)
 				{
 					if (tag.closing)
 					{
@@ -706,7 +700,58 @@ namespace MarkdownDeep
 							SkipLinespace();
 							SkipEol();
 
-							return bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
+							b.blockType = BlockType.HtmlTag;
+							b.data = openingTag;
+							b.contentEnd = position;
+
+							switch (mode)
+							{
+								case MarkdownInHtmlMode.Span:
+								{
+									Block span = this.CreateBlock();
+									span.buf = input;
+									span.blockType = BlockType.span;
+									span.contentStart = inner_pos;
+									span.contentLen = tagpos - inner_pos;
+
+									b.children = new List<Block>();
+									b.children.Add(span);
+									break;
+								}
+
+								case MarkdownInHtmlMode.Block:
+								case MarkdownInHtmlMode.Deep:
+								{
+									// Scan the internal content
+									var bp = new BlockProcessor(m_markdown, mode == MarkdownInHtmlMode.Deep);
+									b.children = bp.ScanLines(input, inner_pos, tagpos - inner_pos);
+									break;
+								}
+
+								case MarkdownInHtmlMode.Off:
+								{
+									if (bHasUnsafeContent)
+									{
+										b.blockType = BlockType.unsafe_html;
+										b.contentEnd = position;
+									}
+									else
+									{
+										Block span = this.CreateBlock();
+										span.buf = input;
+										span.blockType = BlockType.html;
+										span.contentStart = inner_pos;
+										span.contentLen = tagpos - inner_pos;
+
+										b.children = new List<Block>();
+										b.children.Add(span);
+									}
+									break;
+								}
+							}
+
+
+							return true;
 						}
 					}
 					else
@@ -717,7 +762,194 @@ namespace MarkdownDeep
 			}
 
 			// Missing closing tag(s).  
-			return BlockType.Blank;
+			return false;
+		}
+
+		// Scan from the current position to the end of the html section
+		internal bool ScanHtml(Block b)
+		{
+			// Remember start of html
+			int posStartPiece = this.position;
+
+			// Parse a HTML tag
+			HtmlTag openingTag = HtmlTag.Parse(this);
+			if (openingTag == null)
+				return false;
+
+			// Closing tag?
+			if (openingTag.closing)
+				return false;
+
+			// Safe mode?
+			bool bHasUnsafeContent = false;
+			if (m_markdown.SafeMode && !openingTag.IsSafe())
+				bHasUnsafeContent = true;
+
+			HtmlTagFlags flags = openingTag.Flags;
+
+			// Is it a block level tag?
+			if ((flags & HtmlTagFlags.Block) == 0)
+				return false;
+
+			// Closed tag, hr or comment?
+			if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
+			{
+				SkipLinespace();
+				SkipEol();
+
+				b.contentEnd = position;
+				b.blockType = bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
+				return true;
+			}
+
+			// Can it also be an inline tag?
+			if ((flags & HtmlTagFlags.Inline) != 0)
+			{
+				// Yes, opening tag must be on a line by itself
+				SkipLinespace();
+				if (!eol)
+					return false;
+			}
+
+			// Work out the markdown mode for this element
+			if (m_markdown.ExtraMode)
+			{
+				MarkdownInHtmlMode MarkdownMode = this.GetMarkdownMode(openingTag);
+				if (MarkdownMode != MarkdownInHtmlMode.NA)
+				{
+					return this.ProcessMarkdownEnabledHtml(b, openingTag, MarkdownMode);
+				}
+			}
+
+			List<Block> childBlocks = null;
+
+			// Now capture everything up to the closing tag and put it all in a single HTML block
+			int depth = 1;
+
+			while (!eof)
+			{
+				// Find next angle bracket
+				if (!Find('<'))
+					break;
+
+				// Save position of current tag
+				int posStartCurrentTag = position;
+
+				// Is it a html tag?
+				HtmlTag tag = HtmlTag.Parse(this);
+				if (tag == null)
+				{
+					// Nope, skip it 
+					SkipForward(1);
+					continue;
+				}
+
+				// Safe mode checks
+				if (m_markdown.SafeMode && !tag.IsSafe())
+					bHasUnsafeContent = true;
+
+				// Ignore self closing tags
+				if (tag.closed)
+					continue;
+
+				// Markdown enabled content?
+				if (!tag.closing && m_markdown.ExtraMode && !bHasUnsafeContent)
+				{
+					MarkdownInHtmlMode MarkdownMode = this.GetMarkdownMode(tag);
+					if (MarkdownMode != MarkdownInHtmlMode.NA)
+					{
+						Block markdownBlock = this.CreateBlock();
+						if (this.ProcessMarkdownEnabledHtml(markdownBlock, tag, MarkdownMode))
+						{
+							if (childBlocks==null)
+							{
+								childBlocks = new List<Block>();
+							}
+
+							// Create a block for everything before the markdown tag
+							if (posStartCurrentTag > posStartPiece)
+							{
+								Block htmlBlock = this.CreateBlock();
+								htmlBlock.buf = input;
+								htmlBlock.blockType = BlockType.html;
+								htmlBlock.contentStart = posStartPiece;
+								htmlBlock.contentLen = posStartCurrentTag - posStartPiece;
+
+								childBlocks.Add(htmlBlock);
+							}
+
+							// Add the markdown enabled child block
+							childBlocks.Add(markdownBlock);
+
+							// Remember start of the next piece
+							posStartPiece = position;
+
+							continue;
+						}
+						else
+						{
+							this.FreeBlock(markdownBlock);
+						}
+					}
+				}
+				
+				// Same tag?
+				if (tag.name == openingTag.name)
+				{
+					if (tag.closing)
+					{
+						depth--;
+						if (depth == 0)
+						{
+							// End of tag?
+							SkipLinespace();
+							SkipEol();
+
+							// If anything unsafe detected, just encode the whole block
+							if (bHasUnsafeContent)
+							{
+								b.blockType = BlockType.unsafe_html;
+								b.contentEnd = position;
+								return true;
+							}
+
+							// Did we create any child blocks
+							if (childBlocks != null)
+							{
+								// Create a block for the remainder
+								if (position > posStartPiece)
+								{
+									Block htmlBlock = this.CreateBlock();
+									htmlBlock.buf = input;
+									htmlBlock.blockType = BlockType.html;
+									htmlBlock.contentStart = posStartPiece;
+									htmlBlock.contentLen = position - posStartPiece;
+
+									childBlocks.Add(htmlBlock);
+								}
+
+								// Return a composite block
+								b.blockType = BlockType.Composite;
+								b.contentEnd = position;
+								b.children = childBlocks;
+								return true;
+							}
+
+							// Straight html block
+							b.blockType = BlockType.html;
+							b.contentEnd = position;
+							return true;
+						}
+					}
+					else
+					{
+						depth++;
+					}
+				}
+			}
+
+			// Rewind to just after the tag
+			return false;
 		}
 
 		/*
@@ -815,7 +1047,7 @@ namespace MarkdownDeep
 
 					// Create the item and process child blocks
 					var item = new Block(BlockType.li);
-					item.children = new BlockProcessor(m_markdown, listType).Process(sb.ToString());
+					item.children = new BlockProcessor(m_markdown, m_bMarkdownInHtml, listType).Process(sb.ToString());
 
 					// If no blank lines, change all contained paragraphs to plain text
 					if (!bAnyBlanks)
@@ -846,5 +1078,6 @@ namespace MarkdownDeep
 
 		Markdown m_markdown;
 		BlockType m_parentType;
+		bool m_bMarkdownInHtml;
 	}
 }

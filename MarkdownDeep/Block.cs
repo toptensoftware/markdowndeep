@@ -32,6 +32,8 @@ namespace MarkdownDeep
 		li,				// a list item (render only)
 		ol,				// ordered list (render only)
 		ul,				// unordered list (render only)
+		HtmlTag,		// Data=(HtmlTag), children = content
+		Composite,		// Just a list of child blocks
 	}
 
 	class Block
@@ -160,6 +162,17 @@ namespace MarkdownDeep
 					b.Append("</ul>\n");
 					return;
 
+				case BlockType.HtmlTag:
+					var tag = (HtmlTag)data;
+					tag.RenderOpening(b);
+					RenderChildren(m, b);
+					tag.RenderClosing(b);
+					return;
+
+				case BlockType.Composite:
+					RenderChildren(m, b);
+					return;
+
 
 				default:
 					b.Append("<" + blockType.ToString() + ">");
@@ -234,6 +247,7 @@ namespace MarkdownDeep
 		internal int contentLen;
 		internal int lineStart;
 		internal int lineLen;
+		internal object data;			// Holds HtmlTag reference for BlockType.HtmlTag
 		internal List<Block> children;
 	}
 }

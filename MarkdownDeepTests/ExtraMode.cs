@@ -9,11 +9,11 @@ using System.Reflection;
 namespace MarkdownDeepTests
 {
 	[TestFixture]
-	class SafeModeTests
+	class ExtraModeTests
 	{
 		public static IEnumerable<TestCaseData> GetTests()
 		{
-			return Utils.GetTests("safemode");
+			return Utils.GetTests("extramode");
 		}
 
 

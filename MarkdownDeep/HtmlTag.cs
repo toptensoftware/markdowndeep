@@ -8,9 +8,10 @@ namespace MarkdownDeep
 	[Flags]
 	public enum HtmlTagFlags
 	{
-		Block		= 0x0001,			// Block tag
-		Inline		= 0x0002,			// Inline tag
-		NoClosing	= 0x0004,			// No closing tag (eg: <hr> and <!-- -->)
+		Block			= 0x0001,			// Block tag
+		Inline			= 0x0002,			// Inline tag
+		NoClosing		= 0x0004,			// No closing tag (eg: <hr> and <!-- -->)
+		ContentAsSpan	= 0x0008,			// When markdown=1 treat content as span, not block
 	};
 
 	public class HtmlTag
@@ -77,29 +78,36 @@ namespace MarkdownDeep
 		};
 
 		static Dictionary<string, HtmlTagFlags> m_tag_flags = new Dictionary<string, HtmlTagFlags>() {
-			{ "p", HtmlTagFlags.Block }, 
+			{ "p", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan }, 
 			{ "div", HtmlTagFlags.Block }, 
-			{ "h1", HtmlTagFlags.Block }, 
-			{ "h2", HtmlTagFlags.Block }, 
-			{ "h3", HtmlTagFlags.Block }, 
-			{ "h4", HtmlTagFlags.Block }, 
-			{ "h5", HtmlTagFlags.Block }, 
-			{ "h6", HtmlTagFlags.Block }, 
+			{ "h1", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan }, 
+			{ "h2", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan}, 
+			{ "h3", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan}, 
+			{ "h4", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan}, 
+			{ "h5", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan}, 
+			{ "h6", HtmlTagFlags.Block | HtmlTagFlags.ContentAsSpan}, 
 			{ "blockquote", HtmlTagFlags.Block }, 
 			{ "pre", HtmlTagFlags.Block }, 
 			{ "table", HtmlTagFlags.Block }, 
 			{ "dl", HtmlTagFlags.Block }, 
 			{ "ol", HtmlTagFlags.Block }, 
 			{ "ul", HtmlTagFlags.Block }, 
-			{ "script", HtmlTagFlags.Block }, 
-			{ "noscript", HtmlTagFlags.Block }, 
 			{ "form", HtmlTagFlags.Block }, 
 			{ "fieldset", HtmlTagFlags.Block }, 
 			{ "iframe", HtmlTagFlags.Block }, 
-			{ "math", HtmlTagFlags.Block }, 
+			{ "script", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "noscript", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "math", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
 			{ "ins", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
 			{ "del", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
 			{ "img", HtmlTagFlags.Block | HtmlTagFlags.Inline }, 
+			{ "li", HtmlTagFlags.ContentAsSpan}, 
+			{ "dd", HtmlTagFlags.ContentAsSpan}, 
+			{ "dt", HtmlTagFlags.ContentAsSpan}, 
+			{ "td", HtmlTagFlags.ContentAsSpan}, 
+			{ "th", HtmlTagFlags.ContentAsSpan}, 
+			{ "legend", HtmlTagFlags.ContentAsSpan}, 
+			{ "address", HtmlTagFlags.ContentAsSpan}, 
 			{ "hr", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
 			{ "!", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
 		};
@@ -147,6 +155,31 @@ namespace MarkdownDeep
 			// Passed all white list checks, allow it
 			return true;
 		}
+
+		// Render opening tag (eg: <tag attr="value">
+		public void RenderOpening(StringBuilder dest)
+		{
+			dest.Append("<");
+			dest.Append(name);
+			foreach (var i in m_attributes)
+			{
+				dest.Append(" ");
+				dest.Append(i.Key);
+				dest.Append("=\"");
+				dest.Append(i.Value);
+				dest.Append("\"");
+			}
+			dest.Append(">\n");
+		}
+
+		// Render closing tag (eg: </tag>)
+		public void RenderClosing(StringBuilder dest)
+		{
+			dest.Append("</");
+			dest.Append(name);
+			dest.Append(">\n");
+		}
+
 
 		public static HtmlTag Parse(string str, ref int pos)
 		{

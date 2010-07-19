@@ -51,6 +51,7 @@
     <Compile Include="BlockProcessorTests.cs" />
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
+    <Compile Include="ExtraMode.cs" />
     <Compile Include="SafeModeTests.cs" />
     <Compile Include="JavascriptTests.cs">
       <SubType>Form</SubType>
@@ -392,8 +393,16 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="testfiles\safemode\Basic.txt" />
-    <EmbeddedResource Include="testfiles\safemode\Basic.html" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-DeepNested%28ExtraMode%29%28MarkdownInHtml%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-DeepNested%28ExtraMode%29%28MarkdownInHtml%29.html" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-DeepNested%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-DeepNested%28ExtraMode%29.html" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-Nested%28ExtraMode%29.html" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml-Nested%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\MarkdownInHtml%28ExtraMode%29.html" />
+    <EmbeddedResource Include="testfiles\safemode\Basic%28SafeMode%29.txt" />
+    <EmbeddedResource Include="testfiles\safemode\Basic%28SafeMode%29.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

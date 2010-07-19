@@ -24,7 +24,7 @@ namespace MarkdownDeep
 			m_LinkDefinitions.Clear();
 
 			// Process blocks
-			List<Block> blocks = new BlockProcessor(this).Process(str);
+			List<Block> blocks = new BlockProcessor(this, MarkdownInHtml).Process(str);
 
 			// Render
 			StringBuilder sb = GetStringBuilder();
@@ -35,7 +35,21 @@ namespace MarkdownDeep
 			return sb.ToString();
 		}
 
+		// Set to true to only allow whitelisted safe html tags
 		public bool SafeMode
+		{
+			get;
+			set;
+		}
+
+		// Set to true to allow extra features
+		public bool ExtraMode
+		{
+			get;
+			set;
+		}
+
+		public bool MarkdownInHtml
 		{
 			get;
 			set;

@@ -18,7 +18,7 @@ namespace MarkdownDeepGui
 			this.txtMarkdown.SelectionStart = this.txtMarkdown.Text.Length;
 		}
 
-		private void Update()
+		private void doUpdate()
 		{
 			this.txtSource.Text = m_Markdown.Transform(txtMarkdown.Text).Replace("\n", "\r\n");
 			this.webPreview.DocumentText = this.txtSource.Text;
@@ -26,7 +26,7 @@ namespace MarkdownDeepGui
 
 		private void txtMarkdown_TextChanged(object sender, EventArgs e)
 		{
-			Update();
+			doUpdate();
 		}
 
 
@@ -36,7 +36,7 @@ namespace MarkdownDeepGui
 		private void checkSafeMode_CheckedChanged(object sender, EventArgs e)
 		{
 			m_Markdown.SafeMode = this.checkSafeMode.Checked;
-			Update();
+			doUpdate();
 		}
 	}
 }
