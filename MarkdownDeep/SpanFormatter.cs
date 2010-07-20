@@ -50,6 +50,75 @@ namespace MarkdownDeep
 			return dest.ToString();
 		}
 
+		internal string MakeID(string str)
+		{
+			return MakeID(str, 0, str.Length);
+		}
+
+		internal string MakeID(string str, int start, int len)
+		{
+			// Reset the string scanner
+			base.Reset(str, start, len);
+
+			// Parse the string into a list of tokens
+			List<Token> tokens=Tokenize();
+	
+			StringBuilder sb = new StringBuilder();
+			if (tokens == null)
+			{
+				sb.Append(str, start, len);
+			}
+			else
+			{
+				foreach (var t in tokens)
+				{
+					switch (t.type)
+					{
+						case TokenType.Text:
+							sb.Append(str, t.startOffset, t.length);
+							break;
+
+						case TokenType.link:
+							LinkInfo li = (LinkInfo)t.data;
+							sb.Append(li.link_text);
+							break;
+					}
+				}
+			}
+
+			// Now clean it using the same rules as pandoc
+			base.Reset(sb.ToString());
+
+			// Skip everything up to the first letter
+			while (!eof)
+			{
+				if (Char.IsLetter(current))
+					break;
+				SkipForward(1);
+			}
+
+			// Process all characters
+			sb.Length = 0;
+			while (!eof)
+			{
+				char ch = current;
+				if (char.IsLetterOrDigit(ch) || ch=='_' || ch=='-' || ch=='.')
+					sb.Append(Char.ToLower(ch));
+				else if (ch == ' ')
+					sb.Append("-");
+				else if (IsLineEnd(ch))
+				{
+					sb.Append("-");
+					SkipEol();
+					continue;
+				}
+
+				SkipForward(1);
+			}
+
+			return sb.ToString();
+		}
+
 		// Render a list of tokens to a destinatino string builder.
 		private void RenderTokens(StringBuilder sb, string str, List<Token> tokens)
 		{

@@ -19,12 +19,13 @@
 				document.getElementById("preview").innerHTML=output;
 			}
 			
-			function transform(input, safemode, extramode, markdowninhtml)
+			function transform(input, safemode, extramode, markdowninhtml, autoheadingids)
 			{
 				var m = new MarkdownDeep.Markdown();
 				m.SafeMode=safemode;
 				m.ExtraMode=extramode;
 				m.MarkdownInHtml=markdowninhtml;
+				m.AutoHeadingIDs=autoheadingids;
 				var output = m.Transform(input);
 				return output;
 			}

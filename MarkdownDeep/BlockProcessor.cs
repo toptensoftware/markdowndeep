@@ -416,8 +416,22 @@ namespace MarkdownDeep
 				// Save start position
 				b.contentStart = position;
 
-				// Jump to end and rewind over trailing hashes
+				// Jump to end
 				SkipToEol();
+
+				// In extra mode, check for a trailing HTML ID
+				if (m_markdown.ExtraMode && !m_markdown.SafeMode)
+				{
+					int end=position;
+					string strID = Utils.StripHtmlID(input, b.contentStart, ref end);
+					if (strID!=null)
+					{
+						b.data = strID;
+						position = end;
+					}
+				}
+
+				// Rewind over trailing hashes
 				while (position>b.contentStart && CharAtOffset(-1) == '#')
 				{
 					SkipForward(-1);

@@ -125,6 +125,7 @@ namespace MarkdownDeepTests
 			md.SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;;
 			md.ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;;
 			md.MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
+			md.AutoHeadingIDs = resourceName.IndexOf("(AutoHeadingIDs)") >= 0;
 
 			string actual = md.Transform(input);
 			string actual_clean = Utils.strip_redundant_whitespace(actual);
@@ -139,7 +140,7 @@ namespace MarkdownDeepTests
 			Assert.AreEqual(expected_clean, actual_clean);
 		}
 
-		public static string TransformUsingJS(string inputText, bool SafeMode, bool ExtraMode, bool MarkdownInHtml)
+		public static string TransformUsingJS(string inputText, bool SafeMode, bool ExtraMode, bool MarkdownInHtml, bool AutoHeadingIDs)
 		{
 			// Find test page
 			var url = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
@@ -158,7 +159,7 @@ namespace MarkdownDeepTests
 				Application.DoEvents();
 			}
 
-			var o = b.Document.InvokeScript("transform", new object[] { inputText, SafeMode, ExtraMode, MarkdownInHtml} );
+			var o = b.Document.InvokeScript("transform", new object[] { inputText, SafeMode, ExtraMode, MarkdownInHtml, AutoHeadingIDs} );
 
 			string result = o as string;
 
@@ -168,7 +169,7 @@ namespace MarkdownDeepTests
 			return result;
 		}
 
-		public static void RunTestJS(string input, bool SafeMode, bool ExtraMode, bool MarkdownInHtml)
+		public static void RunTestJS(string input, bool SafeMode, bool ExtraMode, bool MarkdownInHtml, bool AutoHeadingIDs)
 		{
 			string normalized_input = input.Replace("\r\n", "\n").Replace("\r", "\n");
 
@@ -177,10 +178,11 @@ namespace MarkdownDeepTests
 			md.SafeMode = SafeMode;
 			md.ExtraMode = ExtraMode;
 			md.MarkdownInHtml = MarkdownInHtml;
+			md.AutoHeadingIDs = AutoHeadingIDs;
 			string expected = md.Transform(normalized_input);
 
 			// Transform using javascript implementation
-			string actual = TransformUsingJS(input, SafeMode, ExtraMode, MarkdownInHtml);
+			string actual = TransformUsingJS(input, SafeMode, ExtraMode, MarkdownInHtml, AutoHeadingIDs);
 
 			actual = actual.Replace("\r", "");
 			expected = expected.Replace("\r", "");
@@ -200,10 +202,11 @@ namespace MarkdownDeepTests
 			bool SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;
 			bool ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;
 			bool MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
+			bool AutoHeadingIDs = resourceName.IndexOf("(AutoHeadingIDs)") >= 0;
 
 			// Get the input script
 			string input = Utils.LoadTextResource(resourceName);
-			RunTestJS(input, SafeMode, ExtraMode, MarkdownInHtml);
+			RunTestJS(input, SafeMode, ExtraMode, MarkdownInHtml, AutoHeadingIDs);
 		}
 
 

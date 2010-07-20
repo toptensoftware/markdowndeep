@@ -395,6 +395,74 @@ namespace MarkdownDeep
 					str.StartsWith("file://");
 		}
 
+		// Check if a string is a valid HTML ID identifier
+		internal static bool IsValidHtmlID(string str)
+		{
+			if (String.IsNullOrEmpty(str))
+				return false;
+
+			// Must start with a letter
+			if (!Char.IsLetter(str[0]))
+				return false;
+
+			// Check the rest
+			for (int i = 0; i < str.Length; i++)
+			{
+				char ch = str[i];
+				if (Char.IsLetterOrDigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
+					continue;
+
+				return false;
+			}
+
+			// OK
+			return true;
+		}
+
+		// Strip the trailing HTML ID from a header string
+		// ie:      ## header text ##			{#<idhere>}
+		//			^start           ^out end              ^end
+		//
+		// Returns null if no header id
+		public static string StripHtmlID(string str, int start, ref int end)
+		{
+			// Skip trailing whitespace
+			int pos = end - 1;
+			while (pos >= start && Char.IsWhiteSpace(str[pos]))
+			{
+				pos--;
+			}
+
+			// Skip closing '{'
+			if (pos < start || str[pos] != '}')
+				return null;
+
+			int endId = pos;
+			pos--;
+
+			// Find the opening '{'
+			while (pos >= start && str[pos] != '{')
+				pos--;
+
+			// Check for the #
+			if (pos < start || str[pos + 1] != '#')
+				return null;
+
+			// Extract and check the ID
+			int startId = pos + 2;
+			string strID = str.Substring(startId, endId - startId);
+			if (!IsValidHtmlID(strID))
+				return null;
+
+			// Skip any preceeding whitespace
+			while (pos > start && Char.IsWhiteSpace(str[pos - 1]))
+				pos--;
+
+			// Done!
+			end = pos;
+			return strID;
+		}
+
 
 	}
 }

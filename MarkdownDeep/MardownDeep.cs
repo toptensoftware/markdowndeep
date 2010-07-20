@@ -15,6 +15,7 @@ namespace MarkdownDeep
 			m_StringScanner = new StringScanner();
 			m_SpanFormatter = new SpanFormatter(this);
 			m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
+			m_UsedHeaderIDs = new Dictionary<string, bool>();
 		}
 
 		// Transform a string
@@ -22,6 +23,7 @@ namespace MarkdownDeep
 		{
 			// Reset the list of link definitions
 			m_LinkDefinitions.Clear();
+			m_UsedHeaderIDs.Clear();
 
 			// Process blocks
 			List<Block> blocks = new BlockProcessor(this, MarkdownInHtml).Process(str);
@@ -50,6 +52,12 @@ namespace MarkdownDeep
 		}
 
 		public bool MarkdownInHtml
+		{
+			get;
+			set;
+		}
+
+		public bool AutoHeadingIDs
 		{
 			get;
 			set;
@@ -154,6 +162,40 @@ namespace MarkdownDeep
 			}
 		}
 
+		public string MakeUniqueHeaderID(string strHeaderText)
+		{
+			return MakeUniqueHeaderID(strHeaderText, 0, strHeaderText.Length);
+
+		}
+
+		public string MakeUniqueHeaderID(string strHeaderText, int startOffset, int length)
+		{
+			if (!AutoHeadingIDs)
+				return null;
+
+			// Extract a pandoc style cleaned header id from the header text
+			string strBase=m_SpanFormatter.MakeID(strHeaderText, startOffset, length);
+
+			// If nothing left, use "section"
+			if (String.IsNullOrEmpty(strBase))
+				strBase = "section";
+
+			// Make sure it's unique by append -n counter
+			string strWithSuffix=strBase;
+			int counter=1;
+			while (m_UsedHeaderIDs.ContainsKey(strWithSuffix))
+			{
+				strWithSuffix = strBase + "-" + counter.ToString();
+				counter++;
+			}
+
+			// Store it
+			m_UsedHeaderIDs.Add(strWithSuffix, true);
+
+			// Return it
+			return strWithSuffix;
+		}
+
 
 		/*
 		 * Get this markdown processors string builder.  
@@ -206,6 +248,7 @@ namespace MarkdownDeep
 		StringScanner m_StringScanner;
 		SpanFormatter m_SpanFormatter;
 		Dictionary<string, LinkDefinition> m_LinkDefinitions;
+		Dictionary<string, bool> m_UsedHeaderIDs;
 	
 	}
 

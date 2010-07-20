@@ -11,6 +11,7 @@ var last_content="";
 var markdown=new MarkdownDeep.Markdown();
 markdown.SafeMode=false;
 markdown.ExtraMode=true;
+markdown.AutoHeadingIDs=true;
 
 function onMarkdownChanged()
 {
@@ -33,6 +34,8 @@ $(function() {
 	$("#markdown_input").bind("keyup", onMarkdownChanged);
 	$("#markdown_input").bind("paste", onMarkdownChanged);
 	$("#markdown_input").bind("input", onMarkdownChanged);
+
+	$("#markdown_input").focus();
 });
 
 
@@ -40,7 +43,7 @@ $(function() {
 </head>
 <body>
 
-<textarea cols=20 rows=20 id="markdown_input">This **A** a test</textarea>
+<textarea cols=20 rows=20 id="markdown_input"></textarea>
 <p>Time: <span id="processingTime">0</span>ms</p>
 <div id="markdown_output"></div>
 <hr />

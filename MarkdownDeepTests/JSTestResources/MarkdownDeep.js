@@ -28,10 +28,10 @@ var MarkdownDeep = new function(){
         this.m_SpanFormatter=new SpanFormatter(this);
         this.m_SpareBlocks=new Array();
         this.m_StringBuilder=new StringBuilder();
-        this.m_LinkDefinitions=new Array();
         this.SafeMode=false;
         this.ExtraMode=false;
         this.MarkdownInHtml=false;
+        this.AutoHeadingIDs=false;
     }
     
     var p=Markdown.prototype;
@@ -59,7 +59,8 @@ var MarkdownDeep = new function(){
         
     
 		// Reset the list of link definitions
-		this.m_LinkDefinitions.length=0;
+		this.m_LinkDefinitions=new Array();
+		this.m_UsedHeaderIDs=new Array();
 
 		// Process blocks
 		var blocks = new BlockProcessor(this, this.MarkdownInHtml).Process(input);
@@ -92,6 +93,36 @@ var MarkdownDeep = new function(){
 	    else
     	    return x;
     }
+    
+	p.MakeUniqueHeaderID=function(strHeaderText, startOffset, length)
+	{
+		if (!this.AutoHeadingIDs)
+			return null;
+
+		// Extract a pandoc style cleaned header id from the header text
+		var strBase=this.m_SpanFormatter.MakeID(strHeaderText, startOffset, length);
+
+		// If nothing left, use "section"
+		if (!strBase)
+			strBase = "section";
+
+		// Make sure it's unique by append -n counter
+		var strWithSuffix=strBase;
+		var counter=1;
+		while (this.m_UsedHeaderIDs[strWithSuffix]!=undefined)
+		{
+			strWithSuffix = strBase + "-" + counter.toString();
+			counter++;
+		}
+
+		// Store it
+		this.m_UsedHeaderIDs[strWithSuffix]=true;
+
+		// Return it
+		return strWithSuffix;
+	}
+
+
 	
 	p.GetStringBuilder=function()
 	{
@@ -299,6 +330,75 @@ var MarkdownDeep = new function(){
             
         return false;
     }
+
+
+	// Check if a string is a valid HTML ID identifier
+	function IsValidHtmlID(str)
+	{
+		if (!str)
+			return false;
+
+		// Must start with a letter
+		if (!CharTypes.is_alpha(str.charAt(0)))
+			return false;
+
+		// Check the rest
+		for (var i = 0; i < str.length; i++)
+		{
+			var ch = str.charAt(i);
+			if (CharTypes.is_alphadigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
+				continue;
+
+			return false;
+		}
+
+		// OK
+		return true;
+	}
+
+	// Strip the trailing HTML ID from a header string
+	// ie:      ## header text ##			{#<idhere>}
+	//			^start           ^out end              ^end
+	//
+	// Returns null if no header id
+	function StripHtmlID(str, start, end)
+	{
+		// Skip trailing whitespace
+		var pos = end - 1;
+		while (pos >= start && CharTypes.is_whitespace(str.charAt(pos)))
+		{
+			pos--;
+		}
+
+		// Skip closing '{'
+		if (pos < start || str.charAt(pos) != '}')
+			return null;
+
+		var endId = pos;
+		pos--;
+
+		// Find the opening '{'
+		while (pos >= start && str.charAt(pos) != '{')
+			pos--;
+
+		// Check for the #
+		if (pos < start || str.charAt(pos + 1) != '#')
+			return null;
+
+		// Extract and check the ID
+		var startId = pos + 2;
+		var strID = str.substr(startId, endId - startId);
+		if (!IsValidHtmlID(strID))
+			return null;
+
+		// Skip any preceeding whitespace
+		while (pos > start && CharTypes.is_whitespace(str.charAt(pos - 1)))
+			pos--;
+
+		// Done!
+		return {id:strID, end:pos};
+	}
+
 
         
     /////////////////////////////////////////////////////////////////////////////
@@ -1458,6 +1558,73 @@ var MarkdownDeep = new function(){
 		return dest.ToString();
 	}
 
+	p.MakeID=function(str, start, len)
+	{
+		// Reset the string scanner
+		var p=this.m_Scanner;
+		p.reset(str, start, len);
+
+		// Parse the string into a list of tokens
+		var tokens=this.Tokenize();
+
+		var sb = new StringBuilder();
+		if (tokens == null)
+		{
+			sb.Append(str.substr(start, len));
+		}
+		else
+		{
+			for (var i=0; i<tokens.length; i++)
+			{
+			    var t=tokens[i];
+				switch (t.type)
+				{
+					case TokenType.Text:
+						sb.Append(str.substr(t.startOffset, t.length));
+						break;
+
+					case TokenType.link:
+						sb.Append(t.data.link_text);
+						break;
+				}
+			}
+		}
+
+		// Now clean it using the same rules as pandoc
+		p.reset(sb.ToString());
+
+		// Skip everything up to the first letter
+		while (!p.eof())
+		{
+			if (CharTypes.is_alpha(p.current()))
+				break;
+			p.SkipForward(1);
+		}
+
+		// Process all characters
+		sb.Clear();
+		while (!p.eof())
+		{
+			var ch = p.current();
+			if (CharTypes.is_alphadigit(ch) || ch=='_' || ch=='-' || ch=='.')
+				sb.Append(ch.toLowerCase());
+			else if (ch == ' ')
+				sb.Append("-");
+			else if (CharTypes.is_lineend(ch))
+			{
+				sb.Append("-");
+				p.SkipEol();
+				continue;
+			}
+
+			p.SkipForward(1);
+		}
+
+		return sb.ToString();
+	}
+
+
+
 	// Render a list of tokens to a destination string builder.
     p.RenderTokens=function(sb, str, tokens)
     {
@@ -2221,6 +2388,31 @@ var MarkdownDeep = new function(){
 			this.children[i].Render(m, b);
 		}
 	}
+	
+	p.ResolveHeaderID=function(m)
+	{
+		// Already resolved?
+		if (this.data!=null)
+			return this.data;
+
+		// Approach 1 - PHP Markdown Extra style header id
+		var res = StripHtmlID(this.buf, this.contentStart, this.get_contentEnd());
+		var id = null;
+		if (res != null)
+		{
+			this.set_contentEnd(res.end);
+			id = res.id;
+		}
+		else
+		{
+			// Approach 2 - pandoc style header id
+			id = m.MakeUniqueHeaderID(this.buf, this.contentStart, this.contentLen);
+		}
+
+		this.data = id;
+		return id;
+	}
+
 
 	p.Render=function(m, b)
 	{
@@ -2246,7 +2438,25 @@ var MarkdownDeep = new function(){
 			case BlockType.h4:
 			case BlockType.h5:
 			case BlockType.h6:
-				b.Append("<h" + (this.blockType-BlockType.h1+1).toString() + ">");
+				if (m.ExtraMode && !m.SafeMode)
+				{
+					b.Append("<h" + (this.blockType-BlockType.h1+1).toString());
+					var id = this.ResolveHeaderID(m);
+					if (id)
+					{
+						b.Append(" id=\"");
+						b.Append(id);
+						b.Append("\">");
+					}
+					else
+					{
+						b.Append(">");
+					}
+				}
+				else
+				{
+					b.Append("<h" + (this.blockType-BlockType.h1+1).toString() + ">");
+				}
 				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</h" + (this.blockType-BlockType.h1+1).toString() + ">\n");
 				break;
@@ -2781,8 +2991,21 @@ var MarkdownDeep = new function(){
 			// Save start position
 			b.contentStart = p.position;
 
-			// Jump to end and rewind over trailing hashes
+			// Jump to end
 			p.SkipToEol();
+
+			// In extra mode, check for a trailing HTML ID
+			if (this.m_Markdown.ExtraMode && !this.m_Markdown.SafeMode)
+			{
+				var res = StripHtmlID(p.buf, b.contentStart, p.position);
+				if (res!=null)
+				{
+					b.data = res.id;
+					p.position = res.end;
+				}
+			}
+
+			// Rewind over trailing hashes
 			while (p.position>b.contentStart && p.CharAtOffset(-1) == '#')
 			{
 				p.SkipForward(-1);

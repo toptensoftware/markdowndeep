@@ -80,6 +80,29 @@ namespace MarkdownDeep
 			}
 		}
 
+		internal string ResolveHeaderID(Markdown m)
+		{
+			// Already resolved?
+			if (this.data!=null)
+				return (string)this.data;
+
+			// Approach 1 - PHP Markdown Extra style header id
+			int end=contentEnd;
+			string id = Utils.StripHtmlID(buf, contentStart, ref end);
+			if (id != null)
+			{
+				contentEnd = end;
+			}
+			else
+			{
+				// Approach 2 - pandoc style header id
+				id = m.MakeUniqueHeaderID(buf, contentStart, contentLen);
+			}
+
+			this.data = id;
+			return id;
+		}
+
 		internal void Render(Markdown m, StringBuilder b)
 		{
 			switch (blockType)
@@ -104,7 +127,25 @@ namespace MarkdownDeep
 				case BlockType.h4:
 				case BlockType.h5:
 				case BlockType.h6:
-					b.Append("<" + blockType.ToString() + ">");
+					if (m.ExtraMode && !m.SafeMode)
+					{
+						b.Append("<" + blockType.ToString());
+						string id = ResolveHeaderID(m);
+						if (!String.IsNullOrEmpty(id))
+						{
+							b.Append(" id=\"");
+							b.Append(id);
+							b.Append("\">");
+						}
+						else
+						{
+							b.Append(">");
+						}
+					}
+					else
+					{
+						b.Append("<" + blockType.ToString() + ">");
+					}
 					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</" + blockType.ToString() + ">\n");
 					break;

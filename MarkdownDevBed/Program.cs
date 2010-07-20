@@ -14,6 +14,7 @@ namespace MarkdownDevBed
 			Markdown m = new Markdown();
 			m.SafeMode = false;
 			m.ExtraMode = true;
+			m.AutoHeadingIDs = true;
 			string str=m.Transform(FileContents("input.txt"));
 			Console.Write(str);
 		}
