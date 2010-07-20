@@ -1,12 +1,17 @@
-﻿# heading #
-
-# heading 45 #
-
-# heading #
-
-# heading #
+﻿pre
 
 
-This is my heading	{#Cool}
-=====
+~~~
 
+This is some code!
+This is some code!
+	indent	x
+So is this!
+
+~~~
+
+    this is some code
+    and so is this!
+   
+
+post

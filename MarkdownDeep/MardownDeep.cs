@@ -137,6 +137,13 @@ namespace MarkdownDeep
 						pos--;		// Compensate for the pos++ below
 						break;
 
+					case '\r':
+					case '\n':
+						dest.Append('\n');
+						pos = 0;
+						p.SkipEol();
+						continue;
+
 					case '&':
 						dest.Append("&amp;");
 						break;

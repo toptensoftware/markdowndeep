@@ -601,7 +601,14 @@ var MarkdownDeep = new function(){
 					}
 					pos--;		// Compensate for the pos++ below
 					break;
-		            
+				
+				case '\r':
+				case '\n':
+			        if (i>piece)
+			            this.Append(str.substr(piece, i-piece));
+					this.Append('\n');
+					piece=i+1;
+					continue;
 		    
 			    case '&':
 			        if (i>piece)
@@ -3046,6 +3053,17 @@ var MarkdownDeep = new function(){
 			p.position = line_start;
 		}
 
+		// Fenced code blocks?
+		if (ch == '~' && this.m_Markdown.ExtraMode)
+		{
+			if (this.ProcessFencedCodeBlock(p, b))
+				return b.blockType;
+
+			// Rewind
+			p.position = line_start;
+		}
+
+
 		// Scan the leading whitespace, remembering how many spaces and where the first tab is
 		var tabPos = -1;
 		var leadingSpaces = 0;
@@ -3651,6 +3669,67 @@ var MarkdownDeep = new function(){
 		// Continue processing after this item
 		return List;
 	}
+	
+	p.ProcessFencedCodeBlock=function(p, b)
+	{
+		// Extract the fence
+		p.Mark();
+		while (p.current() == '~')
+			p.SkipForward(1);
+		var strFence = p.Extract();
+
+		// Must be at least 3 long
+		if (strFence.length < 3)
+			return false;
+
+		// Rest of line must be blank
+		p.SkipLinespace();
+		if (!p.eol())
+			return false;
+
+		// Skip the eol and remember start of code
+		p.SkipEol();
+		var startCode = p.position;
+
+		// Find the end fence
+		if (!p.Find(strFence))
+			return false;
+
+		// Character before must be a eol char
+		if (!CharTypes.is_lineend(p.CharAtOffset(-1)))
+			return false;
+
+		var endCode = p.position;
+
+		// Skip the fence
+		p.SkipForward(strFence.length);
+
+		// Whitespace allowed at end
+		p.SkipLinespace();
+		if (!p.eol())
+			return false;
+
+		// Create the code block
+		b.blockType = BlockType.codeblock;
+		b.children = new Array();
+
+		// Remove the trailing line end
+		// (Javascript version has already normalized line ends to \n)
+		endCode--;
+
+		// Create the child block with the entire content
+		var child = this.CreateBlock();
+		child.blockType = BlockType.indent;
+		child.buf = p.buf;
+		child.contentStart = startCode;
+		child.contentLen = endCode-startCode;
+		b.children.push(child);
+
+        // Done
+		return true;
+	}
+
+
 
     // Exposed stuff
     this.Markdown=Markdown;

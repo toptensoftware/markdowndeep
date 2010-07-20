@@ -472,6 +472,16 @@ namespace MarkdownDeep
 				position = line_start;
 			}
 
+			// Fenced code blocks?
+			if (m_markdown.ExtraMode && ch == '~')
+			{
+				if (ProcessFencedCodeBlock(b))
+					return b.blockType;
+
+				// Rewind
+				position = line_start;
+			}
+
 			// Scan the leading whitespace, remembering how many spaces and where the first tab is
 			int tabPos = -1;
 			int leadingSpaces = 0;
@@ -1088,6 +1098,68 @@ namespace MarkdownDeep
 
 			// Continue processing after this item
 			return List;
+		}
+
+		bool ProcessFencedCodeBlock(Block b)
+		{
+			// Extract the fence
+			Mark();
+			while (current == '~')
+				SkipForward(1);
+			string strFence = Extract();
+
+			// Must be at least 3 long
+			if (strFence.Length < 3)
+				return false;
+
+			// Rest of line must be blank
+			SkipLinespace();
+			if (!eol)
+				return false;
+
+			// Skip the eol and remember start of code
+			SkipEol();
+			int startCode = position;
+
+			// Find the end fence
+			if (!Find(strFence))
+				return false;
+
+			// Character before must be a eol char
+			if (!IsLineEnd(CharAtOffset(-1)))
+				return false;
+
+			int endCode = position;
+
+			// Skip the fence
+			SkipForward(strFence.Length);
+
+			// Whitespace allowed at end
+			SkipLinespace();
+			if (!eol)
+				return false;
+
+			// Create the code block
+			b.blockType = BlockType.codeblock;
+			b.children = new List<Block>();
+
+			// Remove the trailing line end
+			if (input[endCode - 1] == '\r' && input[endCode - 2] == '\n')
+				endCode -= 2;
+			else if (input[endCode - 1] == '\n' && input[endCode - 2] == '\r')
+				endCode -= 2;
+			else
+				endCode--;
+
+			// Create the child block with the entire content
+			var child = CreateBlock();
+			child.blockType = BlockType.indent;
+			child.buf = input;
+			child.contentStart = startCode;
+			child.contentEnd = endCode;
+			b.children.Add(child);
+
+			return true;
 		}
 
 		Markdown m_markdown;
