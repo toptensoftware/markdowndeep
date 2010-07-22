@@ -22,7 +22,6 @@ if (Array.prototype.indexOf==undefined)
 
 var MarkdownDeep = new function(){
 
-
     function Markdown()
     {
         this.m_SpanFormatter=new SpanFormatter(this);
@@ -910,11 +909,10 @@ var MarkdownDeep = new function(){
     /////////////////////////////////////////////////////////////////////////////
     // HtmlTag
     
-    HtmlTagFlags={};
-    HtmlTagFlags.Block		    = 0x0001;		// Block tag
-    HtmlTagFlags.Inline		    = 0x0002;		// Inline tag
-    HtmlTagFlags.NoClosing	    = 0x0004;		// No closing tag (eg: <hr> and <!-- -->)
-    HtmlTagFlags.ContentAsSpan = 0x0008;        // When markdown=1 treat content as span, not block
+    var HtmlTagFlags_Block		    = 0x0001;		// Block tag
+    var HtmlTagFlags_Inline		    = 0x0002;		// Inline tag
+    var HtmlTagFlags_NoClosing	    = 0x0004;		// No closing tag (eg: <hr> and <!-- -->)
+    var HtmlTagFlags_ContentAsSpan = 0x0008;        // When markdown=1 treat content as span, not block
 
 
     function HtmlTag(name)
@@ -948,7 +946,7 @@ var MarkdownDeep = new function(){
             this.flags=tag_flags[this.name.toLowerCase()]
             if (this.flags==undefined)
             {
-                this.flags=HtmlTagFlags.Inline;
+                this.flags=HtmlTagFlags_Inline;
             }
         }
         return this.flags;
@@ -1171,10 +1169,10 @@ var MarkdownDeep = new function(){
         "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
     };
     		
-    var b=HtmlTagFlags.Block;
-    var i=HtmlTagFlags.Inline;
-    var n=HtmlTagFlags.NoClosing;
-    var s=HtmlTagFlags.ContentAsSpan;
+    var b=HtmlTagFlags_Block;
+    var i=HtmlTagFlags_Inline;
+    var n=HtmlTagFlags_NoClosing;
+    var s=HtmlTagFlags_ContentAsSpan;
     tag_flags= { 
 			"p": b | s , 
             "div": b , 
@@ -1493,21 +1491,20 @@ var MarkdownDeep = new function(){
     /////////////////////////////////////////////////////////////////////////////
     // Token
 
-    TokenType = {}
-    TokenType.Text=0;
-    TokenType.HtmlTag=1;
-    TokenType.Html=2;
-    TokenType.open_em=3;
-    TokenType.close_em=4;
-    TokenType.open_strong=5;
-    TokenType.close_strong=6;
-    TokenType.code_span=7;
-    TokenType.br=8;
-    TokenType.link=9;
-    TokenType.img=10;
-    TokenType.opening_mark=11;
-    TokenType.closing_mark=12;
-    TokenType.internal_mark=13;
+    var TokenType_Text=0;
+    var TokenType_HtmlTag=1;
+    var TokenType_Html=2;
+    var TokenType_open_em=3;
+    var TokenType_close_em=4;
+    var TokenType_open_strong=5;
+    var TokenType_close_strong=6;
+    var TokenType_code_span=7;
+    var TokenType_br=8;
+    var TokenType_link=9;
+    var TokenType_img=10;
+    var TokenType_opening_mark=11;
+    var TokenType_closing_mark=12;
+    var TokenType_internal_mark=13;
 
     function Token(type, startOffset, length)
     {
@@ -1586,11 +1583,11 @@ var MarkdownDeep = new function(){
 			    var t=tokens[i];
 				switch (t.type)
 				{
-					case TokenType.Text:
+					case TokenType_Text:
 						sb.Append(str.substr(t.startOffset, t.length));
 						break;
 
-					case TokenType.link:
+					case TokenType_link:
 						sb.Append(t.data.link_text);
 						break;
 				}
@@ -1641,51 +1638,51 @@ var MarkdownDeep = new function(){
 	        var t=tokens[i];
 		    switch (t.type)
 		    {
-			    case TokenType.Text:
+			    case TokenType_Text:
 				    // Append encoded text
 				    sb.HtmlEncode(str, t.startOffset, t.length);
 				    break;
 
-			    case TokenType.HtmlTag:
+			    case TokenType_HtmlTag:
 				    // Append html as is
 				    sb.SmartHtmlEncodeAmps(str, t.startOffset, t.length);
 				    break;
 
-			    case TokenType.Html:
-			    case TokenType.opening_mark:
-			    case TokenType.closing_mark:
-			    case TokenType.internal_mark:
+			    case TokenType_Html:
+			    case TokenType_opening_mark:
+			    case TokenType_closing_mark:
+			    case TokenType_internal_mark:
 				    // Append html as is
 				    sb.Append(str.substr(t.startOffset, t.length));
 				    break;
 
-			    case TokenType.br:
+			    case TokenType_br:
 				    sb.Append("<br />\n");
 				    break;
 
-			    case TokenType.open_em:
+			    case TokenType_open_em:
 				    sb.Append("<em>");
 				    break;
 
-			    case TokenType.close_em:
+			    case TokenType_close_em:
 				    sb.Append("</em>");
 				    break;
 
-			    case TokenType.open_strong:
+			    case TokenType_open_strong:
 				    sb.Append("<strong>");
 				    break;
 
-			    case TokenType.close_strong:
+			    case TokenType_close_strong:
 				    sb.Append("</strong>");
 				    break;
 
-			    case TokenType.code_span:
+			    case TokenType_code_span:
 				    sb.Append("<code>");
 				    sb.HtmlEncode(str, t.startOffset, t.length);
 				    sb.Append("</code>");
 				    break;
 
-			    case TokenType.link:
+			    case TokenType_link:
 			    {
 				    var li = t.data;
 				    var sf = new SpanFormatter(this.m_Markdown);
@@ -1695,7 +1692,7 @@ var MarkdownDeep = new function(){
 				    break;
 			    }
 
-			    case TokenType.img:
+			    case TokenType_img:
 			    {
 				    var li = t.data;
 				    li.def.RenderImg(this.m_Markdown, sb, li.link_text);
@@ -1739,9 +1736,9 @@ var MarkdownDeep = new function(){
 					// Store marks in a separate list the we'll resolve later
 					switch (token.type)
 					{
-						case TokenType.internal_mark:
-						case TokenType.opening_mark:
-						case TokenType.closing_mark:
+						case TokenType_internal_mark:
+						case TokenType_opening_mark:
+						case TokenType_closing_mark:
 							if (emphasis_marks==null)
 							{
 								emphasis_marks = new Array();
@@ -1780,7 +1777,7 @@ var MarkdownDeep = new function(){
 						if (!this.m_Markdown.SafeMode || tag.IsSafe())
 						{
 							// Yes, create a token for it
-							token = this.CreateToken(TokenType.HtmlTag, save, p.position - save);
+							token = this.CreateToken(TokenType_HtmlTag, save, p.position - save);
 						}
 						else
 						{
@@ -1807,7 +1804,7 @@ var MarkdownDeep = new function(){
 					if (p.SkipHtmlEntity())
 					{
 						// Yes, create a token for it
-						token = this.CreateToken(TokenType.Html, save, p.position - save);
+						token = this.CreateToken(TokenType_Html, save, p.position - save);
 					}
 
 					break;
@@ -1825,7 +1822,7 @@ var MarkdownDeep = new function(){
 						if (!p.eof())
 						{
 							p.SkipEol();
-							token = this.CreateToken(TokenType.br, end_text_token, 0);
+							token = this.CreateToken(TokenType_br, end_text_token, 0);
 						}
 					}
 					break;
@@ -1836,7 +1833,7 @@ var MarkdownDeep = new function(){
 					// Check followed by an escapable character
 					if (CharTypes.is_escapable(p.CharAtOffset(1)))
 					{
-						token = this.CreateToken(TokenType.Text, p.position + 1, 1);
+						token = this.CreateToken(TokenType_Text, p.position + 1, 1);
 						p.SkipForward(2);
 					}
 					break;
@@ -1855,7 +1852,7 @@ var MarkdownDeep = new function(){
 				// Create a token for everything up to the special character
 				if (end_text_token > start_text_token)
 				{
-					tokens.push(this.CreateToken(TokenType.Text, start_text_token, end_text_token-start_text_token));
+					tokens.push(this.CreateToken(TokenType_Text, start_text_token, end_text_token-start_text_token));
 				}
 
 				// Add the new token
@@ -1878,7 +1875,7 @@ var MarkdownDeep = new function(){
 		// Append a token for any trailing text after the last token.
 		if (p.position > start_text_token)
 		{
-			tokens.push(this.CreateToken(TokenType.Text, start_text_token, p.position-start_text_token));
+			tokens.push(this.CreateToken(TokenType_Text, start_text_token, p.position-start_text_token));
 		}
 
 		// Do we need to resolve and emphasis marks?
@@ -1922,7 +1919,7 @@ var MarkdownDeep = new function(){
 
 			if (p.eof() || CharTypes.is_whitespace(p.current()))
 			{
-				return this.CreateToken(TokenType.Html, savepos, p.position - savepos);
+				return this.CreateToken(TokenType_Html, savepos, p.position - savepos);
 			}
 
 			// Rewind
@@ -1950,15 +1947,15 @@ var MarkdownDeep = new function(){
 
 		if (bSpaceBefore)
 		{
-			return this.CreateToken(TokenType.opening_mark, savepos, p.position - savepos);
+			return this.CreateToken(TokenType_opening_mark, savepos, p.position - savepos);
 		}
 
 		if (bSpaceAfter)
 		{
-			return this.CreateToken(TokenType.closing_mark, savepos, p.position - savepos);
+			return this.CreateToken(TokenType_closing_mark, savepos, p.position - savepos);
 		}
 
-		return this.CreateToken(TokenType.internal_mark, savepos, p.position - savepos);
+		return this.CreateToken(TokenType_internal_mark, savepos, p.position - savepos);
 	}
 
 	// Split mark token
@@ -1991,7 +1988,7 @@ var MarkdownDeep = new function(){
 			{
 				// Get the next opening or internal mark
 				var opening_mark = marks[i];
-				if (opening_mark.type != TokenType.opening_mark && opening_mark.type != TokenType.internal_mark)
+				if (opening_mark.type != TokenType_opening_mark && opening_mark.type != TokenType_internal_mark)
 					continue;
 
 				// Look for a matching closing mark
@@ -1999,7 +1996,7 @@ var MarkdownDeep = new function(){
 				{
 					// Get the next closing or internal mark
 					var closing_mark = marks[j];
-					if (closing_mark.type != TokenType.closing_mark && closing_mark.type != TokenType.internal_mark)
+					if (closing_mark.type != TokenType_closing_mark && closing_mark.type != TokenType_internal_mark)
 						break;
 
 					// Ignore if different type (ie: `*` vs `_`)
@@ -2029,8 +2026,8 @@ var MarkdownDeep = new function(){
 					}
 
 					// Connect them
-					opening_mark.type = style == 1 ? TokenType.open_em : TokenType.open_strong;
-					closing_mark.type = style == 1 ? TokenType.close_em : TokenType.close_strong;
+					opening_mark.type = style == 1 ? TokenType_open_em : TokenType_open_strong;
+					closing_mark.type = style == 1 ? TokenType_close_em : TokenType_close_strong;
 
 					// Remove the matched marks
 					marks.splice(marks.indexOf(opening_mark), 1);
@@ -2093,7 +2090,7 @@ var MarkdownDeep = new function(){
 				if (li!=null)
 				{
 					p.SkipForward(1);
-					return this.CreateDataToken(TokenType.link, li);
+					return this.CreateDataToken(TokenType_link, li);
 				}
 
 				return null;
@@ -2115,7 +2112,7 @@ var MarkdownDeep = new function(){
 		var p=this.m_Scanner;
 
 		// Link or image?
-		var token_type = p.SkipChar('!') ? TokenType.img : TokenType.link;
+		var token_type = p.SkipChar('!') ? TokenType_img : TokenType_link;
 
 		// Opening '['
 		if (!p.SkipChar('['))
@@ -2260,13 +2257,13 @@ var MarkdownDeep = new function(){
 
 		// End?
 		if (p.eof())
-			return this.CreateToken(TokenType.Text, start, p.position - start);
+			return this.CreateToken(TokenType_Text, start, p.position - start);
 
 		var startofcode = p.position;
 
 		// Find closing ticks
 		if (!p.Find(p.buf.substr(start, tickcount)))
-			return this.CreateToken(TokenType.Text, start, p.position - start);
+			return this.CreateToken(TokenType_Text, start, p.position - start);
 
 		// Save end position before backing up over trailing whitespace
 		var endpos = p.position + tickcount;
@@ -2274,7 +2271,7 @@ var MarkdownDeep = new function(){
 			p.SkipForward(-1);
 
 		// Create the token, move back to the end and we're done
-		var ret = this.CreateToken(TokenType.code_span, startofcode, p.position - startofcode);
+		var ret = this.CreateToken(TokenType_code_span, startofcode, p.position - startofcode);
 		p.position = endpos;
 		return ret;
 	}
@@ -2324,31 +2321,30 @@ var MarkdownDeep = new function(){
     /////////////////////////////////////////////////////////////////////////////
     // Block
 
-    BlockType={};
-    BlockType.Blank=0;
-    BlockType.h1=1;
-    BlockType.h2=2;
-    BlockType.h3=3;
-    BlockType.h4=4;
-    BlockType.h5=5;
-    BlockType.h6=6;
-    BlockType.post_h1=7;
-    BlockType.post_h2=8;
-    BlockType.quote=9;		
-    BlockType.ol_li=10;
-    BlockType.ul_li=11;		
-    BlockType.p=12;		
-    BlockType.indent=13;			
-    BlockType.hr=14;				
-    BlockType.html=15;
-    BlockType.unsafe_html=16;
-    BlockType.span=17;
-    BlockType.codeblock=18;		
-    BlockType.li=19;	
-    BlockType.ol=20;			
-    BlockType.ul=21;
-    BlockType.HtmlTag=22;
-    BlockType.Composite=23;
+    var BlockType_Blank=0;
+    var BlockType_h1=1;
+    var BlockType_h2=2;
+    var BlockType_h3=3;
+    var BlockType_h4=4;
+    var BlockType_h5=5;
+    var BlockType_h6=6;
+    var BlockType_post_h1=7;
+    var BlockType_post_h2=8;
+    var BlockType_quote=9;		
+    var BlockType_ol_li=10;
+    var BlockType_ul_li=11;		
+    var BlockType_p=12;		
+    var BlockType_indent=13;			
+    var BlockType_hr=14;				
+    var BlockType_html=15;
+    var BlockType_unsafe_html=16;
+    var BlockType_span=17;
+    var BlockType_codeblock=18;		
+    var BlockType_li=19;	
+    var BlockType_ol=20;			
+    var BlockType_ul=21;
+    var BlockType_HtmlTag=22;
+    var BlockType_Composite=23;
 
     function Block()
     {
@@ -2357,7 +2353,7 @@ var MarkdownDeep = new function(){
     
     p=Block.prototype;
     p.buf=null;
-    p.blockType=BlockType.Blank;
+    p.blockType=BlockType_Blank;
 	p.contentStart=0;
 	p.contentLen=0;
 	p.lineStart=0;
@@ -2425,29 +2421,29 @@ var MarkdownDeep = new function(){
 	{
 		switch (this.blockType)
 		{
-			case BlockType.Blank:
+			case BlockType_Blank:
 				return;
 
-			case BlockType.p:
+			case BlockType_p:
 				b.Append("<p>");
 				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</p>\n");
 				break;
 
-			case BlockType.span:
+			case BlockType_span:
 				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("\n");
 				break;
 
-			case BlockType.h1:
-			case BlockType.h2:
-			case BlockType.h3:
-			case BlockType.h4:
-			case BlockType.h5:
-			case BlockType.h6:
+			case BlockType_h1:
+			case BlockType_h2:
+			case BlockType_h3:
+			case BlockType_h4:
+			case BlockType_h5:
+			case BlockType_h6:
 				if (m.ExtraMode && !m.SafeMode)
 				{
-					b.Append("<h" + (this.blockType-BlockType.h1+1).toString());
+					b.Append("<h" + (this.blockType-BlockType_h1+1).toString());
 					var id = this.ResolveHeaderID(m);
 					if (id)
 					{
@@ -2462,32 +2458,32 @@ var MarkdownDeep = new function(){
 				}
 				else
 				{
-					b.Append("<h" + (this.blockType-BlockType.h1+1).toString() + ">");
+					b.Append("<h" + (this.blockType-BlockType_h1+1).toString() + ">");
 				}
 				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
-				b.Append("</h" + (this.blockType-BlockType.h1+1).toString() + ">\n");
+				b.Append("</h" + (this.blockType-BlockType_h1+1).toString() + ">\n");
 				break;
 
-			case BlockType.hr:
+			case BlockType_hr:
 				b.Append("<hr />\n");
 				return;
 
-			case BlockType.ol_li:
-			case BlockType.ul_li:
+			case BlockType_ol_li:
+			case BlockType_ul_li:
 				b.Append("<li>");
 				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</li>\n");
 				break;
 
-			case BlockType.html:
+			case BlockType_html:
 				b.Append(this.buf.substr(this.contentStart, this.contentLen));
 				return;
 
-			case BlockType.unsafe_html:
+			case BlockType_unsafe_html:
 				b.HtmlEncode(this.buf, this.contentStart, this.contentLen);
 				return;
 
-			case BlockType.codeblock:
+			case BlockType_codeblock:
 				b.Append("<pre><code>");
 				for (var i=0; i<this.children.length; i++)
 				{
@@ -2498,37 +2494,37 @@ var MarkdownDeep = new function(){
 				b.Append("</code></pre>\n\n");
 				return;
 
-			case BlockType.quote:
+			case BlockType_quote:
 				b.Append("<blockquote>\n");
 				this.RenderChildren(m, b);
 				b.Append("</blockquote>\n");
 				return;
 
-			case BlockType.li:
+			case BlockType_li:
 				b.Append("<li>\n");
 				this.RenderChildren(m, b);
 				b.Append("</li>\n");
 				return;
 
-			case BlockType.ol:
+			case BlockType_ol:
 				b.Append("<ol>\n");
 				this.RenderChildren(m, b);
 				b.Append("</ol>\n");
 				return;
 
-			case BlockType.ul:
+			case BlockType_ul:
 				b.Append("<ul>\n");
 				this.RenderChildren(m, b);
 				b.Append("</ul>\n");
 				return;
 				
-            case BlockType.HtmlTag:
+            case BlockType_HtmlTag:
 				this.data.RenderOpening(b);
 				this.RenderChildren(m, b);
 				this.data.RenderClosing(b);
 				return;
 
-		    case BlockType.Composite:
+		    case BlockType_Composite:
 			    this.RenderChildren(m, b);
 			    return;
 		}
@@ -2536,7 +2532,7 @@ var MarkdownDeep = new function(){
 
     p.RevertToPlain=function()
 	{
-		this.blockType = BlockType.p;
+		this.blockType = BlockType_p;
 		this.contentStart = this.lineStart;
 		this.contentLen = this.lineLen;
 	}
@@ -2589,7 +2585,7 @@ var MarkdownDeep = new function(){
     function BlockProcessor(m, MarkdownInHtml)
     {
         this.m_Markdown=m;
-        this.m_parentType=BlockType.Blank;
+        this.m_parentType=BlockType_Blank;
         this.m_bMarkdownInHtml=MarkdownInHtml;
     }
 
@@ -2627,7 +2623,7 @@ var MarkdownDeep = new function(){
 			var b = this.EvaluateLine(p);
 
 			// SetExt header?
-			if (b.blockType == BlockType.post_h1 || b.blockType == BlockType.post_h2)
+			if (b.blockType == BlockType_post_h1 || b.blockType == BlockType_post_h2)
 			{
 				if (lines.length > 0)
 				{
@@ -2636,11 +2632,11 @@ var MarkdownDeep = new function(){
 					this.CollapseLines(blocks, lines);
 					
 					// If previous line was blank, 
-					if (prevline.blockType != BlockType.Blank)
+					if (prevline.blockType != BlockType_Blank)
 					{
 						// Convert the previous line to a heading and add to block list
 						prevline.RevertToPlain();
-						prevline.blockType = b.blockType == BlockType.post_h1 ? BlockType.h1 : BlockType.h2;
+						prevline.blockType = b.blockType == BlockType_post_h1 ? BlockType_h1 : BlockType_h2;
 						blocks.push(prevline);
 						continue;
 					}
@@ -2649,7 +2645,7 @@ var MarkdownDeep = new function(){
 
 				// Couldn't apply setext header to a previous line
 
-				if (b.blockType == BlockType.post_h1)
+				if (b.blockType == BlockType_post_h1)
 				{
 					// `===` gets converted to normal paragraph
 					b.RevertToPlain();
@@ -2660,7 +2656,7 @@ var MarkdownDeep = new function(){
 					// `---` gets converted to hr
 					if (b.contentLen >= 3)
 					{
-						b.blockType = BlockType.hr;
+						b.blockType = BlockType_hr;
 						blocks.push(b);
 					}
 					else
@@ -2675,45 +2671,45 @@ var MarkdownDeep = new function(){
 
 
 			// Work out the current paragraph type
-			var currentBlockType = lines.length > 0 ? lines[0].blockType : BlockType.Blank;
+			var currentBlockType = lines.length > 0 ? lines[0].blockType : BlockType_Blank;
 
 			// Process this line
 			switch (b.blockType)
 			{
-				case BlockType.Blank:
+				case BlockType_Blank:
 					switch (currentBlockType)
 					{
-						case BlockType.Blank:
+						case BlockType_Blank:
 							this.FreeBlock(b);
 							break;
 
-						case BlockType.p:
+						case BlockType_p:
 							this.CollapseLines(blocks, lines);
 							this.FreeBlock(b);
 							break;
 
-						case BlockType.quote:
-						case BlockType.ol_li:
-						case BlockType.ul_li:
-						case BlockType.indent:
+						case BlockType_quote:
+						case BlockType_ol_li:
+						case BlockType_ul_li:
+						case BlockType_indent:
 							lines.push(b);
 							break;
 					}
 					break;
 
-				case BlockType.p:
+				case BlockType_p:
 					switch (currentBlockType)
 					{
-						case BlockType.Blank:
-						case BlockType.p:
+						case BlockType_Blank:
+						case BlockType_p:
 							lines.push(b);
 							break;
 
-						case BlockType.quote:
-						case BlockType.ol_li:
-						case BlockType.ul_li:
+						case BlockType_quote:
+						case BlockType_ol_li:
+						case BlockType_ul_li:
 							var prevline = lines[lines.length-1];
-							if (prevline.blockType == BlockType.Blank)
+							if (prevline.blockType == BlockType_Blank)
 							{
 								this.CollapseLines(blocks, lines);
 								lines.push(b);
@@ -2724,25 +2720,25 @@ var MarkdownDeep = new function(){
 							}
 							break;
 
-						case BlockType.indent:
+						case BlockType_indent:
 							this.CollapseLines(blocks, lines);
 							lines.push(b);
 							break;
 					}
 					break;
 
-				case BlockType.indent:
+				case BlockType_indent:
 					switch (currentBlockType)
 					{
-						case BlockType.Blank:
+						case BlockType_Blank:
 							// Start a code block
 							lines.push(b);
 							break;
 
-						case BlockType.p:
-						case BlockType.quote:
+						case BlockType_p:
+						case BlockType_quote:
 							var prevline = lines[lines.length-1];
-							if (prevline.blockType == BlockType.Blank)
+							if (prevline.blockType == BlockType_Blank)
 							{
 								// Start a code block after a paragraph
 								this.CollapseLines(blocks, lines);
@@ -2757,34 +2753,34 @@ var MarkdownDeep = new function(){
 							break;
 
 
-						case BlockType.ol_li:
-						case BlockType.ul_li:
-						case BlockType.indent:
+						case BlockType_ol_li:
+						case BlockType_ul_li:
+						case BlockType_indent:
 							lines.push(b);
 							break;
 					}
 					break;
 
-				case BlockType.quote:
-					if (currentBlockType != BlockType.quote)
+				case BlockType_quote:
+					if (currentBlockType != BlockType_quote)
 					{
 						this.CollapseLines(blocks, lines);
 					}
 					lines.push(b);
 					break;
 
-				case BlockType.ol_li:
-				case BlockType.ul_li:
+				case BlockType_ol_li:
+				case BlockType_ul_li:
 					switch (currentBlockType)
 					{
-						case BlockType.Blank:
+						case BlockType_Blank:
 							lines.push(b);
 							break;
 
-						case BlockType.p:
-						case BlockType.quote:
+						case BlockType_p:
+						case BlockType_quote:
 							var prevline = lines[lines.length-1];
-							if (prevline.blockType == BlockType.Blank || this.m_parentType==BlockType.ol_li || this.m_parentType==BlockType.ul_li)
+							if (prevline.blockType == BlockType_Blank || this.m_parentType==BlockType_ol_li || this.m_parentType==BlockType_ul_li)
 							{
 								// List starting after blank line after paragraph or quote
 								this.CollapseLines(blocks, lines);
@@ -2798,8 +2794,8 @@ var MarkdownDeep = new function(){
 							}
 							break;
 
-						case BlockType.ol_li:
-						case BlockType.ul_li:
+						case BlockType_ol_li:
+						case BlockType_ul_li:
 							if (b.blockType != currentBlockType)
 							{
 								this.CollapseLines(blocks, lines);
@@ -2807,7 +2803,7 @@ var MarkdownDeep = new function(){
 							lines.push(b);
 							break;
 
-						case BlockType.indent:
+						case BlockType_indent:
 							// List after code block
 							this.CollapseLines(blocks, lines);
 							lines.push(b);
@@ -2866,7 +2862,7 @@ var MarkdownDeep = new function(){
 	p.CollapseLines=function(blocks, lines)
 	{
 		// Remove trailing blank lines
-		while (lines.length>0 && lines[lines.length-1].blockType == BlockType.Blank)
+		while (lines.length>0 && lines[lines.length-1].blockType == BlockType_Blank)
 		{
 			this.FreeBlock(lines.pop());
 		}
@@ -2881,11 +2877,11 @@ var MarkdownDeep = new function(){
 		// What sort of block?
 		switch (lines[0].blockType)
 		{
-			case BlockType.p:
+			case BlockType_p:
 			{
 				// Collapse all lines into a single paragraph
 				var para = this.CreateBlock();
-				para.blockType = BlockType.p;
+				para.blockType = BlockType_p;
 				para.buf = lines[0].buf;
 				para.contentStart = lines[0].contentStart;
 				para.set_contentEnd(lines[lines.length-1].get_contentEnd());
@@ -2894,33 +2890,33 @@ var MarkdownDeep = new function(){
 				break;
 			}
 
-			case BlockType.quote:
+			case BlockType_quote:
 			{
 			    // Get the content
 			    var str=this.RenderLines(lines);
 			    
 			    // Create the new block processor
 			    var bp=new BlockProcessor(this.m_Markdown, this.m_bMarkdownInHtml);
-			    bp.m_parentType=BlockType.quote;
+			    bp.m_parentType=BlockType_quote;
 			
 				// Create a new quote block
 				var quote = this.CreateBlock();
-				quote.blockType = BlockType.quote;
+				quote.blockType = BlockType_quote;
 				quote.children = bp.Process(str);
 				this.FreeBlocks(lines);
 				blocks.push(quote);
 				break;
 			}
 
-			case BlockType.ol_li:
-			case BlockType.ul_li:
+			case BlockType_ol_li:
+			case BlockType_ul_li:
 				blocks.push(this.BuildList(lines));
 				break;
 
-			case BlockType.indent:
+			case BlockType_indent:
 			{
 				var codeblock = this.CreateBlock();
-				codeblock.blockType=BlockType.codeblock;
+				codeblock.blockType=BlockType_codeblock;
 				codeblock.children = new Array();
 				for (var i=0; i<lines.length; i++)
 				{
@@ -2970,7 +2966,7 @@ var MarkdownDeep = new function(){
 	{
 		// Empty line?
 		if (p.eol())
-			return BlockType.Blank;
+			return BlockType_Blank;
 
 		// Save start of line position
 		var line_start= p.position;
@@ -3028,7 +3024,7 @@ var MarkdownDeep = new function(){
 			b.contentLen=p.position-b.contentStart;
 
 			p.SkipToEol();
-			return BlockType.h1 + (level - 1);
+			return BlockType_h1 + (level - 1);
 		}
 
 		// Check for entire line as - or = for setext h1 and h2
@@ -3047,7 +3043,7 @@ var MarkdownDeep = new function(){
 			// If not at eol, must have found something other than setext header
 			if (p.eol())
 			{
-				return chType == '=' ? BlockType.post_h1 : BlockType.post_h2;
+				return chType == '=' ? BlockType_post_h1 : BlockType_post_h2;
 			}
 	
 			p.position = line_start;
@@ -3091,21 +3087,21 @@ var MarkdownDeep = new function(){
 		if (p.eol())
 		{
 		    b.contentLen = 0;
-			return BlockType.Blank;
+			return BlockType_Blank;
 		}
 
 		// 4 leading spaces?
 		if (leadingSpaces >= 4)
 		{
 			b.contentStart = line_start + 4;
-			return BlockType.indent;
+			return BlockType_indent;
 		}
 
 		// Tab in the first 4 characters?
 		if (tabPos >= 0 && tabPos - line_start<4)
 		{
 			b.contentStart = tabPos + 1;
-			return BlockType.indent;
+			return BlockType_indent;
 		}
 
 		// Treat start of line as after leading whitespace
@@ -3133,12 +3129,12 @@ var MarkdownDeep = new function(){
 				// Skip it and create quote block
 				p.SkipForward(2);
 				b.contentStart = p.position;
-				return BlockType.quote;
+				return BlockType_quote;
 			}
 
 			p.SkipForward(1);
 			b.contentStart = p.position;
-			return BlockType.quote;
+			return BlockType_quote;
 		}
 
 		// Horizontal rule - a line consisting of 3 or more '-', '_' or '*' with optional spaces and nothing else
@@ -3166,7 +3162,7 @@ var MarkdownDeep = new function(){
 
 			if (p.eol() && count >= 3)
 			{
-				return BlockType.hr;
+				return BlockType_hr;
 			}
 
 			// Rewind
@@ -3180,7 +3176,7 @@ var MarkdownDeep = new function(){
 			p.SkipForward(1);
 			p.SkipLinespace();
 			b.contentStart = p.position;
-			return BlockType.ul_li;
+			return BlockType_ul_li;
 		}
 
 		// Ordered list
@@ -3196,7 +3192,7 @@ var MarkdownDeep = new function(){
 			if (p.SkipChar('.') && p.SkipLinespace())
 			{
 				b.contentStart = p.position;
-				return BlockType.ol_li;
+				return BlockType_ol_li;
 			}
 
 			p.position=b.contentStart;
@@ -3210,20 +3206,19 @@ var MarkdownDeep = new function(){
 			if (l!=null)
 			{
 				this.m_Markdown.AddLinkDefinition(l);
-				return BlockType.Blank;
+				return BlockType_Blank;
 			}
 		}
 
 		// Nothing special
-		return BlockType.p;
+		return BlockType_p;
 	}
 
-    var MarkdownInHtmlMode={};
-	MarkdownInHtmlMode.NA=0;
-	MarkdownInHtmlMode.Block=1;
-	MarkdownInHtmlMode.Span=2;
-	MarkdownInHtmlMode.Deep=3;
-	MarkdownInHtmlMode.Off=4;
+    var MarkdownInHtmlMode_NA=0;
+	var MarkdownInHtmlMode_Block=1;
+	var MarkdownInHtmlMode_Span=2;
+	var MarkdownInHtmlMode_Deep=3;
+	var MarkdownInHtmlMode_Off=4;
 
 	p.GetMarkdownMode=function(tag)
 	{
@@ -3232,9 +3227,9 @@ var MarkdownDeep = new function(){
 		if (md==undefined)
 		{
 			if (this.m_bMarkdownInHtml)
-				return MarkdownInHtmlMode.Deep;
+				return MarkdownInHtmlMode_Deep;
 			else
-				return MarkdownInHtmlMode.NA;
+				return MarkdownInHtmlMode_NA;
 		}
 
 		// Remove it
@@ -3242,18 +3237,18 @@ var MarkdownDeep = new function(){
 
 		// Parse mode
 		if (md == "1")
-			return (tag.get_Flags() & HtmlTagFlags.ContentAsSpan)!=0 ? MarkdownInHtmlMode.Span : MarkdownInHtmlMode.Block;
+			return (tag.get_Flags() & HtmlTagFlags_ContentAsSpan)!=0 ? MarkdownInHtmlMode_Span : MarkdownInHtmlMode_Block;
 
 		if (md == "block")
-			return MarkdownInHtmlMode.Block;
+			return MarkdownInHtmlMode_Block;
 
 		if (md == "deep")
-			return MarkdownInHtmlMode.Deep;
+			return MarkdownInHtmlMode_Deep;
 
 		if (md == "span")
-			return MarkdownInHtmlMode.Span;
+			return MarkdownInHtmlMode_Span;
 
-		return MarkdownInHtmlMode.Off;
+		return MarkdownInHtmlMode_Off;
 	}
 
 	p.ProcessMarkdownEnabledHtml=function(p, b, openingTag, mode)
@@ -3281,7 +3276,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// In markdown off mode, we need to check for unsafe tags
-			if (this.m_Markdown.SafeMode && mode == MarkdownInHtmlMode.Off && !bHasUnsafeContent)
+			if (this.m_Markdown.SafeMode && mode == MarkdownInHtmlMode_Off && !bHasUnsafeContent)
 			{
 				if (!tag.IsSafe())
 					bHasUnsafeContent = true;
@@ -3303,17 +3298,17 @@ var MarkdownDeep = new function(){
 						p.SkipLinespace();
 						p.SkipEol();
 
-						b.blockType = BlockType.HtmlTag;
+						b.blockType = BlockType_HtmlTag;
 						b.data = openingTag;
 						b.contentEnd = p.position;
 
 						switch (mode)
 						{
-							case MarkdownInHtmlMode.Span:
+							case MarkdownInHtmlMode_Span:
 							{
 								var span = this.CreateBlock();
 								span.buf = p.buf;
-								span.blockType = BlockType.span;
+								span.blockType = BlockType_span;
 								span.contentStart = inner_pos;
 								span.contentLen = tagpos - inner_pos;
 
@@ -3322,27 +3317,27 @@ var MarkdownDeep = new function(){
 								break;
 							}
 
-							case MarkdownInHtmlMode.Block:
-							case MarkdownInHtmlMode.Deep:
+							case MarkdownInHtmlMode_Block:
+							case MarkdownInHtmlMode_Deep:
 							{
 								// Scan the internal content
-								var bp = new BlockProcessor(this.m_Markdown, mode == MarkdownInHtmlMode.Deep);
+								var bp = new BlockProcessor(this.m_Markdown, mode == MarkdownInHtmlMode_Deep);
 								b.children = bp.ProcessRange(p.buf, inner_pos, tagpos - inner_pos);
 								break;
 							}
 
-							case MarkdownInHtmlMode.Off:
+							case MarkdownInHtmlMode_Off:
 							{
 								if (bHasUnsafeContent)
 								{
-									b.blockType = BlockType.unsafe_html;
+									b.blockType = BlockType_unsafe_html;
 									b.contentEnd = p.position;
 								}
 								else
 								{
 									var span = this.CreateBlock();
 									span.buf = p.buf;
-									span.blockType = BlockType.html;
+									span.blockType = BlockType_html;
 									span.contentStart = inner_pos;
 									span.contentLen = tagpos - inner_pos;
 
@@ -3390,21 +3385,21 @@ var MarkdownDeep = new function(){
  		var flags = openingTag.get_Flags();
 
 		// Is it a block level tag?
-		if ((flags & HtmlTagFlags.Block)==0)
+		if ((flags & HtmlTagFlags_Block)==0)
 			return false;
 
 		// Closed tag, hr or comment?
-		if ((flags & HtmlTagFlags.NoClosing) != 0 || openingTag.closed)
+		if ((flags & HtmlTagFlags_NoClosing) != 0 || openingTag.closed)
 		{
 			p.SkipLinespace();
 			p.SkipEol();
 			b.contentLen = p.position-b.contentStart;
-			b.blockType = bHasUnsafeContent ? BlockType.unsafe_html : BlockType.html;
+			b.blockType = bHasUnsafeContent ? BlockType_unsafe_html : BlockType_html;
 			return true;
 		}
 
 		// Can it also be an inline tag?
-		if ((flags & HtmlTagFlags.Inline) != 0)
+		if ((flags & HtmlTagFlags_Inline) != 0)
 		{
 			// Yes, opening tag must be on a line by itself
 			p.SkipLinespace();
@@ -3416,7 +3411,7 @@ var MarkdownDeep = new function(){
 		if (this.m_Markdown.ExtraMode)
 		{
 			var MarkdownMode = this.GetMarkdownMode(openingTag);
-			if (MarkdownMode != MarkdownInHtmlMode.NA)
+			if (MarkdownMode != MarkdownInHtmlMode_NA)
 			{
 				return this.ProcessMarkdownEnabledHtml(p, b, openingTag, MarkdownMode);
 			}
@@ -3455,7 +3450,7 @@ var MarkdownDeep = new function(){
 			if (!tag.closing && this.m_Markdown.ExtraMode && !bHasUnsafeContent)
 			{
 				var MarkdownMode = this.GetMarkdownMode(tag);
-				if (MarkdownMode != MarkdownInHtmlMode.NA)
+				if (MarkdownMode != MarkdownInHtmlMode_NA)
 				{
 					var markdownBlock = this.CreateBlock();
 					if (this.ProcessMarkdownEnabledHtml(p, markdownBlock, tag, MarkdownMode))
@@ -3470,7 +3465,7 @@ var MarkdownDeep = new function(){
 						{
 							var htmlBlock = this.CreateBlock();
 							htmlBlock.buf = p.buf;
-							htmlBlock.blockType = BlockType.html;
+							htmlBlock.blockType = BlockType_html;
 							htmlBlock.contentStart = posStartPiece;
 							htmlBlock.contentLen = posStartCurrentTag - posStartPiece;
 
@@ -3507,7 +3502,7 @@ var MarkdownDeep = new function(){
 						// If anything unsafe detected, just encode the whole block
 						if (bHasUnsafeContent)
 						{
-							b.blockType = BlockType.unsafe_html;
+							b.blockType = BlockType_unsafe_html;
 							b.contentEnd = p.position;
 							return true;
 						}
@@ -3520,7 +3515,7 @@ var MarkdownDeep = new function(){
 							{
 								var htmlBlock = this.CreateBlock();
 								htmlBlock.buf = p.buf;
-								htmlBlock.blockType = BlockType.html;
+								htmlBlock.blockType = BlockType_html;
 								htmlBlock.contentStart = posStartPiece;
 								htmlBlock.contentLen = p.position - posStartPiece;
 
@@ -3528,14 +3523,14 @@ var MarkdownDeep = new function(){
 							}
 
 							// Return a composite block
-							b.blockType = BlockType.Composite;
+							b.blockType = BlockType_Composite;
 							b.contentEnd = p.position;
 							b.children = childBlocks;
 							return true;
 						}
 
 						// Straight html block
-						b.blockType = BlockType.html;
+						b.blockType = BlockType_html;
 						b.contentLen = p.position - b.contentStart;
 						return true;
 					}
@@ -3548,7 +3543,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Missing closing tag(s).  
-		return BlockType.Blank;
+		return BlockType_Blank;
 	}
 
 	/* 
@@ -3568,8 +3563,8 @@ var MarkdownDeep = new function(){
 		for (var i = 1; i < lines.length; i++)
 		{
 			// Join plain paragraphs
-			if ((lines[i].blockType == BlockType.p) && 
-				(lines[i - 1].blockType == BlockType.p || lines[i-1].blockType==listType))
+			if ((lines[i].blockType == BlockType_p) && 
+				(lines[i - 1].blockType == BlockType_p || lines[i-1].blockType==listType))
 			{
 				lines[i - 1].set_contentEnd(lines[i].get_contentEnd());
 				this.FreeBlock(lines[i]);
@@ -3578,14 +3573,14 @@ var MarkdownDeep = new function(){
 				continue;
 			}
 
-			if (lines[i].blockType != BlockType.indent && lines[i].blockType!=BlockType.Blank)
+			if (lines[i].blockType != BlockType_indent && lines[i].blockType!=BlockType_Blank)
 			{
 				var thisLeadingSpace=lines[i].get_leadingSpaces();
 				if (thisLeadingSpace > leadingSpace)
 				{
 					// Change line to indented, including original leading chars 
 					// (eg: '* ', '>', '1.' etc...)
-					lines[i].blockType = BlockType.indent;
+					lines[i].blockType = BlockType_indent;
 					var saveend = lines[i].get_contentEnd();
 					lines[i].contentStart = lines[i].lineStart + thisLeadingSpace;
 					lines[i].set_contentEnd(saveend);
@@ -3596,7 +3591,7 @@ var MarkdownDeep = new function(){
 
 		// Create the wrapping list item
 		var List = this.CreateBlock();
-		List.blockType=(listType == BlockType.ul_li ? BlockType.ul : BlockType.ol);
+		List.blockType=(listType == BlockType_ul_li ? BlockType_ul : BlockType_ol);
 		List.children = new Array();
 
 		// Process all lines in the range		
@@ -3604,7 +3599,7 @@ var MarkdownDeep = new function(){
 		{
 			// Find start of item, including leading blanks
 			var start_of_li = i;
-			while (start_of_li > 0 && lines[start_of_li - 1].blockType == BlockType.Blank)
+			while (start_of_li > 0 && lines[start_of_li - 1].blockType == BlockType_Blank)
 				start_of_li--;
 
 			// Find end of the item, including trailing blanks
@@ -3629,7 +3624,7 @@ var MarkdownDeep = new function(){
 					sb.Append(l.buf.substr(l.contentStart, l.contentLen));
 					sb.Append('\n');
 
-					if (lines[j].blockType == BlockType.Blank)
+					if (lines[j].blockType == BlockType_Blank)
 					{
 						bAnyBlanks = true;
 					}
@@ -3637,7 +3632,7 @@ var MarkdownDeep = new function(){
 
 				// Create the item and process child blocks
 				var item = this.CreateBlock();
-				item.blockType = BlockType.li;
+				item.blockType = BlockType_li;
 				var bp=new BlockProcessor(this.m_Markdown)
 				bp.m_parentType=listType;
 				item.children = bp.Process(sb.ToString());
@@ -3648,9 +3643,9 @@ var MarkdownDeep = new function(){
 					for (var i=0; i<item.children.length; i++)
 					{
 					    var child=item.children[i];
-						if (child.blockType == BlockType.p)
+						if (child.blockType == BlockType_p)
 						{
-							child.blockType = BlockType.span;
+							child.blockType = BlockType_span;
 						}
 					}
 				}
@@ -3710,7 +3705,7 @@ var MarkdownDeep = new function(){
 			return false;
 
 		// Create the code block
-		b.blockType = BlockType.codeblock;
+		b.blockType = BlockType_codeblock;
 		b.children = new Array();
 
 		// Remove the trailing line end
@@ -3719,7 +3714,7 @@ var MarkdownDeep = new function(){
 
 		// Create the child block with the entire content
 		var child = this.CreateBlock();
-		child.blockType = BlockType.indent;
+		child.blockType = BlockType_indent;
 		child.buf = p.buf;
 		child.contentStart = startCode;
 		child.contentLen = endCode-startCode;
@@ -3733,14 +3728,5 @@ var MarkdownDeep = new function(){
 
     // Exposed stuff
     this.Markdown=Markdown;
-    this.StringBuilder=StringBuilder;
-    this.SpanFormatter=SpanFormatter;
-    this.StringScanner=StringScanner;
-    this.BlockProcessor=BlockProcessor;
-    this.LinkDefinition=LinkDefinition;
-    this.HtmlTag=HtmlTag;
-    this.HtmlTagFlags=HtmlTagFlags;
-    this.UnescapeString=UnescapeString;
-    this.BlockType=BlockType;
 }();
 
