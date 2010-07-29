@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="MiniME"
+	Version="8.00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="MiniME"
+			DisplayName="MiniME"
+			CommandLine="mm.exe  [AllOptions] [inputs]"
+			Outputs="[$OutputFileName]"
+			FileExtensions="*.js"
+			>
+			<Properties>
+				<StringProperty
+					Name="OutputFileName"
+					DisplayName="Output File Name"
+					Switch="-o:&quot;[value]&quot;"
+					DefaultValue="$(OutDir)\$(InputName).min.js"
+				/>
+				<BooleanProperty
+					Name="stdout"
+					DisplayName="StdOut"
+					Description="Render to stdout"
+					Switch="-stdout"
+				/>
+				<BooleanProperty
+					Name="diagformatted"
+					DisplayName="Formatted"
+					PropertyPageName="MiniME Developer"
+					Description="Produce formatted output"
+					Switch="-diag-formatted"
+				/>
+				<BooleanProperty
+					Name="diagsymbols"
+					DisplayName="Include Symbol Info"
+					PropertyPageName="MiniME Developer"
+					Description="Include diagnostic info about symbols in output (enforces formatted output)"
+					Switch="-diag-symbols"
+				/>
+				<BooleanProperty
+					Name="diagast"
+					DisplayName="Dump AST"
+					PropertyPageName="MiniME Developer"
+					Description="Dump parsed abstract syntax tree to stdout"
+					Switch="-diag-ast"
+				/>
+				<BooleanProperty
+					Name="diagscopes"
+					DisplayName="Dump Scopes"
+					PropertyPageName="MiniME Developer"
+					Description="Dump scope info to stdout"
+					Switch="-diag-scopes"
+				/>
+				<BooleanProperty
+					Name="NoObfuscate"
+					DisplayName="Don&apos;t Obfuscate"
+					Description="Prevent obfuscation of local symbols"
+					Switch="-no-obfuscate"
+				/>
+				<IntegerProperty
+					Name="MaxLineLength"
+					DisplayName="Maximum Line Length"
+					Description="Insert line breaks after the specified number of characters.  Set to 0 to disable line breaks.  Ignored in formatted output."
+					Switch="-linelen:[Value]"
+				/>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>
