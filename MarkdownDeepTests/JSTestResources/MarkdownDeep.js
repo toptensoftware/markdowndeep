@@ -12,7 +12,7 @@ if (Array.prototype.indexOf==undefined)
         }
         
         return -1;
-    }
+    };
 }
 
 

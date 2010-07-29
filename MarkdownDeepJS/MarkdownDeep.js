@@ -12,10 +12,8 @@ if (Array.prototype.indexOf==undefined)
         }
         
         return -1;
-    }
+    };
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Markdown
@@ -34,6 +32,7 @@ var MarkdownDeep = new function(){
     }
     
     var p=Markdown.prototype;
+    
     p.Transform=function(input)
     {
         // Normalize line ends
@@ -138,41 +137,39 @@ var MarkdownDeep = new function(){
     /////////////////////////////////////////////////////////////////////////////
     // CharTypes
     
-    var CharTypes={};
-
-    CharTypes.is_digit = function(ch)
+    function is_digit(ch)
     {
 	    return ch>='0' && ch<='9';
     }
-    CharTypes.is_hex = function(ch)
+    function is_hex(ch)
     {
 	    return (ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')
     }
-    CharTypes.is_alpha = function(ch)
+    function is_alpha(ch)
     {
 	    return (ch>='a' && ch<='z') || (ch>='A' && ch<='Z');
     }
-    CharTypes.is_alphadigit = function(ch)
+    function is_alphadigit(ch)
     {
 	    return (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9');
     }
-    CharTypes.is_whitespace = function(ch)
+    function is_whitespace(ch)
     {
         return (ch==' ' || ch=='\t' || ch=='\r' || ch=='\n');
     }
-    CharTypes.is_linespace = function(ch)
+    function is_linespace(ch)
     {
 	    return (ch==' ' || ch=='\t');
     }
-    CharTypes.is_lineend = function(ch)
+    function is_lineend(ch)
     {
 	    return (ch=='\r' || ch=='\n');
     }
-    CharTypes.is_emphasis = function(ch)
+    function is_emphasis(ch)
     {
 	    return (ch=='*' || ch=='_');
     }
-    CharTypes.is_escapable = function(ch)
+    function is_escapable(ch)
     {
 	    switch (ch)
 	    {
@@ -217,16 +214,16 @@ var MarkdownDeep = new function(){
 		    if (str.charAt(pos)=='x' || str.charAt(pos)=='X')
 		    {
 			    pos++;
-			    fn_test=CharTypes.is_hex;
+			    fn_test=is_hex;
 		    }
 		    else
 		    {
-			    fn_test=CharTypes.is_digit;
+			    fn_test=is_digit;
 		    }
 	    }
 	    else
 	    {
-		    fn_test=CharTypes.is_alphadigit;
+		    fn_test=is_alphadigit;
 	    }
     	
 	    if (fn_test(str.charAt(pos)))
@@ -258,7 +255,7 @@ var MarkdownDeep = new function(){
         var piece=0;    
         while (bspos>=0)
         {
-            if (CharTypes.is_escapable(str.charAt(bspos+1)))
+            if (is_escapable(str.charAt(bspos+1)))
             {
                 if (bspos>piece)
                     b.Append(str.substr(piece, bspos-piece));
@@ -280,9 +277,9 @@ var MarkdownDeep = new function(){
         var i=0;
         var l=str.length;
         
-        while (i<l && CharTypes.is_whitespace(str.charAt(i)))
+        while (i<l && is_whitespace(str.charAt(i)))
             i++;
-        while (l-1>i && CharTypes.is_whitespace(str.charAt(i-1)))
+        while (l-1>i && is_whitespace(str.charAt(i-1)))
             i--;
             
         return str.substr(i, l-i);
@@ -338,14 +335,14 @@ var MarkdownDeep = new function(){
 			return false;
 
 		// Must start with a letter
-		if (!CharTypes.is_alpha(str.charAt(0)))
+		if (!is_alpha(str.charAt(0)))
 			return false;
 
 		// Check the rest
 		for (var i = 0; i < str.length; i++)
 		{
 			var ch = str.charAt(i);
-			if (CharTypes.is_alphadigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
+			if (is_alphadigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
 				continue;
 
 			return false;
@@ -364,7 +361,7 @@ var MarkdownDeep = new function(){
 	{
 		// Skip trailing whitespace
 		var pos = end - 1;
-		while (pos >= start && CharTypes.is_whitespace(str.charAt(pos)))
+		while (pos >= start && is_whitespace(str.charAt(pos)))
 		{
 			pos--;
 		}
@@ -391,7 +388,7 @@ var MarkdownDeep = new function(){
 			return null;
 
 		// Skip any preceeding whitespace
-		while (pos > start && CharTypes.is_whitespace(str.charAt(pos - 1)))
+		while (pos > start && is_whitespace(str.charAt(pos - 1)))
 			pos--;
 
 		// Done!
@@ -409,6 +406,7 @@ var MarkdownDeep = new function(){
     }
 
     p=StringBuilder.prototype;
+    
 	p.Append = function(value)
 	{
 		if (value)
@@ -892,7 +890,7 @@ var MarkdownDeep = new function(){
 
     p.SkipEscapableChar = function()
     {
-		if (this.buf.charAt(this.position) == '\\' && CharTypes.is_escapable(this.buf.charAt(this.position+1)))
+		if (this.buf.charAt(this.position) == '\\' && is_escapable(this.buf.charAt(this.position+1)))
 		{
 		    this.position+=2;
 		    return true;
@@ -1143,7 +1141,7 @@ var MarkdownDeep = new function(){
 		    {
 			    // Scan the value
 			    p.Mark();
-			    while (!p.eof() && !CharTypes.is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
+			    while (!p.eof() && !is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
 				    p.SkipForward(1);
 
 			    if (!p.eof())
@@ -1158,13 +1156,13 @@ var MarkdownDeep = new function(){
     }
 
 
-    allowed_tags = {
+    var allowed_tags = {
 	    "b":1,"blockquote":1,"code":1,"dd":1,"dt":1,"dl":1,"del":1,"em":1,
 	    "h1":1,"h2":1,"h3":1,"h4":1,"h5":1,"h6":1,"i":1,"kbd":1,"li":1,"ol":1,"ul":1,
 	    "p":1, "pre":1, "s":1, "sub":1, "sup":1, "strong":1, "strike":1, "img":1, "a":1
     };
 
-    allowed_attributes = {
+    var allowed_attributes = {
         "a": { "href":1, "title":1 },
         "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
     };
@@ -1173,7 +1171,7 @@ var MarkdownDeep = new function(){
     var i=HtmlTagFlags_Inline;
     var n=HtmlTagFlags_NoClosing;
     var s=HtmlTagFlags_ContentAsSpan;
-    tag_flags= { 
+    var tag_flags= { 
 			"p": b | s , 
             "div": b , 
             "h1": b | s, 
@@ -1369,7 +1367,7 @@ var MarkdownDeep = new function(){
 		    while (!p.eol())
 		    {
 			    var ch=p.current();
-			    if (CharTypes.is_whitespace(ch))
+			    if (is_whitespace(ch))
 				    break;
 			    if (id == null)
 			    {
@@ -1600,7 +1598,7 @@ var MarkdownDeep = new function(){
 		// Skip everything up to the first letter
 		while (!p.eof())
 		{
-			if (CharTypes.is_alpha(p.current()))
+			if (is_alpha(p.current()))
 				break;
 			p.SkipForward(1);
 		}
@@ -1610,11 +1608,11 @@ var MarkdownDeep = new function(){
 		while (!p.eof())
 		{
 			var ch = p.current();
-			if (CharTypes.is_alphadigit(ch) || ch=='_' || ch=='-' || ch=='.')
+			if (is_alphadigit(ch) || ch=='_' || ch=='-' || ch=='.')
 				sb.Append(ch.toLowerCase());
 			else if (ch == ' ')
 				sb.Append("-");
-			else if (CharTypes.is_lineend(ch))
+			else if (is_lineend(ch))
 			{
 				sb.Append("-");
 				p.SkipEol();
@@ -1813,7 +1811,7 @@ var MarkdownDeep = new function(){
 				case ' ':
 				{
 					// Check for double space at end of a line
-					if (p.CharAtOffset(1)==' ' && CharTypes.is_lineend(p.CharAtOffset(2)))
+					if (p.CharAtOffset(1)==' ' && is_lineend(p.CharAtOffset(2)))
 					{
 						// Yes, skip it
 						p.SkipForward(2);
@@ -1831,7 +1829,7 @@ var MarkdownDeep = new function(){
 				case '\\':
 				{
 					// Check followed by an escapable character
-					if (CharTypes.is_escapable(p.CharAtOffset(1)))
+					if (is_escapable(p.CharAtOffset(1)))
 					{
 						token = this.CreateToken(TokenType_Text, p.position + 1, 1);
 						p.SkipForward(2);
@@ -1912,12 +1910,12 @@ var MarkdownDeep = new function(){
 		var savepos = p.position;
 
 		// Check for a consecutive sequence of just '_' and '*'
-		if (p.bof() || CharTypes.is_whitespace(p.CharAtOffset(-1)))
+		if (p.bof() || is_whitespace(p.CharAtOffset(-1)))
 		{
-			while (CharTypes.is_emphasis(p.current()))
+			while (is_emphasis(p.current()))
 				p.SkipForward(1);
 
-			if (p.eof() || CharTypes.is_whitespace(p.current()))
+			if (p.eof() || is_whitespace(p.current()))
 			{
 				return this.CreateToken(TokenType_Html, savepos, p.position - savepos);
 			}
@@ -1927,9 +1925,9 @@ var MarkdownDeep = new function(){
 		}
 
 		// Scan backwards and see if we have space before
-		while (CharTypes.is_emphasis(p.CharAtOffset(-1)))
+		while (is_emphasis(p.CharAtOffset(-1)))
 			p.SkipForward(-1);
-		var bSpaceBefore = p.bof() || CharTypes.is_whitespace(p.CharAtOffset(-1));
+		var bSpaceBefore = p.bof() || is_whitespace(p.CharAtOffset(-1));
 		p.position = savepos;
 
 		// Count how many matching emphasis characters
@@ -1940,9 +1938,9 @@ var MarkdownDeep = new function(){
 		var count=p.position-savepos;
 
 		// Scan forwards and see if we have space after
-		while (CharTypes.is_emphasis(p.CharAtOffset(1)))
+		while (is_emphasis(p.CharAtOffset(1)))
 			p.SkipForward(1);
-		var bSpaceAfter = p.eof() || CharTypes.is_whitespace(p.CharAtOffset(1));
+		var bSpaceAfter = p.eof() || is_whitespace(p.CharAtOffset(1));
 		p.position = savepos + count;
 
 		if (bSpaceBefore)
@@ -2058,7 +2056,7 @@ var MarkdownDeep = new function(){
 			var ch = p.current();
 
 			// No whitespace allowed
-			if (CharTypes.is_whitespace(ch))
+			if (is_whitespace(ch))
 				break;
 
 			// End found?
@@ -2219,11 +2217,11 @@ var MarkdownDeep = new function(){
                     break;
                     
                 var start=i;
-                while (start>0 && CharTypes.is_whitespace(link_id.charAt(start-1)))
+                while (start>0 && is_whitespace(link_id.charAt(start-1)))
                     start--
                     
                 var end=i;
-                while (end<link_id.length && CharTypes.is_whitespace(link_id.charAt(end)))
+                while (end<link_id.length && is_whitespace(link_id.charAt(end)))
                     end++;
                     
                 link_id=link_id.substr(0, start) + " " + link_id.substr(end);
@@ -2267,7 +2265,7 @@ var MarkdownDeep = new function(){
 
 		// Save end position before backing up over trailing whitespace
 		var endpos = p.position + tickcount;
-		while (CharTypes.is_whitespace(p.CharAtOffset(-1)))
+		while (is_whitespace(p.CharAtOffset(-1)))
 			p.SkipForward(-1);
 
 		// Create the token, move back to the end and we're done
@@ -3015,7 +3013,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// Rewind over trailing spaces
-			while (p.position>b.contentStart && CharTypes.is_whitespace(p.CharAtOffset(-1)))
+			while (p.position>b.contentStart && is_whitespace(p.CharAtOffset(-1)))
 			{
 				p.SkipForward(-1);
 			}
@@ -3124,7 +3122,7 @@ var MarkdownDeep = new function(){
 		if (ch == '>')
 		{
 			// Block quote followed by space
-			if (CharTypes.is_linespace(p.CharAtOffset(1)))
+			if (is_linespace(p.CharAtOffset(1)))
 			{
 				// Skip it and create quote block
 				p.SkipForward(2);
@@ -3151,7 +3149,7 @@ var MarkdownDeep = new function(){
 					continue;
 				}
 
-				if (CharTypes.is_linespace(p.current()))
+				if (is_linespace(p.current()))
 				{
 					p.SkipForward(1);
 					continue;
@@ -3170,7 +3168,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Unordered list
-		if ((ch == '*' || ch == '+' || ch == '-') && CharTypes.is_linespace(p.CharAtOffset(1)))
+		if ((ch == '*' || ch == '+' || ch == '-') && is_linespace(p.CharAtOffset(1)))
 		{
 			// Skip it
 			p.SkipForward(1);
@@ -3180,13 +3178,13 @@ var MarkdownDeep = new function(){
 		}
 
 		// Ordered list
-		if (CharTypes.is_digit(ch))
+		if (is_digit(ch))
 		{
 			// Ordered list?  A line starting with one or more digits, followed by a '.' and a space or tab
 
 			// Skip all digits
 			p.SkipForward(1);
-			while (CharTypes.is_digit(p.current()))
+			while (is_digit(p.current()))
 				p.SkipForward(1);
 
 			if (p.SkipChar('.') && p.SkipLinespace())
@@ -3691,7 +3689,7 @@ var MarkdownDeep = new function(){
 			return false;
 
 		// Character before must be a eol char
-		if (!CharTypes.is_lineend(p.CharAtOffset(-1)))
+		if (!is_lineend(p.CharAtOffset(-1)))
 			return false;
 
 		var endCode = p.position;

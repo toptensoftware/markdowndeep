@@ -53,6 +53,8 @@
     <Reference Include="System.Web.Mobile" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="js\MarkdownDeep.js" />
+    <Content Include="js\MarkdownDeep.min.js" />
     <Content Include="test_Experiment.html" />
     <Content Include="dingus.html">
       <SubType>ASPXCodeBehind</SubType>
