@@ -70,6 +70,38 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\jquery-1.4.2.js"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					MaxLineLength="120"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\jquery-1.4.2.min.js"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
 			RelativePath=".\MarkdownDeep.js"
 			>
 			<FileConfiguration
@@ -84,6 +116,14 @@
 		<File
 			RelativePath=".\MarkdownDeep.min.js"
 			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
 				ExcludedFromBuild="true"

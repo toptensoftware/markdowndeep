@@ -39,6 +39,43 @@ namespace MarkdownDeep
 			return ScanLines();
 		}
 
+		internal bool StartTable(TableSpec spec, List<Block> lines)
+		{
+			// Mustn't have more than 1 preceeding line
+			if (lines.Count > 1)
+				return false;
+
+			// Rewind, parse the header row then fast forward back to current pos
+			if (lines.Count == 1)
+			{
+				int savepos = position;
+				position = lines[0].lineStart;
+				spec.Headers = spec.ParseRow(this);
+				if (spec.Headers == null)
+					return false;
+				position = savepos;
+				lines.Clear();
+			}
+
+			// Parse all rows
+			while (true)
+			{
+				int savepos = position;
+
+				var row=spec.ParseRow(this);
+				if (row!=null)
+				{
+					spec.Rows.Add(row);
+					continue;
+				}
+
+				position = savepos;
+				break;
+			}
+
+			return true;
+		}
+
 		internal List<Block> ScanLines()
 		{
 			// The final set of blocks will be collected here
@@ -103,6 +140,27 @@ namespace MarkdownDeep
 
 				// Work out the current paragraph type
 				BlockType currentBlockType = lines.Count > 0 ? lines[0].blockType : BlockType.Blank;
+
+				// Starting a table?
+				if (b.blockType == BlockType.table_spec)
+				{
+					// Get the table spec, save position
+					TableSpec spec = (TableSpec)b.data;
+					int savepos = position;
+					if (!StartTable(spec, lines))
+					{
+						// Not a table, revert the tablespec row to plain,
+						// fast forward back to where we were up to and continue
+						// on as if nothing happened
+						position = savepos;
+						b.RevertToPlain();
+					}
+					else
+					{
+						blocks.Add(b);
+						continue;
+					}
+				}
 
 				// Process this line
 				switch (b.blockType)
@@ -352,6 +410,7 @@ namespace MarkdownDeep
 			}
 		}
 
+
 		Block EvaluateLine()
 		{
 			// Create a block
@@ -470,6 +529,17 @@ namespace MarkdownDeep
 				}
 
 				position = line_start;
+			}
+
+			// MarkdownExtra Table row indicator?
+			if (m_markdown.ExtraMode)
+			{
+				TableSpec spec = TableSpec.Parse(this);
+				if (spec!=null)
+				{
+					b.data = spec;
+					return BlockType.table_spec;
+				}
 			}
 
 			// Fenced code blocks?

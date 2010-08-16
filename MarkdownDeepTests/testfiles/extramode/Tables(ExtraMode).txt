@@ -1,0 +1,9 @@
+﻿pre
+
+Fruit|Color
+--|--
+Apples|Red
+Pears|Green
+Bananas|Yellow
+
+post

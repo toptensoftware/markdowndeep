@@ -64,6 +64,9 @@ namespace MarkdownDeep
 			this.start = pos;
 			this.pos = pos;
 			this.end = pos + len;
+
+			if (end > str.Length)
+				end = str.Length;
 		}
 
 		// Get the entire input string
@@ -437,7 +440,7 @@ namespace MarkdownDeep
 			int savepos = position;
 			if (!Utils.SkipHtmlEntity(this.str, ref pos, ref entity))
 				return false;
-			if (pos >= end)
+			if (pos > end)
 			{
 				pos = savepos;
 				return false;

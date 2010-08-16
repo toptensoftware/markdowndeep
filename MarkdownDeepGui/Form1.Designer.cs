@@ -35,6 +35,7 @@
 			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.txtSource = new System.Windows.Forms.TextBox();
 			this.checkSafeMode = new System.Windows.Forms.CheckBox();
+			this.checkExtraMode = new System.Windows.Forms.CheckBox();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
 			this.tabPage2.SuspendLayout();
@@ -115,6 +116,7 @@
 			// 
 			// checkSafeMode
 			// 
+			this.checkSafeMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkSafeMode.AutoSize = true;
 			this.checkSafeMode.Location = new System.Drawing.Point(12, 389);
 			this.checkSafeMode.Name = "checkSafeMode";
@@ -124,11 +126,26 @@
 			this.checkSafeMode.UseVisualStyleBackColor = true;
 			this.checkSafeMode.CheckedChanged += new System.EventHandler(this.checkSafeMode_CheckedChanged);
 			// 
+			// checkExtraMode
+			// 
+			this.checkExtraMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkExtraMode.AutoSize = true;
+			this.checkExtraMode.Checked = true;
+			this.checkExtraMode.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkExtraMode.Location = new System.Drawing.Point(96, 389);
+			this.checkExtraMode.Name = "checkExtraMode";
+			this.checkExtraMode.Size = new System.Drawing.Size(80, 17);
+			this.checkExtraMode.TabIndex = 3;
+			this.checkExtraMode.Text = "E&xtra Mode";
+			this.checkExtraMode.UseVisualStyleBackColor = true;
+			this.checkExtraMode.CheckedChanged += new System.EventHandler(this.checkExtraMode_CheckedChanged);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(497, 414);
+			this.Controls.Add(this.checkExtraMode);
 			this.Controls.Add(this.checkSafeMode);
 			this.Controls.Add(this.tabControl1);
 			this.Controls.Add(this.txtMarkdown);
@@ -152,6 +169,7 @@
 		private System.Windows.Forms.TabPage tabPage2;
 		private System.Windows.Forms.TextBox txtSource;
 		private System.Windows.Forms.CheckBox checkSafeMode;
+		private System.Windows.Forms.CheckBox checkExtraMode;
 	}
 }
 

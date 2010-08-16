@@ -16,6 +16,7 @@ namespace MarkdownDeepGui
 			InitializeComponent();
 			this.txtMarkdown.Text = "# Welcome to MarkdownDeep #\r\n\r\nType markdown text above, see formatted text below!";
 			this.txtMarkdown.SelectionStart = this.txtMarkdown.Text.Length;
+			m_Markdown.ExtraMode = true;
 		}
 
 		private void doUpdate()
@@ -36,6 +37,12 @@ namespace MarkdownDeepGui
 		private void checkSafeMode_CheckedChanged(object sender, EventArgs e)
 		{
 			m_Markdown.SafeMode = this.checkSafeMode.Checked;
+			doUpdate();
+		}
+
+		private void checkExtraMode_CheckedChanged(object sender, EventArgs e)
+		{
+			m_Markdown.ExtraMode = this.checkExtraMode.Checked;
 			doUpdate();
 		}
 	}

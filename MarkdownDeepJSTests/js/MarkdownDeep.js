@@ -1,5 +1,5 @@
-/////////////////////////////////////////////////////////////////////////////
-// js
+//! MarkdownDeep  http://toptensoftware.com/MarkdownDeep
+//! Copyright (C) 2010 Topten Software. Some Rights Reserved
 
 if (Array.prototype.indexOf==undefined)
 {
@@ -15,12 +15,13 @@ if (Array.prototype.indexOf==undefined)
     };
 }
 
-
-
 /////////////////////////////////////////////////////////////////////////////
 // Markdown
 
 var MarkdownDeep = new function(){
+
+    // private:p.
+    // private:.m_*
 
     function Markdown()
     {
@@ -34,7 +35,8 @@ var MarkdownDeep = new function(){
     }
     
     var p=Markdown.prototype;
-    p.Transform=function(input)
+    
+    Markdown.prototype.Transform=function(input)
     {
         // Normalize line ends
         var rpos=input.indexOf("\r");
@@ -84,6 +86,7 @@ var MarkdownDeep = new function(){
 	}
 
 	// Get a link definition
+	// private
     p.GetLinkDefinition=function(id)
 	{
 	    var x=this.m_LinkDefinitions[id];
@@ -93,6 +96,7 @@ var MarkdownDeep = new function(){
     	    return x;
     }
     
+    // private
 	p.MakeUniqueHeaderID=function(strHeaderText, startOffset, length)
 	{
 		if (!this.AutoHeadingIDs)
@@ -122,57 +126,61 @@ var MarkdownDeep = new function(){
 	}
 
 
-	
+	// private
 	p.GetStringBuilder=function()
 	{
 	    this.m_StringBuilder.Clear();
 	    return this.m_StringBuilder;
 	}
 
-
+    // private
     p.processSpan=function(sb, str, start, len)
     {
         return this.m_SpanFormatter.Format(sb, str, start, len);
     }
 
+    // private
+    p.processSpan2=function(sb, str)
+    {
+        return this.m_SpanFormatter.Format(sb, str, 0, str.length);
+    }
+
     /////////////////////////////////////////////////////////////////////////////
     // CharTypes
     
-    var CharTypes={};
-
-    CharTypes.is_digit = function(ch)
+    function is_digit(ch)
     {
 	    return ch>='0' && ch<='9';
     }
-    CharTypes.is_hex = function(ch)
+    function is_hex(ch)
     {
 	    return (ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')
     }
-    CharTypes.is_alpha = function(ch)
+    function is_alpha(ch)
     {
 	    return (ch>='a' && ch<='z') || (ch>='A' && ch<='Z');
     }
-    CharTypes.is_alphadigit = function(ch)
+    function is_alphadigit(ch)
     {
 	    return (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9');
     }
-    CharTypes.is_whitespace = function(ch)
+    function is_whitespace(ch)
     {
         return (ch==' ' || ch=='\t' || ch=='\r' || ch=='\n');
     }
-    CharTypes.is_linespace = function(ch)
+    function is_linespace(ch)
     {
 	    return (ch==' ' || ch=='\t');
     }
-    CharTypes.is_lineend = function(ch)
+    function is_lineend(ch)
     {
 	    return (ch=='\r' || ch=='\n');
     }
-    CharTypes.is_emphasis = function(ch)
+    function is_emphasis(ch)
     {
 	    return (ch=='*' || ch=='_');
     }
-    CharTypes.is_escapable = function(ch)
+    function is_escapable(ch)
     {
 	    switch (ch)
 	    {
@@ -211,22 +219,23 @@ var MarkdownDeep = new function(){
 	    var save=pos;
 	    pos++;
     	
+    	var fn_test;
 	    if (str.charAt(pos)=='#')
 	    {
 		    pos++;
 		    if (str.charAt(pos)=='x' || str.charAt(pos)=='X')
 		    {
 			    pos++;
-			    fn_test=CharTypes.is_hex;
+			    fn_test=is_hex;
 		    }
 		    else
 		    {
-			    fn_test=CharTypes.is_digit;
+			    fn_test=is_digit;
 		    }
 	    }
 	    else
 	    {
-		    fn_test=CharTypes.is_alphadigit;
+		    fn_test=is_alphadigit;
 	    }
     	
 	    if (fn_test(str.charAt(pos)))
@@ -258,7 +267,7 @@ var MarkdownDeep = new function(){
         var piece=0;    
         while (bspos>=0)
         {
-            if (CharTypes.is_escapable(str.charAt(bspos+1)))
+            if (is_escapable(str.charAt(bspos+1)))
             {
                 if (bspos>piece)
                     b.Append(str.substr(piece, bspos-piece));
@@ -280,10 +289,10 @@ var MarkdownDeep = new function(){
         var i=0;
         var l=str.length;
         
-        while (i<l && CharTypes.is_whitespace(str.charAt(i)))
+        while (i<l && is_whitespace(str.charAt(i)))
             i++;
-        while (l-1>i && CharTypes.is_whitespace(str.charAt(i-1)))
-            i--;
+        while (l-1>i && is_whitespace(str.charAt(l-1)))
+            l--;
             
         return str.substr(i, l-i);
     }
@@ -338,14 +347,14 @@ var MarkdownDeep = new function(){
 			return false;
 
 		// Must start with a letter
-		if (!CharTypes.is_alpha(str.charAt(0)))
+		if (!is_alpha(str.charAt(0)))
 			return false;
 
 		// Check the rest
 		for (var i = 0; i < str.length; i++)
 		{
 			var ch = str.charAt(i);
-			if (CharTypes.is_alphadigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
+			if (is_alphadigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '.')
 				continue;
 
 			return false;
@@ -364,7 +373,7 @@ var MarkdownDeep = new function(){
 	{
 		// Skip trailing whitespace
 		var pos = end - 1;
-		while (pos >= start && CharTypes.is_whitespace(str.charAt(pos)))
+		while (pos >= start && is_whitespace(str.charAt(pos)))
 		{
 			pos--;
 		}
@@ -391,7 +400,7 @@ var MarkdownDeep = new function(){
 			return null;
 
 		// Skip any preceeding whitespace
-		while (pos > start && CharTypes.is_whitespace(str.charAt(pos - 1)))
+		while (pos > start && is_whitespace(str.charAt(pos - 1)))
 			pos--;
 
 		// Done!
@@ -405,22 +414,23 @@ var MarkdownDeep = new function(){
 
     function StringBuilder()
     {
-	    this.content = new Array();
+	    this.m_content = new Array();
     }
 
     p=StringBuilder.prototype;
+    
 	p.Append = function(value)
 	{
 		if (value)
-			this.content.push(value);
+			this.m_content.push(value);
 	}
 	p.Clear = function()
 	{
-		this.content.length=0;
+		this.m_content.length=0;
 	}
 	p.ToString = function()
 	{
-		return this.content.join("");
+		return this.m_content.join("");
 	}
 
     p.HtmlRandomize=function(url)
@@ -659,19 +669,19 @@ var MarkdownDeep = new function(){
     p=StringScanner.prototype;
 	p.bof = function() 
 	{ 
-		return this.position==this.start; 
+		return this.m_position==this.start; 
 	}
 
 	p.eof = function() 
 	{ 
-		return this.position>=this.end; 
+		return this.m_position>=this.end; 
 	}
 
 	p.eol = function() 
 	{ 
-	    if (this.position>=this.end)
+	    if (this.m_position>=this.end)
 	        return true;
-	    var ch=this.buf.charAt(this.position);
+	    var ch=this.buf.charAt(this.m_position);
 	    return ch=='\r' || ch=='\n' || ch==undefined || ch=='';
 	}
 
@@ -680,47 +690,47 @@ var MarkdownDeep = new function(){
 		this.buf=arguments.length>0 ? arguments[0] : null;
 		this.start=arguments.length>1 ? arguments[1] : 0;
 		this.end=arguments.length>2 ? this.start + arguments[2] : (this.buf==null ? 0 : this.buf.length);
-		this.position=this.start;
+		this.m_position=this.start;
 		this.charset_offsets={};
 	}
 
 	p.current = function()
 	{
-	    if (this.position>=this.end)
+	    if (this.m_position>=this.end)
 	        return "\0";
-		return this.buf.charAt(this.position);
+		return this.buf.charAt(this.m_position);
 	}
 
 	p.remainder = function()
 	{
-		return this.buf.substr(this.position);
+		return this.buf.substr(this.m_position);
 	}
 
 	p.SkipToEof = function()
 	{
-		this.position=this.end;
+		this.m_position=this.end;
 	}
 
 	p.SkipForward = function(count)
 	{
-		this.position+=count;
+		this.m_position+=count;
 	}
 
 	p.SkipToEol = function()
 	{
-		this.position = this.buf.indexOf('\n', this.position);
-		if (this.position<0)
-			this.position=this.end;
+		this.m_position = this.buf.indexOf('\n', this.m_position);
+		if (this.m_position<0)
+			this.m_position=this.end;
 	}
 
 	p.SkipEol = function()
 	{
-		var save=this.position;
-		if (this.buf.charAt(this.position)=='\r')
-			this.position++;
-		if (this.buf.charAt(this.position)=='\n')
-			this.position++;
-		return this.position!=save;
+		var save=this.m_position;
+		if (this.buf.charAt(this.m_position)=='\r')
+			this.m_position++;
+		if (this.buf.charAt(this.m_position)=='\n')
+			this.m_position++;
+		return this.m_position!=save;
 	}
 
 	p.SkipToNextLine = function()
@@ -731,70 +741,70 @@ var MarkdownDeep = new function(){
 
 	p.CharAtOffset = function(offset)
 	{
-	    if (this.position+offset>=this.end)
+	    if (this.m_position+offset>=this.end)
 	        return "\0";
-		return this.buf.charAt(this.position+offset);
+		return this.buf.charAt(this.m_position+offset);
 	}
 
 	p.SkipChar = function(ch)
 	{
-		if (this.buf.charAt(this.position)==ch)
+		if (this.buf.charAt(this.m_position)==ch)
 		{
-			this.position++;
+			this.m_position++;
 			return true;
 		}
 		return false;
 	}
 	p.SkipString= function(s)
 	{
-		if (this.buf.substr(this.position, s.length)==s)
+		if (this.buf.substr(this.m_position, s.length)==s)
 		{
-			this.position+=s.length;
+			this.m_position+=s.length;
 			return true;
 		}
 		return false;
 	}
 	p.SkipWhitespace= function()
 	{
-		var save=this.position;
+		var save=this.m_position;
 		while (true)
 		{
-			var ch=this.buf.charAt(this.position);
+			var ch=this.buf.charAt(this.m_position);
 			if (ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n')
 				break;
-			this.position++;				
+			this.m_position++;				
 		}
-		return this.position!=save;
+		return this.m_position!=save;
 	}
 	p.SkipLinespace= function()
 	{
-		var save=this.position;
+		var save=this.m_position;
 		while (true)
 		{
-			var ch=this.buf.charAt(this.position);
+			var ch=this.buf.charAt(this.m_position);
 			if (ch!=' ' && ch!='\t')
 				break;
-			this.position++;				
+			this.m_position++;				
 		}
-		return this.position!=save;
+		return this.m_position!=save;
 	}
 	p.FindRE=function(re)
 	{
-	    re.lastIndex=this.position;
+	    re.lastIndex=this.m_position;
 	    var result=re.exec(this.buf);
 	    if (result==null)
 	    {
-	        this.position=this.end;
+	        this.m_position=this.end;
 	        return false;
 	    }
 	    
 	    if (result.index + result[0].length > this.end)
 	    {
-	        this.position=this.end;
+	        this.m_position=this.end;
 	        return false;
 	    }
 	
-	    this.position=result.index;
+	    this.m_position=result.index;
         return true;
 	}
 	p.FindOneOf=function(charset)
@@ -808,24 +818,24 @@ var MarkdownDeep = new function(){
             if (charset_info==null)
             {
                 charset_info={};
-                charset_info.searched_from=-1;
-                charset_info.found_at=-1;
+                charset_info.m_searched_from=-1;
+                charset_info.m_found_at=-1;
                 charset[ch]=charset_info;
             }
             
             // Search again?
-            if (charset_info.searched_from==-1 || 
-                this.position < charset_info.searched_from || 
-                (this.position >= charset_info.found_at && charset_info.found_at!=-1))
+            if (charset_info.m_searched_from==-1 || 
+                this.m_position < charset_info.m_searched_from || 
+                (this.m_position >= charset_info.m_found_at && charset_info.m_found_at!=-1))
             {
-                charset_info.searched_from=this.position;
-                charset_info.found_at=this.buf.indexOf(ch, this.position);
+                charset_info.m_searched_from=this.m_position;
+                charset_info.m_found_at=this.buf.indexOf(ch, this.m_position);
             }
 
             // Is this character next?            
-            if (next==-1 || charset_info.found_at<next)
+            if (next==-1 || charset_info.m_found_at<next)
             {
-                next=charset_info.found_at;
+                next=charset_info.m_found_at;
             }
             
         }
@@ -836,41 +846,41 @@ var MarkdownDeep = new function(){
             return false;
         }
         
-        p.position=next;
+        p.m_position=next;
         return true;
 	}
 	p.Find= function(s)
 	{
-		this.position=this.buf.indexOf(s, this.position);
-		if (this.position<0)
+		this.m_position=this.buf.indexOf(s, this.m_position);
+		if (this.m_position<0)
 		{
-			this.position=this.end;
+			this.m_position=this.end;
 			return false;
 		}
 		return true;
 	}
 	p.Mark= function()
 	{
-		this.mark=this.position;
+		this.mark=this.m_position;
 	}
 	p.Extract = function()
 	{
-		if (this.mark>=this.position)
+		if (this.mark>=this.m_position)
 			return "";
 		else
-			return this.buf.substr(this.mark, this.position-this.mark);
+			return this.buf.substr(this.mark, this.m_position-this.mark);
 	}
 	p.SkipIdentifier = function()
 	{
-		var ch=this.buf.charAt(this.position);
+		var ch=this.buf.charAt(this.m_position);
 		if ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || ch=='_')
 		{
-			this.position++;
+			this.m_position++;
 			while (true)
 			{
-				var ch=this.buf.charAt(this.position);
+				var ch=this.buf.charAt(this.m_position);
 				if ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || ch=='_' || (ch>='0' && ch<='9'))
-					this.position++;
+					this.m_position++;
 				else
 					return true;
 			}
@@ -879,28 +889,28 @@ var MarkdownDeep = new function(){
 	}
 	p.SkipHtmlEntity = function()
 	{
-	    if (this.buf.charAt(this.position)!='&')
+	    if (this.buf.charAt(this.m_position)!='&')
 	        return false;
 
-	    var newpos=SkipHtmlEntity(this.buf, this.position);
+	    var newpos=SkipHtmlEntity(this.buf, this.m_position);
 	    if (newpos<0)
 	        return false;
 	        
-        this.position=newpos;
+        this.m_position=newpos;
         return true;
 	}
 
     p.SkipEscapableChar = function()
     {
-		if (this.buf.charAt(this.position) == '\\' && CharTypes.is_escapable(this.buf.charAt(this.position+1)))
+		if (this.buf.charAt(this.m_position) == '\\' && is_escapable(this.buf.charAt(this.m_position+1)))
 		{
-		    this.position+=2;
+		    this.m_position+=2;
 		    return true;
 		}
 		else
 		{
-		    if (this.position<this.end)
-		        this.position++;
+		    if (this.m_position<this.end)
+		        this.m_position++;
 		    return false;
 		}
 	}
@@ -917,23 +927,23 @@ var MarkdownDeep = new function(){
 
     function HtmlTag(name)
     {
-        this.name=name;
-        this.attributes={};
-        this.flags=0;
+        this.m_name=name;
+        this.m_attributes={};
+        this.m_flags=0;
     }
 
     p=HtmlTag.prototype;
-    p.attributes=null;
+    p.m_attributes=null;
     p.closed=false;
     p.closing=false;
     
     p.attributeCount= function()
     {
-        if (!this.attributes)
+        if (!this.m_attributes)
             return 0;
             
         var count=0;
-        for (var x in this.attributes)
+        for (var x in this.m_attributes)
             count++;
             
         return count;
@@ -941,20 +951,20 @@ var MarkdownDeep = new function(){
 
     p.get_Flags = function()
     {
-        if (this.flags==0)
+        if (this.m_flags==0)
         {
-            this.flags=tag_flags[this.name.toLowerCase()]
-            if (this.flags==undefined)
+            this.m_flags=tag_flags[this.m_name.toLowerCase()]
+            if (this.m_flags==undefined)
             {
-                this.flags=HtmlTagFlags_Inline;
+                this.m_flags=HtmlTagFlags_Inline;
             }
         }
-        return this.flags;
+        return this.m_flags;
     }
 
     p.IsSafe = function()
     {
-	    var name_lower=this.name.toLowerCase();
+	    var name_lower=this.m_name.toLowerCase();
     	
 	    // Check if tag is in whitelist
 	    if (!allowed_tags[name_lower])
@@ -968,26 +978,26 @@ var MarkdownDeep = new function(){
 	    }
     	    
 	    // No attributes?
-	    if (!this.attributes)
+	    if (!this.m_attributes)
 	        return true;
 
 	    // Check all are allowed
-	    for (var i in this.attributes)
+	    for (var i in this.m_attributes)
 	    {
 	        if (!allowed[i.toLowerCase()])
 			    return false;
 	    }
 
 	    // Check href attribute is ok
-	    if (this.attributes["href"])
+	    if (this.m_attributes["href"])
 	    {
-	        if (!HtmlTag.IsSafeUrl(this.attributes["href"]))
+	        if (!IsSafeUrl(this.m_attributes["href"]))
 	            return false;
 	    }
 
-	    if (this.attributes["src"])
+	    if (this.m_attributes["src"])
 	    {
-	        if (!HtmlTag.IsSafeUrl(this.attributes["src"]))
+	        if (!IsSafeUrl(this.m_attributes["src"]))
 	            return false;
 	    }
 
@@ -999,7 +1009,7 @@ var MarkdownDeep = new function(){
 	p.RenderOpening=function(dest)
 	{
 		dest.Append("<");
-		dest.Append(this.name);
+		dest.Append(this.m_name);
 		for (var i in this.m_attributes)
 		{
 			dest.Append(" ");
@@ -1015,13 +1025,13 @@ var MarkdownDeep = new function(){
 	p.RenderClosing=function(dest)
 	{
 		dest.Append("</");
-		dest.Append(this.name);
+		dest.Append(this.m_name);
 		dest.Append(">\n");
 	}
 
 
 
-    HtmlTag.IsSafeUrl = function(url)
+    function IsSafeUrl(url)
     {
         url=url.toLowerCase();
         return (url.substr(0, 7)=="http://" ||
@@ -1029,22 +1039,22 @@ var MarkdownDeep = new function(){
                 url.substr(0, 6)=="ftp://")
     }
 
-    HtmlTag.Parse=function(p)
+    function ParseHtmlTag(p)
     {
 	    // Save position
-	    var savepos = p.position;
+	    var savepos = p.m_position;
 
 	    // Parse it
-	    var ret = this.ParseHelper(p);
+	    var ret = ParseHtmlTagHelper(p);
 	    if (ret!=null)
 		    return ret;
 
 	    // Rewind if failed
-	    p.position = savepos;
+	    p.m_position = savepos;
 	    return null;
     }
 
-    HtmlTag.ParseHelper=function(p)
+    function ParseHtmlTagHelper(p)
     {
 	    // Does it look like a tag?
 	    if (p.current() != '<')
@@ -1061,7 +1071,7 @@ var MarkdownDeep = new function(){
 		    if (p.Find("-->"))
 		    {
 			    var t = new HtmlTag("!");
-			    t.attributes["content"]=p.Extract();
+			    t.m_attributes["content"]=p.Extract();
 			    t.closed=true;
 			    p.SkipForward(3);
 			    return t;
@@ -1134,7 +1144,7 @@ var MarkdownDeep = new function(){
 				    return null;
 
 			    // Store the value
-			    tag.attributes[attributeName]=p.Extract();
+			    tag.m_attributes[attributeName]=p.Extract();
 
 			    // Skip closing quote
 			    p.SkipForward(1);
@@ -1143,13 +1153,13 @@ var MarkdownDeep = new function(){
 		    {
 			    // Scan the value
 			    p.Mark();
-			    while (!p.eof() && !CharTypes.is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
+			    while (!p.eof() && !is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
 				    p.SkipForward(1);
 
 			    if (!p.eof())
 			    {
 				    // Store the value
-				    tag.attributes[attributeName]=p.Extract();
+				    tag.m_attributes[attributeName]=p.Extract();
 			    }
 		    }
 	    }
@@ -1158,13 +1168,13 @@ var MarkdownDeep = new function(){
     }
 
 
-    allowed_tags = {
+    var allowed_tags = {
 	    "b":1,"blockquote":1,"code":1,"dd":1,"dt":1,"dl":1,"del":1,"em":1,
 	    "h1":1,"h2":1,"h3":1,"h4":1,"h5":1,"h6":1,"i":1,"kbd":1,"li":1,"ol":1,"ul":1,
 	    "p":1, "pre":1, "s":1, "sub":1, "sup":1, "strong":1, "strike":1, "img":1, "a":1
     };
 
-    allowed_attributes = {
+    var allowed_attributes = {
         "a": { "href":1, "title":1 },
         "img": { "src":1, "width":1, "height":1, "alt":1, "title":1 }
     };
@@ -1173,7 +1183,7 @@ var MarkdownDeep = new function(){
     var i=HtmlTagFlags_Inline;
     var n=HtmlTagFlags_NoClosing;
     var s=HtmlTagFlags_ContentAsSpan;
-    tag_flags= { 
+    var tag_flags= { 
 			"p": b | s , 
             "div": b , 
             "h1": b | s, 
@@ -1281,16 +1291,16 @@ var MarkdownDeep = new function(){
 	    b.Append(" />");
     }
 
-    LinkDefinition.ParseLinkDefinition=function(p)
+    function ParseLinkDefinition(p)
     {
-	    var savepos=p.position;
-	    var l = LinkDefinition.ParseLinkDefinitionInternal(p);
+	    var savepos=p.m_position;
+	    var l = ParseLinkDefinitionInternal(p);
 	    if (l==null)
-		    p.position = savepos;
+		    p.m_position = savepos;
 	    return l;
     }
 
-    LinkDefinition.ParseLinkDefinitionInternal=function(p)
+    function ParseLinkDefinitionInternal(p)
     {
 	    // Skip leading white space
 	    p.SkipWhitespace();
@@ -1310,7 +1320,7 @@ var MarkdownDeep = new function(){
 		    return null;
 
 	    // Parse the url and title
-	    var link=this.ParseLinkTarget(p, id);
+	    var link=ParseLinkTarget(p, id);
 
 	    // and trailing whitespace
 	    p.SkipLinespace();
@@ -1325,7 +1335,7 @@ var MarkdownDeep = new function(){
     // Parse just the link target
     // For reference link definition, this is the bit after "[id]: thisbit"
     // For inline link, this is the bit in the parens: [link text](thisbit)
-    LinkDefinition.ParseLinkTarget=function(p, id)
+    function ParseLinkTarget(p, id)
     {
 	    // Skip whitespace
 	    p.SkipWhitespace();
@@ -1369,7 +1379,7 @@ var MarkdownDeep = new function(){
 		    while (!p.eol())
 		    {
 			    var ch=p.current();
-			    if (CharTypes.is_whitespace(ch))
+			    if (is_whitespace(ch))
 				    break;
 			    if (id == null)
 			    {
@@ -1396,7 +1406,7 @@ var MarkdownDeep = new function(){
 		    return r;
 
 	    var bOnNewLine = p.eol();
-	    var posLineEnd = p.position;
+	    var posLineEnd = p.m_position;
 	    if (p.eol())
 	    {
 		    p.SkipEol();
@@ -1419,7 +1429,7 @@ var MarkdownDeep = new function(){
 		    default:
 			    if (bOnNewLine)
 			    {
-				    p.position = posLineEnd;
+				    p.m_position = posLineEnd;
 				    return r;
 			    }
 			    else
@@ -1441,7 +1451,7 @@ var MarkdownDeep = new function(){
 
 			    if (delim != ')')
 			    {
-				    var savepos = p.position;
+				    var savepos = p.m_position;
 
 				    // Check for embedded quotes in title
 
@@ -1457,7 +1467,7 @@ var MarkdownDeep = new function(){
 					    continue;
 				    }
 
-				    p.position = savepos;
+				    p.m_position = savepos;
 			    }
 
 			    // End of title
@@ -1522,7 +1532,7 @@ var MarkdownDeep = new function(){
         this.m_Markdown=markdown;
         this.m_Scanner=new StringScanner();
         this.m_SpareTokens=new Array();
-        this.DisableLinks=false;
+        this.m_DisableLinks=false;
     }
 
     p=SpanFormatter.prototype;
@@ -1600,7 +1610,7 @@ var MarkdownDeep = new function(){
 		// Skip everything up to the first letter
 		while (!p.eof())
 		{
-			if (CharTypes.is_alpha(p.current()))
+			if (is_alpha(p.current()))
 				break;
 			p.SkipForward(1);
 		}
@@ -1610,11 +1620,11 @@ var MarkdownDeep = new function(){
 		while (!p.eof())
 		{
 			var ch = p.current();
-			if (CharTypes.is_alphadigit(ch) || ch=='_' || ch=='-' || ch=='.')
+			if (is_alphadigit(ch) || ch=='_' || ch=='-' || ch=='.')
 				sb.Append(ch.toLowerCase());
 			else if (ch == ' ')
 				sb.Append("-");
-			else if (CharTypes.is_lineend(ch))
+			else if (is_lineend(ch))
 			{
 				sb.Append("-");
 				p.SkipEol();
@@ -1686,7 +1696,7 @@ var MarkdownDeep = new function(){
 			    {
 				    var li = t.data;
 				    var sf = new SpanFormatter(this.m_Markdown);
-				    sf.DisableLinks = true;
+				    sf.m_DisableLinks = true;
 
 				    li.def.RenderLink(this.m_Markdown, sb, sf.FormatDirect(li.link_text));
 				    break;
@@ -1715,13 +1725,13 @@ var MarkdownDeep = new function(){
 		var re=/[\*\_\`\[\!\<\&\ \\]/g;
 
 		// Scan string
-		var start_text_token = p.position;
+		var start_text_token = p.m_position;
 		while (!p.eof())
 		{
 			if (!p.FindRE(re))
 			    break;  
 
-			var end_text_token=p.position;
+			var end_text_token=p.m_position;
 			
 			// Work out token
 			var token = null;
@@ -1756,43 +1766,43 @@ var MarkdownDeep = new function(){
 				case '!':
 				{
 					// Process link reference
-					var linkpos = p.position;
+					var linkpos = p.m_position;
 					token = this.ProcessLinkOrImage();
 
 					// Rewind if invalid syntax
 					// (the '[' or '!' will be treated as a regular character and processed below)
 					if (token == null)
-						p.position = linkpos;
+						p.m_position = linkpos;
 					break;
 				}
 
 				case '<':
 				{
 					// Is it a valid html tag?
-					var save = p.position;
-					var tag = HtmlTag.Parse(p);
+					var save = p.m_position;
+					var tag = ParseHtmlTag(p);
 					if (tag != null)
 					{
 						// Yes, create a token for it
 						if (!this.m_Markdown.SafeMode || tag.IsSafe())
 						{
 							// Yes, create a token for it
-							token = this.CreateToken(TokenType_HtmlTag, save, p.position - save);
+							token = this.CreateToken(TokenType_HtmlTag, save, p.m_position - save);
 						}
 						else
 						{
 							// No, rewrite and encode it
-							p.position = save;
+							p.m_position = save;
 						}
 					}
 					else
 					{
 						// No, rewind and check if it's a valid autolink eg: <google.com>
-						p.position = save;
+						p.m_position = save;
 						token = this.ProcessAutoLink();
 
 						if (token == null)
-							p.position = save;
+							p.m_position = save;
 					}
 					break;
 				}
@@ -1800,11 +1810,11 @@ var MarkdownDeep = new function(){
 				case '&':
 				{
 					// Is it a valid html entity
-					var save=p.position;
+					var save=p.m_position;
 					if (p.SkipHtmlEntity())
 					{
 						// Yes, create a token for it
-						token = this.CreateToken(TokenType_Html, save, p.position - save);
+						token = this.CreateToken(TokenType_Html, save, p.m_position - save);
 					}
 
 					break;
@@ -1813,7 +1823,7 @@ var MarkdownDeep = new function(){
 				case ' ':
 				{
 					// Check for double space at end of a line
-					if (p.CharAtOffset(1)==' ' && CharTypes.is_lineend(p.CharAtOffset(2)))
+					if (p.CharAtOffset(1)==' ' && is_lineend(p.CharAtOffset(2)))
 					{
 						// Yes, skip it
 						p.SkipForward(2);
@@ -1831,9 +1841,9 @@ var MarkdownDeep = new function(){
 				case '\\':
 				{
 					// Check followed by an escapable character
-					if (CharTypes.is_escapable(p.CharAtOffset(1)))
+					if (is_escapable(p.CharAtOffset(1)))
 					{
-						token = this.CreateToken(TokenType_Text, p.position + 1, 1);
+						token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
 						p.SkipForward(2);
 					}
 					break;
@@ -1859,7 +1869,7 @@ var MarkdownDeep = new function(){
 				tokens.push(token);
 
 				// Remember where the next text token starts
-				start_text_token=p.position;
+				start_text_token=p.m_position;
 			}
 			else
 			{
@@ -1873,9 +1883,9 @@ var MarkdownDeep = new function(){
 			return null;
 
 		// Append a token for any trailing text after the last token.
-		if (p.position > start_text_token)
+		if (p.m_position > start_text_token)
 		{
-			tokens.push(this.CreateToken(TokenType_Text, start_text_token, p.position-start_text_token));
+			tokens.push(this.CreateToken(TokenType_Text, start_text_token, p.m_position-start_text_token));
 		}
 
 		// Do we need to resolve and emphasis marks?
@@ -1909,53 +1919,53 @@ var MarkdownDeep = new function(){
 		// Capture current state
 		var ch = p.current();
 		var altch = ch == '*' ? '_' : '*';
-		var savepos = p.position;
+		var savepos = p.m_position;
 
 		// Check for a consecutive sequence of just '_' and '*'
-		if (p.bof() || CharTypes.is_whitespace(p.CharAtOffset(-1)))
+		if (p.bof() || is_whitespace(p.CharAtOffset(-1)))
 		{
-			while (CharTypes.is_emphasis(p.current()))
+			while (is_emphasis(p.current()))
 				p.SkipForward(1);
 
-			if (p.eof() || CharTypes.is_whitespace(p.current()))
+			if (p.eof() || is_whitespace(p.current()))
 			{
-				return this.CreateToken(TokenType_Html, savepos, p.position - savepos);
+				return this.CreateToken(TokenType_Html, savepos, p.m_position - savepos);
 			}
 
 			// Rewind
-			p.position = savepos;
+			p.m_position = savepos;
 		}
 
 		// Scan backwards and see if we have space before
-		while (CharTypes.is_emphasis(p.CharAtOffset(-1)))
+		while (is_emphasis(p.CharAtOffset(-1)))
 			p.SkipForward(-1);
-		var bSpaceBefore = p.bof() || CharTypes.is_whitespace(p.CharAtOffset(-1));
-		p.position = savepos;
+		var bSpaceBefore = p.bof() || is_whitespace(p.CharAtOffset(-1));
+		p.m_position = savepos;
 
 		// Count how many matching emphasis characters
 		while (p.current() == ch)
 		{
 			p.SkipForward(1);
 		}
-		var count=p.position-savepos;
+		var count=p.m_position-savepos;
 
 		// Scan forwards and see if we have space after
-		while (CharTypes.is_emphasis(p.CharAtOffset(1)))
+		while (is_emphasis(p.CharAtOffset(1)))
 			p.SkipForward(1);
-		var bSpaceAfter = p.eof() || CharTypes.is_whitespace(p.CharAtOffset(1));
-		p.position = savepos + count;
+		var bSpaceAfter = p.eof() || is_whitespace(p.CharAtOffset(1));
+		p.m_position = savepos + count;
 
 		if (bSpaceBefore)
 		{
-			return this.CreateToken(TokenType_opening_mark, savepos, p.position - savepos);
+			return this.CreateToken(TokenType_opening_mark, savepos, p.m_position - savepos);
 		}
 
 		if (bSpaceAfter)
 		{
-			return this.CreateToken(TokenType_closing_mark, savepos, p.position - savepos);
+			return this.CreateToken(TokenType_closing_mark, savepos, p.m_position - savepos);
 		}
 
-		return this.CreateToken(TokenType_internal_mark, savepos, p.position - savepos);
+		return this.CreateToken(TokenType_internal_mark, savepos, p.m_position - savepos);
 	}
 
 	// Split mark token
@@ -2043,7 +2053,7 @@ var MarkdownDeep = new function(){
 	// Process auto links eg: <google.com>
     p.ProcessAutoLink=function()
 	{
-		if (this.DisableLinks)
+		if (this.m_DisableLinks)
 			return null;
 			
 	    var p=this.m_Scanner;
@@ -2058,7 +2068,7 @@ var MarkdownDeep = new function(){
 			var ch = p.current();
 
 			// No whitespace allowed
-			if (CharTypes.is_whitespace(ch))
+			if (is_whitespace(ch))
 				break;
 
 			// End found?
@@ -2106,7 +2116,7 @@ var MarkdownDeep = new function(){
 	// Process [link] and ![image] directives
     p.ProcessLinkOrImage=function()
 	{
-		if (this.DisableLinks)
+		if (this.m_DisableLinks)
 			return null;
 			
 		var p=this.m_Scanner;
@@ -2150,13 +2160,13 @@ var MarkdownDeep = new function(){
 		p.SkipForward(1);
 
 		// Save position in case we need to rewind
-		var savepos = p.position;
+		var savepos = p.m_position;
 
 		// Inline links must follow immediately
 		if (p.SkipChar('('))
 		{
 			// Extract the url and title
-			var link_def = LinkDefinition.ParseLinkTarget(p, null);
+			var link_def = ParseLinkTarget(p, null);
 			if (link_def==null)
 				return null;
 
@@ -2202,7 +2212,7 @@ var MarkdownDeep = new function(){
 		else
 		{
 			// Rewind to just after the closing ']'
-			p.position = savepos;
+			p.m_position = savepos;
 		}
 
 		// Link id not specified?
@@ -2219,11 +2229,11 @@ var MarkdownDeep = new function(){
                     break;
                     
                 var start=i;
-                while (start>0 && CharTypes.is_whitespace(link_id.charAt(start-1)))
+                while (start>0 && is_whitespace(link_id.charAt(start-1)))
                     start--
                     
                 var end=i;
-                while (end<link_id.length && CharTypes.is_whitespace(link_id.charAt(end)))
+                while (end<link_id.length && is_whitespace(link_id.charAt(end)))
                     end++;
                     
                 link_id=link_id.substr(0, start) + " " + link_id.substr(end);
@@ -2243,7 +2253,7 @@ var MarkdownDeep = new function(){
     p.ProcessCodeSpan=function()
 	{
 	    var p=this.m_Scanner;
-		var start = p.position;
+		var start = p.m_position;
 
 		// Count leading ticks
 		var tickcount = 0;
@@ -2257,22 +2267,22 @@ var MarkdownDeep = new function(){
 
 		// End?
 		if (p.eof())
-			return this.CreateToken(TokenType_Text, start, p.position - start);
+			return this.CreateToken(TokenType_Text, start, p.m_position - start);
 
-		var startofcode = p.position;
+		var startofcode = p.m_position;
 
 		// Find closing ticks
 		if (!p.Find(p.buf.substr(start, tickcount)))
-			return this.CreateToken(TokenType_Text, start, p.position - start);
+			return this.CreateToken(TokenType_Text, start, p.m_position - start);
 
 		// Save end position before backing up over trailing whitespace
-		var endpos = p.position + tickcount;
-		while (CharTypes.is_whitespace(p.CharAtOffset(-1)))
+		var endpos = p.m_position + tickcount;
+		while (is_whitespace(p.CharAtOffset(-1)))
 			p.SkipForward(-1);
 
 		// Create the token, move back to the end and we're done
-		var ret = this.CreateToken(TokenType_code_span, startofcode, p.position - startofcode);
-		p.position = endpos;
+		var ret = this.CreateToken(TokenType_code_span, startofcode, p.m_position - startofcode);
+		p.m_position = endpos;
 		return ret;
 	}
 
@@ -2345,6 +2355,7 @@ var MarkdownDeep = new function(){
     var BlockType_ul=21;
     var BlockType_HtmlTag=22;
     var BlockType_Composite=23;
+    var BlockType_table_spec=24;
 
     function Block()
     {
@@ -2527,6 +2538,10 @@ var MarkdownDeep = new function(){
 		    case BlockType_Composite:
 			    this.RenderChildren(m, b);
 			    return;
+			    
+			case BlockType_table_spec:
+			    this.data.Render(m, b);
+			    return;
 		}
 	}
 
@@ -2607,6 +2622,45 @@ var MarkdownDeep = new function(){
 		return this.ScanLines(p);
 	}
 
+	p.StartTable=function(p, spec, lines)
+	{
+		// Mustn't have more than 1 preceeding line
+		if (lines.length > 1)
+			return false;
+
+		// Rewind, parse the header row then fast forward back to current pos
+		if (lines.length == 1)
+		{
+			var savepos = p.m_position;
+			p.m_position = lines[0].lineStart;
+			spec.m_Headers = spec.ParseRow(p);
+			if (spec.m_Headers == null)
+				return false;
+			p.m_position = savepos;
+			lines.length=0;
+		}
+
+		// Parse all .m_Rows
+		while (true)
+		{
+			var savepos = p.m_position;
+
+			var row=spec.ParseRow(p);
+			if (row!=null)
+			{
+				spec.m_Rows.push(row);
+				continue;
+			}
+
+			p.m_position = savepos;
+			break;
+		}
+
+		return true;
+	}
+
+
+
     p.ScanLines=function(p)
     {
 		// The final set of blocks will be collected here
@@ -2672,6 +2726,27 @@ var MarkdownDeep = new function(){
 
 			// Work out the current paragraph type
 			var currentBlockType = lines.length > 0 ? lines[0].blockType : BlockType_Blank;
+
+			// Starting a table?
+			if (b.blockType == BlockType_table_spec)
+			{
+				// Get the table spec, save position
+				var spec = b.data;
+				var savepos = p.m_position;
+				if (!this.StartTable(p, spec, lines))
+				{
+					// Not a table, revert the tablespec row to plain,
+					// fast forward back to where we were up to and continue
+					// on as if nothing happened
+					p.m_position = savepos;
+					b.RevertToPlain();
+				}
+				else
+				{
+					blocks.push(b);
+					continue;
+				}
+			}
 
 			// Process this line
 			switch (b.blockType)
@@ -2935,11 +3010,11 @@ var MarkdownDeep = new function(){
 		var b=this.CreateBlock();
 
 		// Store line start
-		b.lineStart=p.position;
+		b.lineStart=p.m_position;
 		b.buf=p.buf;
 
 		// Scan the line
-		b.contentStart = p.position;
+		b.contentStart = p.m_position;
 		b.contentLen=-1;
 		b.blockType=this.EvaluateLineInternal(p, b);
 
@@ -2949,11 +3024,11 @@ var MarkdownDeep = new function(){
 		{
 		    // Move to end of line
 		    p.SkipToEol();
-			b.contentLen = p.position-b.contentStart;
+			b.contentLen = p.m_position-b.contentStart;
 		}
 
 		// Setup line length
-		b.lineLen=p.position-b.lineStart;
+		b.lineLen=p.m_position-b.lineStart;
 
 		// Next line
 		p.SkipEol();
@@ -2969,7 +3044,7 @@ var MarkdownDeep = new function(){
 			return BlockType_Blank;
 
 		// Save start of line position
-		var line_start= p.position;
+		var line_start= p.m_position;
 
 		// ## Heading ##		
 		var ch=p.current();
@@ -2992,7 +3067,7 @@ var MarkdownDeep = new function(){
 			p.SkipWhitespace();
 
 			// Save start position
-			b.contentStart = p.position;
+			b.contentStart = p.m_position;
 
 			// Jump to end
 			p.SkipToEol();
@@ -3000,28 +3075,28 @@ var MarkdownDeep = new function(){
 			// In extra mode, check for a trailing HTML ID
 			if (this.m_Markdown.ExtraMode && !this.m_Markdown.SafeMode)
 			{
-				var res = StripHtmlID(p.buf, b.contentStart, p.position);
+				var res = StripHtmlID(p.buf, b.contentStart, p.m_position);
 				if (res!=null)
 				{
 					b.data = res.id;
-					p.position = res.end;
+					p.m_position = res.end;
 				}
 			}
 
 			// Rewind over trailing hashes
-			while (p.position>b.contentStart && p.CharAtOffset(-1) == '#')
+			while (p.m_position>b.contentStart && p.CharAtOffset(-1) == '#')
 			{
 				p.SkipForward(-1);
 			}
 
 			// Rewind over trailing spaces
-			while (p.position>b.contentStart && CharTypes.is_whitespace(p.CharAtOffset(-1)))
+			while (p.m_position>b.contentStart && is_whitespace(p.CharAtOffset(-1)))
 			{
 				p.SkipForward(-1);
 			}
 
 			// Create the heading block
-			b.contentLen=p.position-b.contentStart;
+			b.contentLen=p.m_position-b.contentStart;
 
 			p.SkipToEol();
 			return BlockType_h1 + (level - 1);
@@ -3046,19 +3121,29 @@ var MarkdownDeep = new function(){
 				return chType == '=' ? BlockType_post_h1 : BlockType_post_h2;
 			}
 	
-			p.position = line_start;
+			p.m_position = line_start;
 		}
 
-		// Fenced code blocks?
-		if (ch == '~' && this.m_Markdown.ExtraMode)
-		{
-			if (this.ProcessFencedCodeBlock(p, b))
-				return b.blockType;
+        if (this.m_Markdown.ExtraMode)
+        {
+		    // MarkdownExtra Table row indicator?
+		    var spec = TableSpec_Parse(p);
+		    if (spec!=null)
+		    {
+			    b.data = spec;
+			    return BlockType_table_spec;
+		    }
 
-			// Rewind
-			p.position = line_start;
-		}
+		    // Fenced code blocks?
+		    if (ch == '~')
+		    {
+			    if (this.ProcessFencedCodeBlock(p, b))
+				    return b.blockType;
 
+			    // Rewind
+			    p.m_position = line_start;
+		    }
+        }
 
 		// Scan the leading whitespace, remembering how many spaces and where the first tab is
 		var tabPos = -1;
@@ -3073,7 +3158,7 @@ var MarkdownDeep = new function(){
 			else if (p.current() == '\t')
 			{
 				if (tabPos < 0)
-					tabPos = p.position;
+					tabPos = p.m_position;
 			}
 			else
 			{
@@ -3105,7 +3190,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Treat start of line as after leading whitespace
-		b.contentStart = p.position;
+		b.contentStart = p.m_position;
 
 		// Get the next character
 		ch = p.current();
@@ -3117,23 +3202,23 @@ var MarkdownDeep = new function(){
 		        return b.blockType;
 
 			// Rewind
-			p.position = b.contentStart;
+			p.m_position = b.contentStart;
 		}
 
 		// Block quotes start with '>' and have one space or one tab following
 		if (ch == '>')
 		{
 			// Block quote followed by space
-			if (CharTypes.is_linespace(p.CharAtOffset(1)))
+			if (is_linespace(p.CharAtOffset(1)))
 			{
 				// Skip it and create quote block
 				p.SkipForward(2);
-				b.contentStart = p.position;
+				b.contentStart = p.m_position;
 				return BlockType_quote;
 			}
 
 			p.SkipForward(1);
-			b.contentStart = p.position;
+			b.contentStart = p.m_position;
 			return BlockType_quote;
 		}
 
@@ -3151,7 +3236,7 @@ var MarkdownDeep = new function(){
 					continue;
 				}
 
-				if (CharTypes.is_linespace(p.current()))
+				if (is_linespace(p.current()))
 				{
 					p.SkipForward(1);
 					continue;
@@ -3166,43 +3251,43 @@ var MarkdownDeep = new function(){
 			}
 
 			// Rewind
-			p.position = b.contentStart;
+			p.m_position = b.contentStart;
 		}
 
 		// Unordered list
-		if ((ch == '*' || ch == '+' || ch == '-') && CharTypes.is_linespace(p.CharAtOffset(1)))
+		if ((ch == '*' || ch == '+' || ch == '-') && is_linespace(p.CharAtOffset(1)))
 		{
 			// Skip it
 			p.SkipForward(1);
 			p.SkipLinespace();
-			b.contentStart = p.position;
+			b.contentStart = p.m_position;
 			return BlockType_ul_li;
 		}
 
 		// Ordered list
-		if (CharTypes.is_digit(ch))
+		if (is_digit(ch))
 		{
 			// Ordered list?  A line starting with one or more digits, followed by a '.' and a space or tab
 
 			// Skip all digits
 			p.SkipForward(1);
-			while (CharTypes.is_digit(p.current()))
+			while (is_digit(p.current()))
 				p.SkipForward(1);
 
 			if (p.SkipChar('.') && p.SkipLinespace())
 			{
-				b.contentStart = p.position;
+				b.contentStart = p.m_position;
 				return BlockType_ol_li;
 			}
 
-			p.position=b.contentStart;
+			p.m_position=b.contentStart;
 		}
 
 		// Reference link definition?
 		if (ch == '[')
 		{
 			// Parse a link definition
-			var l = LinkDefinition.ParseLinkDefinition(p);
+			var l = ParseLinkDefinition(p);
 			if (l!=null)
 			{
 				this.m_Markdown.AddLinkDefinition(l);
@@ -3223,7 +3308,7 @@ var MarkdownDeep = new function(){
 	p.GetMarkdownMode=function(tag)
 	{
 		// Get the markdown attribute
-		var md=tag.attributes["markdown"];
+		var md=tag.m_attributes["markdown"];
 		if (md==undefined)
 		{
 			if (this.m_bMarkdownInHtml)
@@ -3233,7 +3318,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Remove it
-		delete tag.attributes["markdown"];
+		delete tag.m_attributes["markdown"];
 
 		// Parse mode
 		if (md == "1")
@@ -3256,7 +3341,7 @@ var MarkdownDeep = new function(){
 		// Current position is just after the opening tag
 
 		// Scan until we find matching closing tag
-		var inner_pos = p.position;
+		var inner_pos = p.m_position;
 		var depth = 1;
 		var bHasUnsafeContent = false;
 		while (!p.eof())
@@ -3266,8 +3351,8 @@ var MarkdownDeep = new function(){
 				break;
 
 			// Is it a html tag?
-			var tagpos = p.position;
-			var tag = HtmlTag.Parse(p);
+			var tagpos = p.m_position;
+			var tag = ParseHtmlTag(p);
 			if (tag == null)
 			{
 				// Nope, skip it 
@@ -3287,7 +3372,7 @@ var MarkdownDeep = new function(){
 				continue;
 
 			// Same tag?
-			if (tag.name == openingTag.name)
+			if (tag.m_name == openingTag.m_name)
 			{
 				if (tag.closing)
 				{
@@ -3300,7 +3385,7 @@ var MarkdownDeep = new function(){
 
 						b.blockType = BlockType_HtmlTag;
 						b.data = openingTag;
-						b.contentEnd = p.position;
+						b.set_contentEnd(p.m_position);
 
 						switch (mode)
 						{
@@ -3331,7 +3416,7 @@ var MarkdownDeep = new function(){
 								if (bHasUnsafeContent)
 								{
 									b.blockType = BlockType_unsafe_html;
-									b.contentEnd = p.position;
+									b.set_contentEnd(p.m_position);
 								}
 								else
 								{
@@ -3366,10 +3451,10 @@ var MarkdownDeep = new function(){
 	p.ScanHtml=function(p, b)
 	{
 	    // Remember start of html
-	    var posStartPiece=p.position;
+	    var posStartPiece=p.m_position;
 	
 		// Parse a HTML tag
-		var openingTag = HtmlTag.Parse(p);
+		var openingTag = ParseHtmlTag(p);
 		if (openingTag == null)
 			return false;
 
@@ -3393,7 +3478,7 @@ var MarkdownDeep = new function(){
 		{
 			p.SkipLinespace();
 			p.SkipEol();
-			b.contentLen = p.position-b.contentStart;
+			b.contentLen = p.m_position-b.contentStart;
 			b.blockType = bHasUnsafeContent ? BlockType_unsafe_html : BlockType_html;
 			return true;
 		}
@@ -3428,9 +3513,9 @@ var MarkdownDeep = new function(){
 		        break;
 		
             // Save position of current tag
-        	var posStartCurrentTag = p.position;
+        	var posStartCurrentTag = p.m_position;
 
-			var tag = HtmlTag.Parse(p);
+			var tag = ParseHtmlTag(p);
 			if (tag == null)
 			{
 				p.SkipForward(1);
@@ -3476,7 +3561,7 @@ var MarkdownDeep = new function(){
 						childBlocks.push(markdownBlock);
 
 						// Remember start of the next piece
-						posStartPiece = p.position;
+						posStartPiece = p.m_position;
 
 						continue;
 					}
@@ -3488,7 +3573,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// Same tag?
-			if (tag.name == openingTag.name && !tag.closed)
+			if (tag.m_name == openingTag.m_name && !tag.closed)
 			{
 				if (tag.closing)
 				{
@@ -3503,7 +3588,7 @@ var MarkdownDeep = new function(){
 						if (bHasUnsafeContent)
 						{
 							b.blockType = BlockType_unsafe_html;
-							b.contentEnd = p.position;
+							b.set_contentEnd(p.m_position);
 							return true;
 						}
 
@@ -3511,27 +3596,27 @@ var MarkdownDeep = new function(){
 						if (childBlocks != null)
 						{
 							// Create a block for the remainder
-							if (p.position > posStartPiece)
+							if (p.m_position > posStartPiece)
 							{
 								var htmlBlock = this.CreateBlock();
 								htmlBlock.buf = p.buf;
 								htmlBlock.blockType = BlockType_html;
 								htmlBlock.contentStart = posStartPiece;
-								htmlBlock.contentLen = p.position - posStartPiece;
+								htmlBlock.contentLen = p.m_position - posStartPiece;
 
 								childBlocks.push(htmlBlock);
 							}
 
 							// Return a composite block
 							b.blockType = BlockType_Composite;
-							b.contentEnd = p.position;
+							b.set_contentEnd(p.m_position);
 							b.children = childBlocks;
 							return true;
 						}
 
 						// Straight html block
 						b.blockType = BlockType_html;
-						b.contentLen = p.position - b.contentStart;
+						b.contentLen = p.m_position - b.contentStart;
 						return true;
 					}
 				}
@@ -3684,17 +3769,17 @@ var MarkdownDeep = new function(){
 
 		// Skip the eol and remember start of code
 		p.SkipEol();
-		var startCode = p.position;
+		var startCode = p.m_position;
 
 		// Find the end fence
 		if (!p.Find(strFence))
 			return false;
 
 		// Character before must be a eol char
-		if (!CharTypes.is_lineend(p.CharAtOffset(-1)))
+		if (!is_lineend(p.CharAtOffset(-1)))
 			return false;
 
-		var endCode = p.position;
+		var endCode = p.m_position;
 
 		// Skip the fence
 		p.SkipForward(strFence.length);
@@ -3725,6 +3810,200 @@ var MarkdownDeep = new function(){
 	}
 
 
+	var ColumnAlignment_NA=0;
+	var ColumnAlignment_Left=1;
+	var ColumnAlignment_Right=2;
+	var ColumnAlignment_Center=3;
+	
+	function TableSpec()
+	{
+	    this.m_Columns=new Array();
+	    this.m_Headers=null;
+	    this.m_Rows=new Array();
+	}
+	
+	var p=TableSpec.prototype;
+	
+	p.LeadingBar=false;
+	p.TrailingBar=false;
+	
+	p.ParseRow=function(p)
+	{
+		p.SkipLinespace();
+
+		if (p.eol())
+			return null;		// Blank line ends the table
+
+		var bAnyBars=this.LeadingBar;
+		if (this.LeadingBar && !p.SkipChar('|'))
+		{
+			bAnyBars = true;
+			return null;
+		}
+
+		// Create the row
+		var row = new Array();
+
+		// Parse all columns except the last
+
+		while (!p.eol())
+		{
+			// Find the next vertical bar
+			p.Mark();
+			while (!p.eol() && p.current() != '|')
+				p.SkipForward(1);
+
+			row.push(Trim(p.Extract()));
+
+			bAnyBars|=p.SkipChar('|');
+		}
+
+		// Require at least one bar to continue the table
+		if (!bAnyBars)
+			return null;
+
+		// Add missing columns
+		while (row.length < this.m_Columns.length)
+		{
+			row.push("&nbsp;");
+		}
+
+		p.SkipEol();
+		return row;
+	}
+
+    p.RenderRow=function(m,b,row,type)
+	{
+		for (var i=0; i<row.length; i++)
+		{
+			b.Append("\t<");
+			b.Append(type);
+
+			if (i < this.m_Columns.length)
+			{
+				switch (this.m_Columns[i])
+				{
+					case ColumnAlignment_Left:
+						b.Append(" align=\"left\"");
+						break;
+					case ColumnAlignment_Right:
+						b.Append(" align=\"right\"");
+						break;
+					case ColumnAlignment_Center:
+						b.Append(" align=\"center\"");
+						break;
+				}
+			}
+
+			b.Append(">");
+			m.processSpan2(b, row[i]);
+			b.Append("</");
+			b.Append(type);
+			b.Append(">\n");
+		}
+	}
+	
+	p.Render=function(m,b)
+	{
+		b.Append("<table>\n");
+		if (this.m_Headers != null)
+		{
+			b.Append("<thead>\n<tr>\n");
+			this.RenderRow(m, b, this.m_Headers, "th");
+			b.Append("</tr>\n</thead>\n");
+		}
+
+		b.Append("<tbody>\n");
+		for (var i=0; i<this.m_Rows.length; i++)
+		{
+		    var row=this.m_Rows[i];
+			b.Append("<tr>\n");
+			this.RenderRow(m, b, row, "td");
+			b.Append("</tr>\n");
+		}
+		b.Append("</tbody>\n");
+
+		b.Append("</table>\n");
+	}
+
+	function TableSpec_Parse(p)
+	{
+		// Leading line space allowed
+		p.SkipLinespace();
+
+		// Quick check for typical case
+		if (p.current() != '|' && p.current() != ':' && p.current() != '-')
+			return null;
+
+		// Don't create the spec until it at least looks like one
+		var spec = null;
+
+		// Leading bar, looks like a table spec
+		if (p.SkipChar('|'))
+		{
+			spec=new TableSpec();
+			spec.LeadingBar=true;
+		}
+
+
+		// Process all columns
+		while (true)
+		{
+			// Parse column spec
+			p.SkipLinespace();
+
+			// Must have something in the spec
+			if (p.current() == '|')
+				return null;
+
+			var AlignLeft = p.SkipChar(':');
+			while (p.current() == '-')
+				p.SkipForward(1);
+			var AlignRight = p.SkipChar(':');
+			p.SkipLinespace();
+
+			// Work out column alignment
+			var col = ColumnAlignment_NA;
+			if (AlignLeft && AlignRight)
+				col = ColumnAlignment_Center;
+			else if (AlignLeft)
+				col = ColumnAlignment_Left;
+			else if (AlignRight)
+				col = ColumnAlignment_Right;
+
+			if (p.eol())
+			{
+				// Not a spec?
+				if (spec == null)
+					return null;
+
+				// Add the final spec?
+				spec.m_Columns.push(col);
+				return spec;
+			}
+
+			// We expect a vertical bar
+			if (!p.SkipChar('|'))
+				return null;
+
+			// Create the table spec
+			if (spec==null)
+				spec=new TableSpec();
+
+			// Add the column
+			spec.m_Columns.push(col);
+
+			// Check for trailing vertical bar
+			p.SkipLinespace();
+			if (p.eol())
+			{
+				spec.TrailingBar = true;
+				return spec;
+			}
+
+			// Next column
+		}
+	}
 
     // Exposed stuff
     this.Markdown=Markdown;

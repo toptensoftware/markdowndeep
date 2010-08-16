@@ -229,6 +229,11 @@ namespace MarkdownDeep
 			m_SpanFormatter.Format(sb, str, start, len);
 		}
 
+		internal void processSpan(StringBuilder sb, string str)
+		{
+			m_SpanFormatter.Format(sb, str, 0, str.Length);
+		}
+
 		#region Block Pooling
 
 		// We cache and re-use blocks for performance

@@ -34,6 +34,7 @@ namespace MarkdownDeep
 		ul,				// unordered list (render only)
 		HtmlTag,		// Data=(HtmlTag), children = content
 		Composite,		// Just a list of child blocks
+		table_spec,		// A table row specifier eg:  |---: | ---|
 	}
 
 	class Block
@@ -213,6 +214,10 @@ namespace MarkdownDeep
 				case BlockType.Composite:
 					RenderChildren(m, b);
 					return;
+
+				case BlockType.table_spec:
+					((TableSpec)data).Render(m, b);
+					break;
 
 
 				default:

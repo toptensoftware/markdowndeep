@@ -52,6 +52,7 @@
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
     <Compile Include="AutoHeaderIDTests.cs" />
+    <Compile Include="TableSpecTests.cs" />
     <Compile Include="ExtraMode.cs" />
     <Compile Include="SafeModeTests.cs" />
     <Compile Include="JavascriptTests.cs">
@@ -394,6 +395,12 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="testfiles\extramode\TableFormatting%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\TableFormatting%28ExtraMode%29.html" />
+    <EmbeddedResource Include="testfiles\extramode\TableAlignment%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\TableAlignment%28ExtraMode%29.html" />
+    <EmbeddedResource Include="testfiles\extramode\Tables%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\Tables%28ExtraMode%29.html" />
     <EmbeddedResource Include="testfiles\extramode\FencedCodeBlocks%28ExtraMode%29.txt" />
     <EmbeddedResource Include="testfiles\extramode\FencedCodeBlocks%28ExtraMode%29.html" />
     <EmbeddedResource Include="testfiles\extramode\HeaderIDs%28ExtraMode%29%28AutoHeadingIDs%29.txt" />
