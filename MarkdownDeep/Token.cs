@@ -32,6 +32,7 @@ namespace MarkdownDeep
 		link,			// <a href>, data = LinkInfo
 		img,			// <img>, data = LinkInfo
 		footnote,		// Footnote reference
+		abbreviation,	// An abbreviation, data is a reference to Abbrevation instance
 
 		// These are used during construction of <em> and <strong> tokens
 		opening_mark,	// opening '*' or '_'

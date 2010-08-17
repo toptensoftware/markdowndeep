@@ -740,6 +740,38 @@ namespace MarkdownDeep
 				position = b.contentStart;
 			}
 
+			// Abbreviation definition?
+			if (m_markdown.ExtraMode && ch == '*' && CharAtOffset(1) == '[')
+			{
+				SkipForward(2);
+				SkipLinespace();
+
+				Mark();
+				while (!eol && current != ']')
+				{
+					SkipForward(1);
+				}
+
+				var abbr = Extract().Trim();
+				if (current == ']' && CharAtOffset(1) == ':' && !string.IsNullOrEmpty(abbr))
+				{
+					SkipForward(2);
+					SkipLinespace();
+
+					Mark();
+
+					SkipToEol();
+
+					var title = Extract();
+
+					m_markdown.AddAbbreviation(abbr, title);
+
+					return BlockType.Blank;
+				}
+
+				position = b.contentStart;
+			}
+
 			// Unordered list
 			if ((ch == '*' || ch == '+' || ch == '-') && IsLineSpace(CharAtOffset(1)))
 			{

@@ -1,11 +1,4 @@
-﻿This is a paragraph. [^note]
+﻿This the WWW.
 
+*[WWW]: World Wide Web
 
-[^note]: My paragraph
-	More 
-	more
-	more
-
-	> Quote
-	
-	

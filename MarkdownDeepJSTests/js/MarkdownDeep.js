@@ -1,24 +1,25 @@
 //! MarkdownDeep  http://toptensoftware.com/MarkdownDeep
 //! Copyright (C) 2010 Topten Software. Some Rights Reserved
 
-if (Array.prototype.indexOf==undefined)
-{
-    Array.prototype.indexOf=function(obj) 
+/////////////////////////////////////////////////////////////////////////////
+// Markdown
+
+var MarkdownDeep = new function(){
+
+
+    function array_indexOf(array, obj) 
     {
-        for (var i=0; i<this.length; i++)
+        if (array.indexOf!==undefined)
+            return array.indexOf(obj);
+            
+        for (var i=0; i<array.length; i++)
         {
-            if (this[i]===obj)
+            if (array[i]===obj)
                 return i;
         }
         
         return -1;
     };
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// Markdown
-
-var MarkdownDeep = new function(){
 
     // private:p.
     // private:.m_*
@@ -64,9 +65,36 @@ var MarkdownDeep = new function(){
 		this.m_Footnotes=new Array();
 		this.m_UsedFootnotes=new Array();
 		this.m_UsedHeaderIDs=new Array();
+		this.m_Abbreviations=null;
 
 		// Process blocks
 		var blocks = new BlockProcessor(this, this.MarkdownInHtml).Process(input);
+
+		// Sort abbreviations by length, longest to shortest
+		if (this.m_Abbreviations!=null)
+		{
+		/*
+		    this.m_Abbreviations.sort(
+		        function(a,b)
+		        {
+		            return b.length - a.length;
+                }
+            );
+            */
+            
+		    var list=new Array();
+		    for (var a in this.m_Abbreviations)
+		    {
+		        list.push(this.m_Abbreviations[a]);
+		    }
+		    list.sort(
+		        function(a,b)
+		        {
+		            return b.Abbr.length - a.Abbr.length;
+                }
+            );
+            this.m_Abbreviations=list;
+		}
 
 		// Render
 		var sb = this.GetStringBuilder();
@@ -165,6 +193,24 @@ var MarkdownDeep = new function(){
 		else
 			return -1;
 	}
+	
+	p.AddAbbreviation=function(abbr, title)
+	{
+		if (this.m_Abbreviations == null)
+		{
+		    this.m_Abbreviations=new Array();
+		}
+
+		// Store abbreviation
+		this.m_Abbreviations[abbr]={Abbr:abbr, Title:title};
+	}
+
+	p.GetAbbreviations=function()
+	{
+		return this.m_Abbreviations;
+	}
+
+
 
     
     // private
@@ -1619,6 +1665,7 @@ var MarkdownDeep = new function(){
     var TokenType_closing_mark=12;
     var TokenType_internal_mark=13;
     var TokenType_footnote=14;
+    var TokenType_abbreviation=15;
 
     function Token(type, startOffset, length)
     {
@@ -1825,6 +1872,23 @@ var MarkdownDeep = new function(){
 					sb.Append("</a></sup>");
 					break;
 				}
+			
+				case TokenType_abbreviation:
+				{
+					var a = t.data;
+					sb.Append("<abbr");
+					if (a.Title)
+					{
+						sb.Append(" title=\"");
+						sb.HtmlEncode(a.Title, 0, a.Title.length);
+						sb.Append("\"");
+					}
+					sb.Append(">");
+					sb.HtmlEncode(a.Abbr, 0, a.Abbr.length);
+					sb.Append("</abbr>");
+					break;
+				}
+
 
 		    }
 		}
@@ -1836,18 +1900,16 @@ var MarkdownDeep = new function(){
         
 		var tokens = null;
 		var emphasis_marks = null;
-			
-		//var charset={   '*':null, '_':null, '`':null, '[':null, '!':null, 
-		//                '<':null, '&':null, ' ':null, '\\':null };
-		
-		var re=/[\*\_\`\[\!\<\&\ \\]/g;
+		var Abbreviations=this.m_Markdown.GetAbbreviations();
+					
+		var re=Abbreviations==null ? /[\*\_\`\[\!\<\&\ \\]/g : null;
 
 		// Scan string
 		var start_text_token = p.m_position;
 		while (!p.eof())
 		{
-			if (!p.FindRE(re))
-			    break;  
+			if (re!=null && !p.FindRE(re))
+			   break;  
 
 			var end_text_token=p.m_position;
 			
@@ -1967,6 +2029,24 @@ var MarkdownDeep = new function(){
 					break;
 				}
 			}
+
+			// Look for abbreviations.
+			if (token == null && Abbreviations!=null && !is_alphadigit(p.CharAtOffset(-1)))
+			{
+				var savepos = p.m_position;
+				for (var i in Abbreviations)
+				{
+				    var abbr=Abbreviations[i];
+					if (p.SkipString(abbr.Abbr) && !is_alphadigit(p.current()))
+					{
+						token = this.CreateDataToken(TokenType_abbreviation, abbr);
+						break;
+					}
+
+					p.position = savepos;
+				}
+			}
+
 
 			// If token found, append any preceeding text and the new token to the token list
 			if (token!=null)
@@ -2096,8 +2176,8 @@ var MarkdownDeep = new function(){
 		token.length = position;
 		
 		// Insert the new token into each of the parent collections
-		marks.splice(marks.indexOf(token) +  1, 0, tokenRhs);
-		tokens.splice(tokens.indexOf(token) + 1, 0, tokenRhs);
+		marks.splice(array_indexOf(marks, token) +  1, 0, tokenRhs);
+		tokens.splice(array_indexOf(tokens, token) + 1, 0, tokenRhs);
 
 		// Return the new token
 		return tokenRhs;
@@ -2158,8 +2238,8 @@ var MarkdownDeep = new function(){
 					closing_mark.type = style == 1 ? TokenType_close_em : TokenType_close_strong;
 
 					// Remove the matched marks
-					marks.splice(marks.indexOf(opening_mark), 1);
-					marks.splice(marks.indexOf(closing_mark), 1);
+					marks.splice(array_indexOf(marks, opening_mark), 1);
+					marks.splice(array_indexOf(marks, closing_mark), 1);
 					bContinue = true;
 
 					break;
@@ -3532,6 +3612,39 @@ var MarkdownDeep = new function(){
 			// Rewind
 			p.m_position = b.contentStart;
 		}
+
+		// Abbreviation definition?
+		if (this.m_Markdown.ExtraMode && ch == '*' && p.CharAtOffset(1) == '[')
+		{
+			p.SkipForward(2);
+			p.SkipLinespace();
+
+			p.Mark();
+			while (!p.eol() && p.current() != ']')
+			{
+				p.SkipForward(1);
+			}
+
+			var abbr = Trim(p.Extract());
+			if (p.current() == ']' && p.CharAtOffset(1) == ':' && abbr)
+			{
+				p.SkipForward(2);
+				p.SkipLinespace();
+
+				p.Mark();
+
+				p.SkipToEol();
+
+				var title = p.Extract();
+
+				this.m_Markdown.AddAbbreviation(abbr, title);
+
+				return BlockType_Blank;
+			}
+
+			p.m_position = b.contentStart;
+		}
+
 
 		// Unordered list
 		if ((ch == '*' || ch == '+' || ch == '-') && is_linespace(p.CharAtOffset(1)))

@@ -199,6 +199,22 @@ namespace MarkdownDeep
 						sb.Append("</a></sup>");
 						break;
 					}
+
+					case TokenType.abbreviation:
+					{
+						Abbreviation a = (Abbreviation)t.data;
+						sb.Append("<abbr");
+						if (!String.IsNullOrEmpty(a.Title))
+						{
+							sb.Append(" title=\"");
+							m_Markdown.HtmlEncode(sb, a.Title, 0, a.Title.Length);
+							sb.Append("\"");
+						}
+						sb.Append(">");
+						m_Markdown.HtmlEncode(sb, a.Abbr, 0, a.Abbr.Length);
+						sb.Append("</abbr>");
+						break;
+					}
 				}
 			}
 		}
@@ -208,6 +224,8 @@ namespace MarkdownDeep
 		{
 			List<Token> tokens = null;
 			List<Token> emphasis_marks = null;
+
+			List<Abbreviation> Abbreviations=m_Markdown.GetAbbreviations();
 
 			// Scan string
 			int start_text_token = position;
@@ -330,6 +348,23 @@ namespace MarkdownDeep
 						}
 						break;
 					}
+				}
+
+				// Look for abbreviations.
+				if (token == null && Abbreviations!=null && !Char.IsLetterOrDigit(CharAtOffset(-1)))
+				{
+					var savepos = position;
+					foreach (var abbr in Abbreviations)
+					{
+						if (SkipString(abbr.Abbr) && !Char.IsLetterOrDigit(current))
+						{
+							token = CreateToken(TokenType.abbreviation, abbr);
+							break;
+						}
+
+						position = savepos;
+					}
+
 				}
 
 				// If token found, append any preceeding text and the new token to the token list

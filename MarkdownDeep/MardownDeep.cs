@@ -28,9 +28,24 @@ namespace MarkdownDeep
 			m_Footnotes.Clear();
 			m_UsedFootnotes.Clear();
 			m_UsedHeaderIDs.Clear();
+			m_AbbreviationMap = null;
+			m_AbbreviationList = null;
 
 			// Process blocks
 			List<Block> blocks = new BlockProcessor(this, MarkdownInHtml).Process(str);
+			
+			// Sort abbreviations by length, longest to shortest
+			if (m_AbbreviationMap!=null)
+			{
+				m_AbbreviationList = new List<Abbreviation>();
+				m_AbbreviationList.AddRange(m_AbbreviationMap.Values);
+				m_AbbreviationList.Sort(
+					delegate(Abbreviation a, Abbreviation b)
+					{
+						return b.Abbr.Length - a.Abbr.Length;
+					}
+				);
+			}
 
 			// Render
 			StringBuilder sb = GetStringBuilder();
@@ -149,6 +164,29 @@ namespace MarkdownDeep
 				return link;
 			else
 				return null;
+		}
+
+		internal void AddAbbreviation(string abbr, string title)
+		{
+			if (m_AbbreviationMap == null)
+			{
+				// First time
+				m_AbbreviationMap = new Dictionary<string, Abbreviation>();
+			}
+			else if (m_AbbreviationMap.ContainsKey(abbr))
+			{
+				// Remove previous
+				m_AbbreviationMap.Remove(abbr);
+			}
+
+			// Store abbreviation
+			m_AbbreviationMap.Add(abbr, new Abbreviation(abbr, title));
+
+		}
+
+		internal List<Abbreviation> GetAbbreviations()
+		{
+			return m_AbbreviationList;
 		}
 
 		// HtmlEncode a range in a string to a specified string builder
@@ -334,6 +372,8 @@ namespace MarkdownDeep
 		Dictionary<string, Block> m_Footnotes;
 		List<Block> m_UsedFootnotes;
 		Dictionary<string, bool> m_UsedHeaderIDs;
+		Dictionary<string, Abbreviation> m_AbbreviationMap;
+		List<Abbreviation> m_AbbreviationList;
 	
 	}
 

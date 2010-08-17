@@ -1,0 +1,17 @@
+﻿WWW at start of doc should match
+
+A simple case: WWW
+
+A longer version: WWWW shouldn't match the short one
+
+This shouldn't match: aWWW nor this: WWWa.
+
+This should: (WWW) as should this  *WWW*.
+
+Multiword abbreviations like "Markdown Deep" should also work.
+
+
+
+*[WWW]: World Wide Web
+*[WWWW]: World Wide Web of Wonder :)
+*[Markdown Deep]: Markdown made Better!
