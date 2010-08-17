@@ -100,24 +100,24 @@ namespace MarkdownDeep
 
 
 		// Parse a link definition from a string (used by test cases)
-		public static LinkDefinition ParseLinkDefinition(string str)
+		public static LinkDefinition ParseLinkDefinition(string str, bool ExtraMode)
 		{
 			StringScanner p = new StringScanner(str);
-			return ParseLinkDefinitionInternal(p);
+			return ParseLinkDefinitionInternal(p, ExtraMode);
 		}
 
 		// Parse a link definition
-		internal static LinkDefinition ParseLinkDefinition(StringScanner p)
+		internal static LinkDefinition ParseLinkDefinition(StringScanner p, bool ExtraMode)
 		{
 			int savepos=p.position;
-			var l = ParseLinkDefinitionInternal(p);
+			var l = ParseLinkDefinitionInternal(p, ExtraMode);
 			if (l==null)
 				p.position = savepos;
 			return l;
 
 		}
 
-		internal static LinkDefinition ParseLinkDefinitionInternal(StringScanner p)
+		internal static LinkDefinition ParseLinkDefinitionInternal(StringScanner p, bool ExtraMode)
 		{
 			// Skip leading white space
 			p.SkipWhitespace();
@@ -137,7 +137,7 @@ namespace MarkdownDeep
 				return null;
 
 			// Parse the url and title
-			var link=ParseLinkTarget(p, id);
+			var link=ParseLinkTarget(p, id, ExtraMode);
 
 			// and trailing whitespace
 			p.SkipLinespace();
@@ -152,7 +152,7 @@ namespace MarkdownDeep
 		// Parse just the link target
 		// For reference link definition, this is the bit after "[id]: thisbit"
 		// For inline link, this is the bit in the parens: [link text](thisbit)
-		public static LinkDefinition ParseLinkTarget(StringScanner p, string id)
+		public static LinkDefinition ParseLinkTarget(StringScanner p, string id, bool ExtraMode)
 		{
 			// Skip whitespace
 			p.SkipWhitespace();
@@ -175,7 +175,7 @@ namespace MarkdownDeep
 				{
 					if (p.eof)
 						return null;
-					p.SkipEscapableChar();
+					p.SkipEscapableChar(ExtraMode);
 				}
 
 				string url = p.Extract();
@@ -183,7 +183,7 @@ namespace MarkdownDeep
 					return null;
 
 				// Unescape it
-				r.url = Utils.UnescapeString(url.Trim());
+				r.url = Utils.UnescapeString(url.Trim(), ExtraMode);
 
 				// Skip whitespace
 				p.SkipWhitespace();
@@ -210,10 +210,10 @@ namespace MarkdownDeep
 						}
 					}
 
-					p.SkipEscapableChar();
+					p.SkipEscapableChar(ExtraMode);
 				}
 
-				r.url = Utils.UnescapeString(p.Extract().Trim());
+				r.url = Utils.UnescapeString(p.Extract().Trim(), ExtraMode);
 			}
 
 			p.SkipLinespace();
@@ -291,11 +291,11 @@ namespace MarkdownDeep
 					break;
 				}
 
-				p.SkipEscapableChar();
+				p.SkipEscapableChar(ExtraMode);
 			}
 
 			// Store the title
-			r.title = Utils.UnescapeString(p.Extract());
+			r.title = Utils.UnescapeString(p.Extract(), ExtraMode);
 
 			// Skip closing quote
 			p.SkipForward(1);

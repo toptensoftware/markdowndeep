@@ -270,7 +270,7 @@ namespace MarkdownDeep
 		}
 
 		// Check if a character is escapable in markdown
-		public static bool IsEscapableChar(char ch)
+		public static bool IsEscapableChar(char ch, bool ExtraMode)
 		{
 			switch (ch)
 			{
@@ -284,22 +284,27 @@ namespace MarkdownDeep
 				case ']':
 				case '(':
 				case ')':
+				case '>':		// Not in markdown documentation, but is in markdown.pl
 				case '#':
 				case '+':
 				case '-':
 				case '.':
 				case '!':
-				case '>':
 					return true;
+
+				case ':':
+				case '|':
+				case '=':		// Added for escaping Setext H1
+					return ExtraMode;
 			}
 
 			return false;
 		}
 
 		// Extension method.  Skip an escapable character, or one normal character
-		public static void SkipEscapableChar(this StringScanner p)
+		public static void SkipEscapableChar(this StringScanner p, bool ExtraMode)
 		{
-			if (p.current == '\\' && IsEscapableChar(p.CharAtOffset(1)))
+			if (p.current == '\\' && IsEscapableChar(p.CharAtOffset(1), ExtraMode))
 			{
 				p.SkipForward(2);
 			}
@@ -311,7 +316,7 @@ namespace MarkdownDeep
 
 
 		// Remove the markdown escapes from a string
-		public static string UnescapeString(string str)
+		public static string UnescapeString(string str, bool ExtraMode)
 		{
 			if (str == null || str.IndexOf('\\')==-1)
 				return str;
@@ -319,7 +324,7 @@ namespace MarkdownDeep
 			var b = new StringBuilder();
 			for (int i = 0; i < str.Length; i++)
 			{
-				if (str[i] == '\\' && i+1<str.Length && IsEscapableChar(str[i+1]))
+				if (str[i] == '\\' && i+1<str.Length && IsEscapableChar(str[i+1], ExtraMode))
 				{
 					b.Append(str[i + 1]);
 					i++;

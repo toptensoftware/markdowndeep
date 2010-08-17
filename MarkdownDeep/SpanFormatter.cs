@@ -226,6 +226,7 @@ namespace MarkdownDeep
 			List<Token> emphasis_marks = null;
 
 			List<Abbreviation> Abbreviations=m_Markdown.GetAbbreviations();
+			bool ExtraMode = m_Markdown.ExtraMode;
 
 			// Scan string
 			int start_text_token = position;
@@ -344,7 +345,7 @@ namespace MarkdownDeep
 					case '\\':
 					{
 						// Check followed by an escapable character
-						if (Utils.IsEscapableChar(CharAtOffset(1)))
+						if (Utils.IsEscapableChar(CharAtOffset(1), ExtraMode))
 						{
 							token = CreateToken(TokenType.Text, position + 1, 1);
 							SkipForward(2);
@@ -762,6 +763,8 @@ namespace MarkdownDeep
 			SkipForward(1);
 			Mark();
 
+			bool ExtraMode = m_Markdown.ExtraMode;
+
 			// Allow anything up to the closing angle, watch for escapable characters
 			while (!eof)
 			{
@@ -774,7 +777,7 @@ namespace MarkdownDeep
 				// End found?
 				if (ch == '>')
 				{
-					string url = Utils.UnescapeString(Extract());
+					string url = Utils.UnescapeString(Extract(), ExtraMode);
 
 					LinkInfo li = null;
 					if (Utils.IsEmailAddress(url))
@@ -806,7 +809,7 @@ namespace MarkdownDeep
 					return null;
 				}
 
-				this.SkipEscapableChar();
+				this.SkipEscapableChar(ExtraMode);
 			}
 
 			// Didn't work
@@ -849,6 +852,8 @@ namespace MarkdownDeep
 			if (DisableLinks)
 				return null;
 
+			bool ExtraMode = m_Markdown.ExtraMode;
+
 			// Find the closing square bracket, allowing for nesting, watching for 
 			// escapable characters
 			Mark();
@@ -867,7 +872,7 @@ namespace MarkdownDeep
 						break;
 				}
 
-				this.SkipEscapableChar();
+				this.SkipEscapableChar(ExtraMode);
 			}
 
 			// Quit if end
@@ -875,7 +880,7 @@ namespace MarkdownDeep
 				return null;
 
 			// Get the link text and unescape it
-			string link_text = Utils.UnescapeString(Extract());
+			string link_text = Utils.UnescapeString(Extract(), ExtraMode);
 
 			// The closing ']'
 			SkipForward(1);
@@ -887,7 +892,7 @@ namespace MarkdownDeep
 			if (SkipChar('('))
 			{
 				// Extract the url and title
-				var link_def = LinkDefinition.ParseLinkTarget(this, null);
+				var link_def = LinkDefinition.ParseLinkTarget(this, null, m_Markdown.ExtraMode);
 				if (link_def==null)
 					return null;
 

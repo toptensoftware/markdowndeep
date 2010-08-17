@@ -20,7 +20,7 @@ namespace MarkdownDeepTests
 		public void NoTitle()
 		{
 			string str = "[id]: url.com";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -32,7 +32,7 @@ namespace MarkdownDeepTests
 		public void DoubleQuoteTitle()
 		{
 			string str = "[id]: url.com \"my title\"";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -44,7 +44,7 @@ namespace MarkdownDeepTests
 		public void SingleQuoteTitle()
 		{
 			string str = "[id]: url.com \'my title\'";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -56,7 +56,7 @@ namespace MarkdownDeepTests
 		public void ParenthesizedTitle()
 		{
 			string str = "[id]: url.com (my title)";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -68,7 +68,7 @@ namespace MarkdownDeepTests
 		public void AngleBracketedUrl()
 		{
 			string str = "[id]: <url.com> (my title)";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -80,7 +80,7 @@ namespace MarkdownDeepTests
 		public void MultiLine()
 		{
 			string str = "[id]:\n\t     http://www.site.com \n\t      (my title)";
-			r = LinkDefinition.ParseLinkDefinition(str);
+			r = LinkDefinition.ParseLinkDefinition(str, false);
 
 			Assert.IsNotNull(r);
 			Assert.AreEqual(r.id, "id");
@@ -91,15 +91,15 @@ namespace MarkdownDeepTests
 		[Test]
 		public void Invalid()
 		{
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]:"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \"title"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \'title"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> (title"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \"title\" crap"));
-			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> crap"));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]:", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \"title", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \'title", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> (title", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> \"title\" crap", false));
+			Assert.IsNull(LinkDefinition.ParseLinkDefinition("[id]: <url> crap", false));
 		}
 
 		LinkDefinition r;

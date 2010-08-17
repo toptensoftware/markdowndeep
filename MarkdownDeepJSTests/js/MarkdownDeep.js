@@ -297,7 +297,7 @@ var MarkdownDeep = new function(){
     {
 	    return (ch=='*' || ch=='_');
     }
-    function is_escapable(ch)
+    function is_escapable(ch, ExtraMode)
     {
 	    switch (ch)
 	    {
@@ -311,13 +311,18 @@ var MarkdownDeep = new function(){
 		    case ']':
 		    case '(':
 		    case ')':
+		    case '>':
 		    case '#':
 		    case '+':
 		    case '-':
 		    case '.':
 		    case '!':
-		    case '>':
 			    return true;
+			    
+            case ':':
+            case '|':
+            case '=':
+                return ExtraMode;
 	    }
 
 	    return false;
@@ -372,7 +377,7 @@ var MarkdownDeep = new function(){
 	    return -1;
     }
 
-    function UnescapeString(str)
+    function UnescapeString(str, ExtraMode)
     {
         // Find first backslash
         var bspos=str.indexOf('\\');
@@ -384,7 +389,7 @@ var MarkdownDeep = new function(){
         var piece=0;    
         while (bspos>=0)
         {
-            if (is_escapable(str.charAt(bspos+1)))
+            if (is_escapable(str.charAt(bspos+1), ExtraMode))
             {
                 if (bspos>piece)
                     b.Append(str.substr(piece, bspos-piece));
@@ -1049,9 +1054,9 @@ var MarkdownDeep = new function(){
         return true;
 	}
 
-    p.SkipEscapableChar = function()
+    p.SkipEscapableChar = function(ExtraMode)
     {
-		if (this.buf.charAt(this.m_position) == '\\' && is_escapable(this.buf.charAt(this.m_position+1)))
+		if (this.buf.charAt(this.m_position) == '\\' && is_escapable(this.buf.charAt(this.m_position+1), ExtraMode))
 		{
 		    this.m_position+=2;
 		    return true;
@@ -1440,16 +1445,16 @@ var MarkdownDeep = new function(){
 	    b.Append(" />");
     }
 
-    function ParseLinkDefinition(p)
+    function ParseLinkDefinition(p, ExtraMode)
     {
 	    var savepos=p.m_position;
-	    var l = ParseLinkDefinitionInternal(p);
+	    var l = ParseLinkDefinitionInternal(p, ExtraMode);
 	    if (l==null)
 		    p.m_position = savepos;
 	    return l;
     }
 
-    function ParseLinkDefinitionInternal(p)
+    function ParseLinkDefinitionInternal(p, ExtraMode)
     {
 	    // Skip leading white space
 	    p.SkipWhitespace();
@@ -1469,7 +1474,7 @@ var MarkdownDeep = new function(){
 		    return null;
 
 	    // Parse the url and title
-	    var link=ParseLinkTarget(p, id);
+	    var link=ParseLinkTarget(p, id, ExtraMode);
 
 	    // and trailing whitespace
 	    p.SkipLinespace();
@@ -1484,7 +1489,7 @@ var MarkdownDeep = new function(){
     // Parse just the link target
     // For reference link definition, this is the bit after "[id]: thisbit"
     // For inline link, this is the bit in the parens: [link text](thisbit)
-    function ParseLinkTarget(p, id)
+    function ParseLinkTarget(p, id, ExtraMode)
     {
 	    // Skip whitespace
 	    p.SkipWhitespace();
@@ -1507,7 +1512,7 @@ var MarkdownDeep = new function(){
 		    {
 			    if (p.eof())
 				    return null;
-			    p.SkipEscapableChar();
+			    p.SkipEscapableChar(ExtraMode);
 		    }
 
 		    var url = p.Extract();
@@ -1515,7 +1520,7 @@ var MarkdownDeep = new function(){
 			    return null;
 
 		    // Unescape it
-		    r.url = UnescapeString(Trim(url));
+		    r.url = UnescapeString(Trim(url), ExtraMode);
 
 		    // Skip whitespace
 		    p.SkipWhitespace();
@@ -1542,10 +1547,10 @@ var MarkdownDeep = new function(){
 				    }
 			    }
 
-			    p.SkipEscapableChar();
+			    p.SkipEscapableChar(ExtraMode);
 		    }
 
-		    r.url = UnescapeString(Trim(p.Extract()));
+		    r.url = UnescapeString(Trim(p.Extract()), ExtraMode);
 	    }
 
 	    p.SkipLinespace();
@@ -1623,11 +1628,11 @@ var MarkdownDeep = new function(){
 			    break;
 		    }
 
-		    p.SkipEscapableChar();
+		    p.SkipEscapableChar(ExtraMode);
 	    }
 
 	    // Store the title
-	    r.title = UnescapeString(p.Extract());
+	    r.title = UnescapeString(p.Extract(), ExtraMode);
 
 	    // Skip closing quote
 	    p.SkipForward(1);
@@ -1903,6 +1908,8 @@ var MarkdownDeep = new function(){
 		var Abbreviations=this.m_Markdown.GetAbbreviations();
 					
 		var re=Abbreviations==null ? /[\*\_\`\[\!\<\&\ \\]/g : null;
+		
+		var ExtraMode=this.m_Markdown.ExtraMode;
 
 		// Scan string
 		var start_text_token = p.m_position;
@@ -2024,7 +2031,7 @@ var MarkdownDeep = new function(){
 				case '\\':
 				{
 					// Check followed by an escapable character
-					if (is_escapable(p.CharAtOffset(1)))
+					if (is_escapable(p.CharAtOffset(1), ExtraMode))
 					{
 						token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
 						p.SkipForward(2);
@@ -2266,6 +2273,8 @@ var MarkdownDeep = new function(){
 		// Skip the angle bracket and remember the start
 		p.SkipForward(1);
 		p.Mark();
+		
+		var ExtraMode=this.m_Markdown.ExtraMode;
 
 		// Allow anything up to the closing angle, watch for escapable characters
 		while (!p.eof())
@@ -2279,7 +2288,7 @@ var MarkdownDeep = new function(){
 			// End found?
 			if (ch == '>')
 			{
-			    var url = UnescapeString(p.Extract());
+			    var url = UnescapeString(p.Extract(), ExtraMode);
 
 				var li = null;
 				if (IsEmailAddress(url))
@@ -2311,7 +2320,7 @@ var MarkdownDeep = new function(){
 				return null;
 			}
 
-			p.SkipEscapableChar();
+			p.SkipEscapableChar(ExtraMode);
 		}
 
 		// Didn't work
@@ -2357,6 +2366,8 @@ var MarkdownDeep = new function(){
 		if (this.m_DisableLinks)
 			return null;
 			
+		var ExtraMode=this.m_Markdown.ExtraMode;
+			
 		// Find the closing square bracket, allowing for nesting, watching for 
 		// escapable characters
 		p.Mark();
@@ -2375,7 +2386,7 @@ var MarkdownDeep = new function(){
 					break;
 			}
 
-			p.SkipEscapableChar();
+			p.SkipEscapableChar(ExtraMode);
 		}
 
 		// Quit if end
@@ -2383,7 +2394,7 @@ var MarkdownDeep = new function(){
 			return null;
 
 		// Get the link text and unescape it
-		var link_text = UnescapeString(p.Extract());
+		var link_text = UnescapeString(p.Extract(), ExtraMode);
 
 		// The closing ']'
 		p.SkipForward(1);
@@ -2395,7 +2406,7 @@ var MarkdownDeep = new function(){
 		if (p.SkipChar('('))
 		{
 			// Extract the url and title
-			var link_def = ParseLinkTarget(p, null);
+			var link_def = ParseLinkTarget(p, null, this.m_Markdown.ExtraMode);
 			if (link_def==null)
 				return null;
 
@@ -3714,7 +3725,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// Parse a link definition
-			var l = ParseLinkDefinition(p);
+			var l = ParseLinkDefinition(p, this.m_Markdown.ExtraMode);
 			if (l!=null)
 			{
 				this.m_Markdown.AddLinkDefinition(l);
