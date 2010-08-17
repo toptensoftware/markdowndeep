@@ -61,6 +61,8 @@ var MarkdownDeep = new function(){
     
 		// Reset the list of link definitions
 		this.m_LinkDefinitions=new Array();
+		this.m_Footnotes=new Array();
+		this.m_UsedFootnotes=new Array();
 		this.m_UsedHeaderIDs=new Array();
 
 		// Process blocks
@@ -74,6 +76,52 @@ var MarkdownDeep = new function(){
 		    b.Render(this, sb);
 	    }
 		
+
+		// Render footnotes
+		if (this.m_UsedFootnotes.length > 0)
+		{
+
+			sb.Append("\n<div class=\"footnotes\">\n");
+			sb.Append("<hr />\n");
+			sb.Append("<ol>\n");
+			for (var i=0; i<this.m_UsedFootnotes.length; i++)
+			{
+				var fn=this.m_UsedFootnotes[i];
+
+				sb.Append("<li id=\"#fn:");
+				sb.Append(fn.data);	// footnote id
+				sb.Append("\">\n");
+
+
+				// We need to get the return link appended to the last paragraph
+				// in the footnote
+				var strReturnLink = "<a href=\"#fnref:" + fn.data + "\" rev=\"footnote\">&#8617;</a>";
+
+				// Get the last child of the footnote
+				var child = fn.children[fn.children.length - 1];
+				if (child.blockType == BlockType_p)
+				{
+					child.blockType = BlockType_p_footnote;
+					child.data = strReturnLink;
+				}
+				else
+				{
+					child = new Block();
+					child.contentLen = 0;
+					child.blockType = BlockType_p_footnote;
+					child.data = strReturnLink;
+					fn.children.push(child);
+				}
+
+
+				fn.Render(this, sb);
+
+				sb.Append("</li>\n");
+			}
+			sb.Append("</ol\n");
+			sb.Append("</div>\n");
+		}
+
 
 		// Done
 		return sb.ToString();
@@ -95,6 +143,29 @@ var MarkdownDeep = new function(){
 	    else
     	    return x;
     }
+
+	p.AddFootnote=function(footnote)
+	{
+		this.m_Footnotes[footnote.data] = footnote;
+	}
+
+	// Look up a footnote, claim it and return it's index (or -1 if not found)
+	p.ClaimFootnote=function(id)
+	{
+		var footnote=this.m_Footnotes[id];
+		if (footnote!=undefined)
+		{
+			// Move the foot note to the used footnote list
+			this.m_UsedFootnotes.push(footnote);
+			delete this.m_Footnotes[id];
+
+			// Return it's display index
+			return this.m_UsedFootnotes.length-1;
+		}
+		else
+			return -1;
+	}
+
     
     // private
 	p.MakeUniqueHeaderID=function(strHeaderText, startOffset, length)
@@ -859,7 +930,7 @@ var MarkdownDeep = new function(){
 		}
 		return true;
 	}
-	p.Mark= function()
+	p.Mark = function()
 	{
 		this.mark=this.m_position;
 	}
@@ -887,6 +958,38 @@ var MarkdownDeep = new function(){
 		}
 		return false;
 	}
+	
+	p.SkipFootnoteID=function()
+	{
+		var savepos = this.m_position;
+		
+		this.SkipLinespace();
+
+		this.Mark();
+
+		while (true)
+		{
+			var ch = this.current();
+			if (is_alphadigit(ch) || ch == '-' || ch == '_' || ch == ':' || ch == '.' || ch == ' ')
+				this.SkipForward(1);
+			else
+				break;
+		}
+
+		if (this.m_position > this.mark)
+		{
+			var id=Trim(this.Extract());
+			if (id.length>0)
+			{
+    			this.SkipLinespace();
+			    return id;  
+			}
+		}
+
+		position = savepos;
+		return null;
+	}
+
 	p.SkipHtmlEntity = function()
 	{
 	    if (this.buf.charAt(this.m_position)!='&')
@@ -1515,6 +1618,7 @@ var MarkdownDeep = new function(){
     var TokenType_opening_mark=11;
     var TokenType_closing_mark=12;
     var TokenType_internal_mark=13;
+    var TokenType_footnote=14;
 
     function Token(type, startOffset, length)
     {
@@ -1708,6 +1812,20 @@ var MarkdownDeep = new function(){
 				    li.def.RenderImg(this.m_Markdown, sb, li.link_text);
 				    break;
 			    }
+			    
+				case TokenType_footnote:
+				{
+					var r=t.data;
+					sb.Append("<sup id=\"fnref:");
+					sb.Append(r.id);
+					sb.Append("\"><a href=\"#fn:");
+					sb.Append(r.id);
+					sb.Append("\" rel=\"footnote\">");
+					sb.Append(r.index + 1);
+					sb.Append("</a></sup>");
+					break;
+				}
+
 		    }
 		}
     }
@@ -1767,7 +1885,7 @@ var MarkdownDeep = new function(){
 				{
 					// Process link reference
 					var linkpos = p.m_position;
-					token = this.ProcessLinkOrImage();
+					token = this.ProcessLinkOrImageOrFootnote();
 
 					// Rewind if invalid syntax
 					// (the '[' or '!' will be treated as a regular character and processed below)
@@ -2114,11 +2232,8 @@ var MarkdownDeep = new function(){
 	}
 
 	// Process [link] and ![image] directives
-    p.ProcessLinkOrImage=function()
+    p.ProcessLinkOrImageOrFootnote=function()
 	{
-		if (this.m_DisableLinks)
-			return null;
-			
 		var p=this.m_Scanner;
 
 		// Link or image?
@@ -2128,6 +2243,33 @@ var MarkdownDeep = new function(){
 		if (!p.SkipChar('['))
 			return null;
 
+		// Is it a foonote?
+		var savepos=this.m_position;
+		if (this.m_Markdown.ExtraMode && token_type==TokenType_link && p.SkipChar('^'))
+		{
+			p.SkipLinespace();
+
+			// Parse it
+			p.Mark();
+			var id=p.SkipFootnoteID();
+			if (id!=null && p.SkipChar(']'))
+		    {
+			    // Look it up and create footnote reference token
+			    var footnote_index = this.m_Markdown.ClaimFootnote(id);
+			    if (footnote_index >= 0)
+			    {
+				    // Yes it's a footnote
+				    return this.CreateDataToken(TokenType_footnote, {index:footnote_index, id:id} );
+			    }
+			}
+
+			// Rewind
+			position = savepos;
+		}
+
+		if (this.m_DisableLinks)
+			return null;
+			
 		// Find the closing square bracket, allowing for nesting, watching for 
 		// escapable characters
 		p.Mark();
@@ -2359,6 +2501,8 @@ var MarkdownDeep = new function(){
     var BlockType_dd=25;
     var BlockType_dt=26;
     var BlockType_dl=27;
+	var BlockType_footnote=28;
+	var BlockType_p_footnote=29;
     
 
     function Block()
@@ -2540,6 +2684,7 @@ var MarkdownDeep = new function(){
 				return;
 
 		    case BlockType_Composite:
+		    case BlockType_footnote:
 			    this.RenderChildren(m, b);
 			    return;
 			    
@@ -2584,6 +2729,18 @@ var MarkdownDeep = new function(){
 				this.RenderChildren(m, b);
 				b.Append("</dl>\n");
 				return;
+				
+			case BlockType_p_footnote:
+				b.Append("<p>");
+				if (this.contentLen > 0)
+				{
+					m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+					b.Append("&nbsp;");
+				}
+				b.Append(this.data);
+				b.Append("</p>\n");
+				break;
+
 		}
 	}
 
@@ -2822,6 +2979,7 @@ var MarkdownDeep = new function(){
 						case BlockType_ol_li:
 						case BlockType_ul_li:
 						case BlockType_dd:
+					    case BlockType_footnote:
 						case BlockType_indent:
 							lines.push(b);
 							break;
@@ -2840,6 +2998,7 @@ var MarkdownDeep = new function(){
 						case BlockType_ol_li:
 						case BlockType_ul_li:
 						case BlockType_dd:
+						case BlockType_footnote:
 							var prevline = lines[lines.length-1];
 							if (prevline.blockType == BlockType_Blank)
 							{
@@ -2889,6 +3048,7 @@ var MarkdownDeep = new function(){
 						case BlockType_ul_li:
 						case BlockType_indent:
 						case BlockType_dd:
+					    case BlockType_footnote:
 							lines.push(b);
 							break;
 					}
@@ -2930,6 +3090,7 @@ var MarkdownDeep = new function(){
 						case BlockType_ol_li:
 						case BlockType_ul_li:
 					    case BlockType_dd:
+					    case BlockType_footnote:
 							if (b.blockType != currentBlockType)
 							{
 								this.CollapseLines(blocks, lines);
@@ -2946,11 +3107,13 @@ var MarkdownDeep = new function(){
 					break;
 
 				case BlockType_dd:
+			    case BlockType_footnote:
 					switch (currentBlockType)
 					{
 						case BlockType_Blank:
 						case BlockType_p:
 						case BlockType_dd:
+				        case BlockType_footnote:
 							this.CollapseLines(blocks, lines);
 							lines.push(b);
 							break;
@@ -3095,6 +3258,11 @@ var MarkdownDeep = new function(){
 				}
 				blocks.push(this.BuildDefinition(lines));
 				break;
+				
+			case BlockType_footnote:
+				this.m_Markdown.AddFootnote(this.BuildFootnote(lines));
+				break;
+				
 
 			case BlockType_indent:
 			{
@@ -3406,6 +3574,25 @@ var MarkdownDeep = new function(){
 		// Reference link definition?
 		if (ch == '[')
 		{
+			// Footnote definition?
+			if (this.m_Markdown.ExtraMode && p.CharAtOffset(1) == '^')
+			{
+				var savepos = p.m_position;
+
+				p.SkipForward(2);
+
+                var id=p.SkipFootnoteID();
+				if (id!=null && p.SkipChar(']') && p.SkipChar(':'))
+			    {
+				    p.SkipLinespace();
+				    b.contentStart = p.m_position;
+				    b.data = id;
+				    return BlockType_footnote;
+			    }
+
+				p.m_position = savepos;
+			}
+
 			// Parse a link definition
 			var l = ParseLinkDefinition(p);
 			if (l!=null)
@@ -3953,6 +4140,48 @@ var MarkdownDeep = new function(){
 	}
 
 	
+	p.BuildFootnote=function(lines)
+	{
+		// Collapse all plain lines (ie: handle hardwrapped lines)
+		for (var i = 1; i < lines.length; i++)
+		{
+			// Join plain paragraphs
+			if ((lines[i].blockType == BlockType_p) &&
+				(lines[i - 1].blockType == BlockType_p || lines[i - 1].blockType == BlockType_footnote))
+			{
+				lines[i - 1].set_contentEnd(lines[i].get_contentEnd());
+				this.FreeBlock(lines[i]);
+				lines.splice(i, 1);
+				i--;
+				continue;
+			}
+		}
+
+		// Build a new string containing all child items
+		var sb = this.m_Markdown.GetStringBuilder();
+		for (var i = 0; i < lines.length; i++)
+		{
+			var l = lines[i];
+			sb.Append(l.buf.substr(l.contentStart, l.contentLen));
+			sb.Append('\n');
+		}
+
+		var bp=new BlockProcessor(this.m_Markdown);
+		bp.m_parentType=BlockType_footnote;
+
+		// Create the item and process child blocks
+		var item = this.CreateBlock();
+		item.blockType = BlockType_footnote;
+		item.data = lines[0].data;
+		item.children = bp.Process(sb.ToString());
+
+		this.FreeBlocks(lines);
+		lines.length=0;
+
+		// Continue processing after this item
+		return item;
+	}
+
 	
 	p.ProcessFencedCodeBlock=function(p, b)
 	{

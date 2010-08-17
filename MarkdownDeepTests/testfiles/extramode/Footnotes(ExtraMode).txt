@@ -1,0 +1,27 @@
+﻿[^fn2]: A second footnote, out of order
+
+This is a paragraph with a footnote [^fn1]
+
+A second reference to same footnote should be ignored. [^fn1]
+
+Footnotes are list in the order they're referenced, not defined. [^fn2]
+
+Multiline footnotes with block level formatting are also supported. [^fn3]
+
+[^fn1]: This is the footnote.
+
+[^fn3]: This is a complex footnote
+
+	It has a list:
+	
+	* Apples
+	* Pears
+	* Bananas
+	
+	And a quote:
+	
+	> That's awesome!
+	
+	
+	
+	

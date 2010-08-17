@@ -15,6 +15,8 @@ namespace MarkdownDeep
 			m_StringScanner = new StringScanner();
 			m_SpanFormatter = new SpanFormatter(this);
 			m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
+			m_Footnotes = new Dictionary<string, Block>();
+			m_UsedFootnotes = new List<Block>();
 			m_UsedHeaderIDs = new Dictionary<string, bool>();
 		}
 
@@ -23,6 +25,8 @@ namespace MarkdownDeep
 		{
 			// Reset the list of link definitions
 			m_LinkDefinitions.Clear();
+			m_Footnotes.Clear();
+			m_UsedFootnotes.Clear();
 			m_UsedHeaderIDs.Clear();
 
 			// Process blocks
@@ -32,6 +36,51 @@ namespace MarkdownDeep
 			StringBuilder sb = GetStringBuilder();
 			foreach (var b in blocks)
 				b.Render(this, sb);
+
+			// Render footnotes
+			if (m_UsedFootnotes.Count > 0)
+			{
+
+				sb.Append("\n<div class=\"footnotes\">\n");
+				sb.Append("<hr />\n");
+				sb.Append("<ol>\n");
+				for (int i=0; i<m_UsedFootnotes.Count; i++)
+				{
+					var fn=m_UsedFootnotes[i];
+
+					sb.Append("<li id=\"#fn:");
+					sb.Append((string)fn.data);	// footnote id
+					sb.Append("\">\n");
+
+
+					// We need to get the return link appended to the last paragraph
+					// in the footnote
+					string strReturnLink = string.Format("<a href=\"#fnref:{0}\" rev=\"footnote\">&#8617;</a>", (string)fn.data);
+
+					// Get the last child of the footnote
+					var child = fn.children[fn.children.Count - 1];
+					if (child.blockType == BlockType.p)
+					{
+						child.blockType = BlockType.p_footnote;
+						child.data = strReturnLink;
+					}
+					else
+					{
+						child = CreateBlock();
+						child.contentLen = 0;
+						child.blockType = BlockType.p_footnote;
+						child.data = strReturnLink;
+						fn.children.Add(child);
+					}
+
+
+					fn.Render(this, sb);
+
+					sb.Append("</li>\n");
+				}
+				sb.Append("</ol\n");
+				sb.Append("</div>\n");
+			}
 
 			// Done
 			return sb.ToString();
@@ -68,6 +117,28 @@ namespace MarkdownDeep
 		{
 			// Store it
 			m_LinkDefinitions[link.id]=link;
+		}
+
+		internal void AddFootnote(Block footnote)
+		{
+			m_Footnotes[(string)footnote.data] = footnote;
+		}
+
+		// Look up a footnote, claim it and return it's index (or -1 if not found)
+		internal int ClaimFootnote(string id)
+		{
+			Block footnote;
+			if (m_Footnotes.TryGetValue(id, out footnote))
+			{
+				// Move the foot note to the used footnote list
+				m_UsedFootnotes.Add(footnote);
+				m_Footnotes.Remove(id);
+
+				// Return it's display index
+				return m_UsedFootnotes.Count-1;
+			}
+			else
+				return -1;
 		}
 
 		// Get a link definition
@@ -260,6 +331,8 @@ namespace MarkdownDeep
 		StringScanner m_StringScanner;
 		SpanFormatter m_SpanFormatter;
 		Dictionary<string, LinkDefinition> m_LinkDefinitions;
+		Dictionary<string, Block> m_Footnotes;
+		List<Block> m_UsedFootnotes;
 		Dictionary<string, bool> m_UsedHeaderIDs;
 	
 	}

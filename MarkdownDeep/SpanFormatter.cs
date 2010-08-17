@@ -186,6 +186,19 @@ namespace MarkdownDeep
 						li.def.RenderImg(m_Markdown, sb, li.link_text);
 						break;
 					}
+
+					case TokenType.footnote:
+					{
+						FootnoteReference r=(FootnoteReference)t.data;
+						sb.Append("<sup id=\"fnref:");
+						sb.Append(r.id);
+						sb.Append("\"><a href=\"#fn:");
+						sb.Append(r.id);
+						sb.Append("\" rel=\"footnote\">");
+						sb.Append(r.index + 1);
+						sb.Append("</a></sup>");
+						break;
+					}
 				}
 			}
 		}
@@ -236,7 +249,7 @@ namespace MarkdownDeep
 					{
 						// Process link reference
 						int linkpos = position;
-						token = ProcessLinkOrImage();
+						token = ProcessLinkOrImageOrFootnote();
 
 						// Rewind if invalid syntax
 						// (the '[' or '!' will be treated as a regular character and processed below)
@@ -760,16 +773,39 @@ namespace MarkdownDeep
 		}
 
 		// Process [link] and ![image] directives
-		Token ProcessLinkOrImage()
+		Token ProcessLinkOrImageOrFootnote()
 		{
-			if (DisableLinks)
-				return null;
-
 			// Link or image?
 			TokenType token_type = SkipChar('!') ? TokenType.img : TokenType.link;
 
 			// Opening '['
 			if (!SkipChar('['))
+				return null;
+
+			// Is it a foonote?
+			var savepos=position;
+			if (m_Markdown.ExtraMode && token_type==TokenType.link && SkipChar('^'))
+			{
+				SkipLinespace();
+
+				// Parse it
+				string id;
+				if (SkipFootnoteID(out id) && SkipChar(']'))
+				{
+					// Look it up and create footnote reference token
+					int footnote_index = m_Markdown.ClaimFootnote(id);
+					if (footnote_index >= 0)
+					{
+						// Yes it's a footnote
+						return CreateToken(TokenType.footnote, new FootnoteReference(footnote_index, id));
+					}
+				}
+
+				// Rewind
+				position = savepos;
+			}
+
+			if (DisableLinks)
 				return null;
 
 			// Find the closing square bracket, allowing for nesting, watching for 
@@ -804,7 +840,7 @@ namespace MarkdownDeep
 			SkipForward(1);
 
 			// Save position in case we need to rewind
-			int savepos = position;
+			savepos = position;
 
 			// Inline links must follow immediately
 			if (SkipChar('('))

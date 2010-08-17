@@ -194,6 +194,7 @@ namespace MarkdownDeep
 							case BlockType.ol_li:
 							case BlockType.ul_li:
 							case BlockType.dd:
+							case BlockType.footnote:
 							case BlockType.indent:
 								lines.Add(b);
 								break;
@@ -216,6 +217,7 @@ namespace MarkdownDeep
 							case BlockType.ol_li:
 							case BlockType.ul_li:
 							case BlockType.dd:
+							case BlockType.footnote:
 								var prevline = lines.Last();
 								if (prevline.blockType == BlockType.Blank)
 								{
@@ -268,6 +270,7 @@ namespace MarkdownDeep
 							case BlockType.ol_li:
 							case BlockType.ul_li:
 							case BlockType.dd:
+							case BlockType.footnote:
 							case BlockType.indent:
 								lines.Add(b);
 								break;
@@ -314,6 +317,7 @@ namespace MarkdownDeep
 							case BlockType.ol_li:
 							case BlockType.ul_li:
 							case BlockType.dd:
+							case BlockType.footnote:
 								if (b.blockType != currentBlockType)
 								{
 									CollapseLines(blocks, lines);
@@ -330,11 +334,13 @@ namespace MarkdownDeep
 						break;
 
 					case BlockType.dd:
+					case BlockType.footnote:
 						switch (currentBlockType)
 						{
 							case BlockType.Blank:
 							case BlockType.p:
 							case BlockType.dd:
+							case BlockType.footnote:
 								CollapseLines(blocks, lines);
 								lines.Add(b);
 								break;
@@ -462,6 +468,10 @@ namespace MarkdownDeep
 
 					}
 					blocks.Add(BuildDefinition(lines));
+					break;
+
+				case BlockType.footnote:
+					m_markdown.AddFootnote(BuildFootnote(lines));
 					break;
 
 				case BlockType.indent:
@@ -771,6 +781,25 @@ namespace MarkdownDeep
 			// Reference link definition?
 			if (ch == '[')
 			{
+				// Footnote definition?
+				if (m_markdown.ExtraMode && CharAtOffset(1) == '^')
+				{
+					var savepos = position;
+
+					SkipForward(2);
+
+					string id;
+					if (SkipFootnoteID(out id) && SkipChar(']') && SkipChar(':'))
+					{
+						SkipLinespace();
+						b.contentStart = position;
+						b.data = id;
+						return BlockType.footnote;
+					}
+
+					position = savepos;
+				}
+
 				// Parse a link definition
 				LinkDefinition l = LinkDefinition.ParseLinkDefinition(this);
 				if (l!=null)
@@ -1326,6 +1355,45 @@ namespace MarkdownDeep
 						break;
 				}
 			}
+		}
+
+		private Block BuildFootnote(List<Block> lines)
+		{
+			// Collapse all plain lines (ie: handle hardwrapped lines)
+			for (int i = 1; i < lines.Count; i++)
+			{
+				// Join plain paragraphs
+				if ((lines[i].blockType == BlockType.p) &&
+					(lines[i - 1].blockType == BlockType.p || lines[i - 1].blockType == BlockType.footnote))
+				{
+					lines[i - 1].contentEnd = lines[i].contentEnd;
+					FreeBlock(lines[i]);
+					lines.RemoveAt(i);
+					i--;
+					continue;
+				}
+			}
+
+			// Build a new string containing all child items
+			StringBuilder sb = m_markdown.GetStringBuilder();
+			for (int i = 0; i < lines.Count; i++)
+			{
+				var l = lines[i];
+				sb.Append(l.buf, l.contentStart, l.contentLen);
+				sb.Append('\n');
+			}
+
+			// Create the item and process child blocks
+			var item = this.CreateBlock();
+			item.blockType = BlockType.footnote;
+			item.data = lines[0].data;
+			item.children = new BlockProcessor(m_markdown, m_bMarkdownInHtml, BlockType.footnote).Process(sb.ToString());
+
+			FreeBlocks(lines);
+			lines.Clear();
+
+			// Continue processing after this item
+			return item;
 		}
 
 		bool ProcessFencedCodeBlock(Block b)

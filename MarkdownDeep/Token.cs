@@ -31,6 +31,7 @@ namespace MarkdownDeep
 
 		link,			// <a href>, data = LinkInfo
 		img,			// <img>, data = LinkInfo
+		footnote,		// Footnote reference
 
 		// These are used during construction of <em> and <strong> tokens
 		opening_mark,	// opening '*' or '_'

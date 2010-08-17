@@ -34,10 +34,12 @@ namespace MarkdownDeep
 		ul,				// unordered list (render only)
 		HtmlTag,		// Data=(HtmlTag), children = content
 		Composite,		// Just a list of child blocks
-		table_spec,		// A table row specifier eg:  |---: | ---|
-		dd,				// definition (render and parse)
+		table_spec,		// A table row specifier eg:  |---: | ---|	`data` = TableSpec reference
+		dd,				// definition (render and parse)	`data` = bool true if blank line before
 		dt,				// render only
 		dl,				// render only
+		footnote,		// footnote definition  eg: [^id]   `data` holds the footnote id
+		p_footnote,		// paragraph with footnote return link append.  Return link string is in `data`.
 	}
 
 	class Block
@@ -253,6 +255,7 @@ namespace MarkdownDeep
 					return;
 
 				case BlockType.Composite:
+				case BlockType.footnote:
 					RenderChildren(m, b);
 					return;
 
@@ -260,6 +263,16 @@ namespace MarkdownDeep
 					((TableSpec)data).Render(m, b);
 					break;
 
+				case BlockType.p_footnote:
+					b.Append("<p>");
+					if (contentLen > 0)
+					{
+						m.processSpan(b, buf, contentStart, contentLen);
+						b.Append("&nbsp;");
+					}
+					b.Append((string)data);
+					b.Append("</p>\n");
+					break;
 
 				default:
 					b.Append("<" + blockType.ToString() + ">");
@@ -334,7 +347,7 @@ namespace MarkdownDeep
 		internal int contentLen;
 		internal int lineStart;
 		internal int lineLen;
-		internal object data;			// Holds HtmlTag reference for BlockType.HtmlTag
+		internal object data;			// content depends on block type
 		internal List<Block> children;
 	}
 }

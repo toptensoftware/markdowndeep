@@ -434,6 +434,38 @@ namespace MarkdownDeep
 			return true;
 		}
 
+		public bool SkipFootnoteID(out string id)
+		{
+			int savepos = position;
+
+			SkipLinespace();
+
+			Mark();
+
+			while (true)
+			{
+				char ch = current;
+				if (char.IsLetterOrDigit(ch) || ch == '-' || ch == '_' || ch == ':' || ch == '.' || ch == ' ')
+					SkipForward(1);
+				else
+					break;
+			}
+
+			if (position > mark)
+			{
+				id = Extract().Trim();
+				if (!String.IsNullOrEmpty(id))
+				{
+					SkipLinespace();
+					return true;
+				}
+			}
+
+			position = savepos;
+			id = null;
+			return false;
+		}
+
 		// Skip a Html entity (eg: &amp;)
 		public bool SkipHtmlEntity(ref string entity)
 		{

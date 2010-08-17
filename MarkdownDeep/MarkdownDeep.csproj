@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockProcessor.cs" />
+    <Compile Include="FootnoteReference.cs" />
     <Compile Include="HtmlTag.cs" />
     <Compile Include="LinkDefinition.cs" />
     <Compile Include="LinkInfo.cs" />

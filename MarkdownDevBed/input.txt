@@ -1,7 +1,11 @@
-﻿term1
-: definition1
-continued
+﻿This is a paragraph. [^note]
 
-term2
-: definition2
-continued
+
+[^note]: My paragraph
+	More 
+	more
+	more
+
+	> Quote
+	
+	
