@@ -1923,18 +1923,21 @@ var MarkdownDeep = new function(){
 					// Create emphasis mark
 					token = this.CreateEmphasisMark();
 
-					// Store marks in a separate list the we'll resolve later
-					switch (token.type)
-					{
-						case TokenType_internal_mark:
-						case TokenType_opening_mark:
-						case TokenType_closing_mark:
-							if (emphasis_marks==null)
-							{
-								emphasis_marks = new Array();
-							}
-							emphasis_marks.push(token);
-							break;
+                    if (token!=null)
+                    {
+					    // Store marks in a separate list the we'll resolve later
+					    switch (token.type)
+					    {
+						    case TokenType_internal_mark:
+						    case TokenType_opening_mark:
+						    case TokenType_closing_mark:
+							    if (emphasis_marks==null)
+							    {
+								    emphasis_marks = new Array();
+							    }
+							    emphasis_marks.push(token);
+							    break;
+					    }
 					}
 					break;
 
@@ -2150,7 +2153,7 @@ var MarkdownDeep = new function(){
 		// Scan forwards and see if we have space after
 		while (is_emphasis(p.CharAtOffset(1)))
 			p.SkipForward(1);
-		var bSpaceAfter = p.eof() || is_whitespace(p.CharAtOffset(1));
+		var bSpaceAfter = p.eof() || is_whitespace(p.current());
 		p.m_position = savepos + count;
 
 		if (bSpaceBefore)
@@ -2162,6 +2165,10 @@ var MarkdownDeep = new function(){
 		{
 			return this.CreateToken(TokenType_closing_mark, savepos, p.m_position - savepos);
 		}
+		
+		if (this.m_Markdown.ExtraMode && ch == '_')
+			return null;
+
 
 		return this.CreateToken(TokenType_internal_mark, savepos, p.m_position - savepos);
 	}

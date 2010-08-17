@@ -395,6 +395,8 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="testfiles\extramode\Emphasis%28ExtraMode%29.txt" />
+    <EmbeddedResource Include="testfiles\extramode\Emphasis%28ExtraMode%29.html" />
     <EmbeddedResource Include="testfiles\extramode\Abbreviations%28ExtraMode%29.txt" />
     <EmbeddedResource Include="testfiles\extramode\Abbreviations%28ExtraMode%29.html" />
     <EmbeddedResource Include="testfiles\extramode\Footnotes%28ExtraMode%29.txt" />

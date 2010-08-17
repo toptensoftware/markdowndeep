@@ -243,18 +243,21 @@ namespace MarkdownDeep
 						// Create emphasis mark
 						token = CreateEmphasisMark();
 
-						// Store marks in a separate list the we'll resolve later
-						switch (token.type)
+						if (token != null)
 						{
-							case TokenType.internal_mark:
-							case TokenType.opening_mark:
-							case TokenType.closing_mark:
-								if (emphasis_marks==null)
-								{
-									emphasis_marks = new List<Token>();
-								}
-								emphasis_marks.Add(token);
-								break;
+							// Store marks in a separate list the we'll resolve later
+							switch (token.type)
+							{
+								case TokenType.internal_mark:
+								case TokenType.opening_mark:
+								case TokenType.closing_mark:
+									if (emphasis_marks == null)
+									{
+										emphasis_marks = new List<Token>();
+									}
+									emphasis_marks.Add(token);
+									break;
+							}
 						}
 						break;
 
@@ -472,7 +475,7 @@ namespace MarkdownDeep
 			// Scan forwards and see if we have space after
 			while (IsEmphasisChar(CharAtOffset(1)))
 				SkipForward(1);
-			bool bSpaceAfter = eof || char.IsWhiteSpace(CharAtOffset(1));
+			bool bSpaceAfter = eof || char.IsWhiteSpace(current);
 			position = savepos + count;
 
 			// This should have been stopped by check above
@@ -487,6 +490,9 @@ namespace MarkdownDeep
 			{
 				return CreateToken(TokenType.closing_mark, savepos, position - savepos);
 			}
+
+			if (m_Markdown.ExtraMode && ch == '_')
+				return null;
 
 			return CreateToken(TokenType.internal_mark, savepos, position - savepos);
 		}
