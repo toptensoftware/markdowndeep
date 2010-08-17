@@ -2030,12 +2030,30 @@ var MarkdownDeep = new function(){
 
 				case '\\':
 				{
-					// Check followed by an escapable character
-					if (is_escapable(p.CharAtOffset(1), ExtraMode))
+					// Special handling for escaping <autolinks>
+					if (p.CharAtOffset(1) == '<')
 					{
-						token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
-						p.SkipForward(2);
+						// Is it an autolink?
+						var savepos = p.m_position;
+						p.SkipForward(1);
+						var AutoLink = this.ProcessAutoLink() != null;
+						p.m_position = savepos;
+
+						if (AutoLink)
+						{
+							token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
+							p.SkipForward(2);
+						}
 					}
+					else
+					{
+					    // Check followed by an escapable character
+					    if (is_escapable(p.CharAtOffset(1), ExtraMode))
+					    {
+						    token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
+						    p.SkipForward(2);
+					    }
+				    }
 					break;
 				}
 			}

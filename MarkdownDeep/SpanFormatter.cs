@@ -344,11 +344,29 @@ namespace MarkdownDeep
 
 					case '\\':
 					{
-						// Check followed by an escapable character
-						if (Utils.IsEscapableChar(CharAtOffset(1), ExtraMode))
+						// Special handling for escaping <autolinks>
+						if (CharAtOffset(1) == '<')
 						{
-							token = CreateToken(TokenType.Text, position + 1, 1);
-							SkipForward(2);
+							// Is it an autolink?
+							int savepos = position;
+							SkipForward(1);
+							bool AutoLink = ProcessAutoLink() != null;
+							position = savepos;
+
+							if (AutoLink)
+							{
+								token = CreateToken(TokenType.Text, position + 1, 1);
+								SkipForward(2);
+							}
+						}
+						else
+						{
+							// Check followed by an escapable character
+							if (Utils.IsEscapableChar(CharAtOffset(1), ExtraMode))
+							{
+								token = CreateToken(TokenType.Text, position + 1, 1);
+								SkipForward(2);
+							}
 						}
 						break;
 					}
