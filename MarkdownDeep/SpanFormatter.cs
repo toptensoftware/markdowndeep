@@ -345,6 +345,7 @@ namespace MarkdownDeep
 					case '\\':
 					{
 						// Special handling for escaping <autolinks>
+						/*
 						if (CharAtOffset(1) == '<')
 						{
 							// Is it an autolink?
@@ -360,6 +361,7 @@ namespace MarkdownDeep
 							}
 						}
 						else
+						 */
 						{
 							// Check followed by an escapable character
 							if (Utils.IsEscapableChar(CharAtOffset(1), ExtraMode))

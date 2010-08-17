@@ -322,6 +322,7 @@ var MarkdownDeep = new function(){
             case ':':
             case '|':
             case '=':
+            case '<':
                 return ExtraMode;
 	    }
 
@@ -2031,6 +2032,7 @@ var MarkdownDeep = new function(){
 				case '\\':
 				{
 					// Special handling for escaping <autolinks>
+					/*
 					if (p.CharAtOffset(1) == '<')
 					{
 						// Is it an autolink?
@@ -2046,6 +2048,7 @@ var MarkdownDeep = new function(){
 						}
 					}
 					else
+					*/
 					{
 					    // Check followed by an escapable character
 					    if (is_escapable(p.CharAtOffset(1), ExtraMode))

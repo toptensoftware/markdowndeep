@@ -68,6 +68,6 @@ Not \_\_Strong\_\_
 Not \_Emphasis\_
 
 
-Not an autolink \<http://www.toptensoftware.com>.
+Not an autolink <http://www.toptensoftware.com\>.
 
 post

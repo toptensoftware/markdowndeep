@@ -295,6 +295,7 @@ namespace MarkdownDeep
 				case ':':
 				case '|':
 				case '=':		// Added for escaping Setext H1
+				case '<':
 					return ExtraMode;
 			}
 
