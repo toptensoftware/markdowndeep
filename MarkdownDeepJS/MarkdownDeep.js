@@ -2356,6 +2356,10 @@ var MarkdownDeep = new function(){
     var BlockType_HtmlTag=22;
     var BlockType_Composite=23;
     var BlockType_table_spec=24;
+    var BlockType_dd=25;
+    var BlockType_dt=26;
+    var BlockType_dl=27;
+    
 
     function Block()
     {
@@ -2542,6 +2546,44 @@ var MarkdownDeep = new function(){
 			case BlockType_table_spec:
 			    this.data.Render(m, b);
 			    return;
+			    
+			case BlockType_dd:
+				b.Append("<dd>");
+				if (this.children != null)
+				{
+					b.Append("\n");
+					this.RenderChildren(m, b);
+				}
+				else
+					m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+				b.Append("</dd>\n");
+				break;
+
+			case BlockType_dt:
+				if (this.children == null)
+				{
+				    var lines=this.get_Content().split("\n");
+				    for (var i=0; i<lines.length; i++)
+					{
+					    var l=lines[i];
+						b.Append("<dt>");
+						m.processSpan2(b, Trim(l));
+						b.Append("</dt>\n");
+					}
+				}
+				else
+				{
+					b.Append("<dt>\n");
+					this.RenderChildren(m, b);
+					b.Append("</dt>\n");
+				}
+				break;
+
+			case BlockType_dl:
+				b.Append("<dl>\n");
+				this.RenderChildren(m, b);
+				b.Append("</dl>\n");
+				return;
 		}
 	}
 
@@ -2671,10 +2713,23 @@ var MarkdownDeep = new function(){
 		var lines = new Array();
 
 		// Add all blocks
+		var PrevBlockType=-1;
 		while (!p.eof())
 		{
-			// Get the next line
+			// Remember if the previous line was blank
+			var bPreviousBlank = PrevBlockType == BlockType_Blank;
+
+			// Get the next block
 			var b = this.EvaluateLine(p);
+			PrevBlockType = b.blockType;
+
+			// For dd blocks, we need to know if it was preceeded by a blank line
+			// so store that fact as the block's data.
+			if (b.blockType == BlockType_dd)
+			{
+				b.data = bPreviousBlank;
+			}
+
 
 			// SetExt header?
 			if (b.blockType == BlockType_post_h1 || b.blockType == BlockType_post_h2)
@@ -2766,6 +2821,7 @@ var MarkdownDeep = new function(){
 						case BlockType_quote:
 						case BlockType_ol_li:
 						case BlockType_ul_li:
+						case BlockType_dd:
 						case BlockType_indent:
 							lines.push(b);
 							break;
@@ -2783,6 +2839,7 @@ var MarkdownDeep = new function(){
 						case BlockType_quote:
 						case BlockType_ol_li:
 						case BlockType_ul_li:
+						case BlockType_dd:
 							var prevline = lines[lines.length-1];
 							if (prevline.blockType == BlockType_Blank)
 							{
@@ -2831,6 +2888,7 @@ var MarkdownDeep = new function(){
 						case BlockType_ol_li:
 						case BlockType_ul_li:
 						case BlockType_indent:
+						case BlockType_dd:
 							lines.push(b);
 							break;
 					}
@@ -2855,7 +2913,7 @@ var MarkdownDeep = new function(){
 						case BlockType_p:
 						case BlockType_quote:
 							var prevline = lines[lines.length-1];
-							if (prevline.blockType == BlockType_Blank || this.m_parentType==BlockType_ol_li || this.m_parentType==BlockType_ul_li)
+							if (prevline.blockType == BlockType_Blank || this.m_parentType==BlockType_ol_li || this.m_parentType==BlockType_ul_li || this.m_parentType==BlockType_dd)
 							{
 								// List starting after blank line after paragraph or quote
 								this.CollapseLines(blocks, lines);
@@ -2871,6 +2929,7 @@ var MarkdownDeep = new function(){
 
 						case BlockType_ol_li:
 						case BlockType_ul_li:
+					    case BlockType_dd:
 							if (b.blockType != currentBlockType)
 							{
 								this.CollapseLines(blocks, lines);
@@ -2886,6 +2945,23 @@ var MarkdownDeep = new function(){
 					}
 					break;
 
+				case BlockType_dd:
+					switch (currentBlockType)
+					{
+						case BlockType_Blank:
+						case BlockType_p:
+						case BlockType_dd:
+							this.CollapseLines(blocks, lines);
+							lines.push(b);
+							break;
+
+						default:
+							b.RevertToPlain();
+							lines.push(b);
+							break;
+					}
+					break;
+
                 default:
 					this.CollapseLines(blocks, lines);
 					blocks.push(b);
@@ -2894,6 +2970,11 @@ var MarkdownDeep = new function(){
 		}
 
 		this.CollapseLines(blocks, lines);
+    
+        if (this.m_Markdown.ExtraMode)
+        {
+            this.BuildDefinitionLists(blocks)
+        }
 
 		return blocks;
 	}
@@ -2986,6 +3067,33 @@ var MarkdownDeep = new function(){
 			case BlockType_ol_li:
 			case BlockType_ul_li:
 				blocks.push(this.BuildList(lines));
+				break;
+
+			case BlockType_dd:
+				if (blocks.length > 0)
+				{
+					var prev=blocks[blocks.length-1];
+					switch (prev.blockType)
+					{
+						case BlockType_p:
+							prev.blockType = BlockType_dt;
+							break;
+
+						case BlockType_dd:
+							break;
+
+						default:
+							var wrapper = this.CreateBlock();
+							wrapper.blockType = BlockType_dt;
+							wrapper.children = new Array();
+							wrapper.children.push(prev);
+							blocks.pop();
+							blocks.push(wrapper);
+							break;
+					}
+
+				}
+				blocks.push(this.BuildDefinition(lines));
 				break;
 
 			case BlockType_indent:
@@ -3133,6 +3241,9 @@ var MarkdownDeep = new function(){
 			    b.data = spec;
 			    return BlockType_table_spec;
 		    }
+		    
+			p.m_position = line_start;
+
 
 		    // Fenced code blocks?
 		    if (ch == '~')
@@ -3262,6 +3373,15 @@ var MarkdownDeep = new function(){
 			p.SkipLinespace();
 			b.contentStart = p.m_position;
 			return BlockType_ul_li;
+		}
+		
+		// Definition
+		if (ch == ':' && this.m_Markdown.ExtraMode && is_linespace(p.CharAtOffset(1)))
+		{
+			p.SkipForward(1);
+			p.SkipLinespace();
+			b.contentStart = p.m_position;
+			return BlockType_dd;
 		}
 
 		// Ordered list
@@ -3643,7 +3763,7 @@ var MarkdownDeep = new function(){
 		// 1. Collapse all plain lines (ie: handle hardwrapped lines)
 		// 2. Promote any unindented lines that have more leading space 
 		//    than the original list item to indented, including leading 
-		//    specal chars
+		//    special chars
 		var leadingSpace = lines[0].get_leadingSpaces();
 		for (var i = 1; i < lines.length; i++)
 		{
@@ -3749,6 +3869,90 @@ var MarkdownDeep = new function(){
 		// Continue processing after this item
 		return List;
 	}
+	
+	/* 
+	 * BuildDefinition - build a single <dd> item
+	 */
+	p.BuildDefinition=function(lines)
+	{
+		// Collapse all plain lines (ie: handle hardwrapped lines)
+		for (var i = 1; i < lines.length; i++)
+		{
+			// Join plain paragraphs
+			if ((lines[i].blockType == BlockType_p) &&
+				(lines[i - 1].blockType == BlockType_p || lines[i - 1].blockType == BlockType_dd))
+			{
+				lines[i - 1].set_contentEnd(lines[i].get_contentEnd());
+				this.FreeBlock(lines[i]);
+				lines.splice(i, 1);
+				i--;
+				continue;
+			}
+		}
+
+		// Single line definition
+		var bPreceededByBlank=lines[0].data;
+		if (lines.length==1 && !bPreceededByBlank)
+		{
+			var ret=lines[0];
+			lines.length=0;
+			return ret;
+		}
+
+		// Build a new string containing all child items
+		var sb = this.m_Markdown.GetStringBuilder();
+		for (var i = 0; i < lines.length; i++)
+		{
+			var l = lines[i];
+			sb.Append(l.buf.substr(l.contentStart, l.contentLen));
+			sb.Append('\n');
+		}
+
+		// Create the item and process child blocks
+		var item = this.CreateBlock();
+		item.blockType=BlockType_dd;
+		var bp=new BlockProcessor(this.m_Markdown);
+		bp.m_parentType=BlockType_dd;
+		item.children = bp.Process(sb.ToString());
+
+		this.FreeBlocks(lines);
+		lines.length=0;
+
+		// Continue processing after this item
+		return item;
+	}
+
+	p.BuildDefinitionLists=function(blocks)
+	{
+		var currentList = null;
+		for (var i = 0; i < blocks.length; i++)
+		{
+			switch (blocks[i].blockType)
+			{
+				case BlockType_dt:
+				case BlockType_dd:
+					if (currentList==null)
+					{
+						currentList=this.CreateBlock();
+						currentList.blockType=BlockType_dl;
+						currentList.children=new Array();
+						blocks.splice(i, 0, currentList);
+						i++;
+					}
+
+					currentList.children.push(blocks[i]);
+					blocks.splice(i, 1);
+					i--;
+					break;
+
+				default:
+					currentList = null;
+					break;
+			}
+		}
+	}
+
+	
 	
 	p.ProcessFencedCodeBlock=function(p, b)
 	{

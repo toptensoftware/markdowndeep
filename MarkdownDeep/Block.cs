@@ -35,6 +35,9 @@ namespace MarkdownDeep
 		HtmlTag,		// Data=(HtmlTag), children = content
 		Composite,		// Just a list of child blocks
 		table_spec,		// A table row specifier eg:  |---: | ---|
+		dd,				// definition (render and parse)
+		dt,				// render only
+		dl,				// render only
 	}
 
 	class Block
@@ -161,6 +164,44 @@ namespace MarkdownDeep
 					m.processSpan(b, buf, contentStart, contentLen);
 					b.Append("</li>\n");
 					break;
+
+				case BlockType.dd:
+					b.Append("<dd>");
+					if (children != null)
+					{
+						b.Append("\n");
+						RenderChildren(m, b);
+					}
+					else
+						m.processSpan(b, buf, contentStart, contentLen);
+					b.Append("</dd>\n");
+					break;
+
+				case BlockType.dt:
+				{
+					if (children == null)
+					{
+						foreach (var l in Content.Split('\n'))
+						{
+							b.Append("<dt>");
+							m.processSpan(b, l.Trim());
+							b.Append("</dt>\n");
+						}
+					}
+					else
+					{
+						b.Append("<dt>\n");
+						RenderChildren(m, b);
+						b.Append("</dt>\n");
+					}
+					break;
+				}
+
+				case BlockType.dl:
+					b.Append("<dl>\n");
+					RenderChildren(m, b);
+					b.Append("</dl>\n");
+					return;
 
 				case BlockType.html:
 					b.Append(buf, contentStart, contentLen);

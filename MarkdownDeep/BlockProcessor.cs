@@ -86,10 +86,23 @@ namespace MarkdownDeep
 			var lines = new List<Block>();
 
 			// Add all blocks
+			BlockType PrevBlockType = BlockType.unsafe_html;
 			while (!eof)
 			{
-				// Get the next line
+				// Remember if the previous line was blank
+				bool bPreviousBlank = PrevBlockType == BlockType.Blank;
+
+				// Get the next block
 				var b = EvaluateLine();
+				PrevBlockType = b.blockType;
+
+				// For dd blocks, we need to know if it was preceeded by a blank line
+				// so store that fact as the block's data.
+				if (b.blockType == BlockType.dd)
+				{
+					b.data = bPreviousBlank;
+				}
+
 
 				// SetExt header?
 				if (b.blockType == BlockType.post_h1 || b.blockType == BlockType.post_h2)
@@ -180,6 +193,7 @@ namespace MarkdownDeep
 							case BlockType.quote:
 							case BlockType.ol_li:
 							case BlockType.ul_li:
+							case BlockType.dd:
 							case BlockType.indent:
 								lines.Add(b);
 								break;
@@ -201,6 +215,7 @@ namespace MarkdownDeep
 							case BlockType.quote:
 							case BlockType.ol_li:
 							case BlockType.ul_li:
+							case BlockType.dd:
 								var prevline = lines.Last();
 								if (prevline.blockType == BlockType.Blank)
 								{
@@ -252,6 +267,7 @@ namespace MarkdownDeep
 
 							case BlockType.ol_li:
 							case BlockType.ul_li:
+							case BlockType.dd:
 							case BlockType.indent:
 								lines.Add(b);
 								break;
@@ -281,7 +297,7 @@ namespace MarkdownDeep
 							case BlockType.p:
 							case BlockType.quote:
 								var prevline = lines.Last();
-								if (prevline.blockType == BlockType.Blank || m_parentType==BlockType.ol_li || m_parentType==BlockType.ul_li)
+								if (prevline.blockType == BlockType.Blank || m_parentType==BlockType.ol_li || m_parentType==BlockType.ul_li || m_parentType==BlockType.dd)
 								{
 									// List starting after blank line after paragraph or quote
 									CollapseLines(blocks, lines);
@@ -297,6 +313,7 @@ namespace MarkdownDeep
 
 							case BlockType.ol_li:
 							case BlockType.ul_li:
+							case BlockType.dd:
 								if (b.blockType != currentBlockType)
 								{
 									CollapseLines(blocks, lines);
@@ -312,6 +329,23 @@ namespace MarkdownDeep
 						}
 						break;
 
+					case BlockType.dd:
+						switch (currentBlockType)
+						{
+							case BlockType.Blank:
+							case BlockType.p:
+							case BlockType.dd:
+								CollapseLines(blocks, lines);
+								lines.Add(b);
+								break;
+
+							default:
+								b.RevertToPlain();
+								lines.Add(b);
+								break;
+						}
+						break;
+
 					default:
 						CollapseLines(blocks, lines);
 						blocks.Add(b);
@@ -320,6 +354,11 @@ namespace MarkdownDeep
 			}
 
 			CollapseLines(blocks, lines);
+
+			if (m_markdown.ExtraMode)
+			{
+				BuildDefinitionLists(blocks);
+			}
 
 			return blocks;
 		}
@@ -396,6 +435,33 @@ namespace MarkdownDeep
 				case BlockType.ol_li:
 				case BlockType.ul_li:
 					blocks.Add(BuildList(lines));
+					break;
+
+				case BlockType.dd:
+					if (blocks.Count > 0)
+					{
+						var prev=blocks[blocks.Count-1];
+						switch (prev.blockType)
+						{
+							case BlockType.p:
+								prev.blockType = BlockType.dt;
+								break;
+
+							case BlockType.dd:
+								break;
+
+							default:
+								var wrapper = CreateBlock();
+								wrapper.blockType = BlockType.dt;
+								wrapper.children = new List<Block>();
+								wrapper.children.Add(prev);
+								blocks.Pop();
+								blocks.Add(wrapper);
+								break;
+						}
+
+					}
+					blocks.Add(BuildDefinition(lines));
 					break;
 
 				case BlockType.indent:
@@ -540,6 +606,8 @@ namespace MarkdownDeep
 					b.data = spec;
 					return BlockType.table_spec;
 				}
+
+				position = line_start;
 			}
 
 			// Fenced code blocks?
@@ -670,6 +738,15 @@ namespace MarkdownDeep
 				SkipLinespace();
 				b.contentStart = position;
 				return BlockType.ul_li;
+			}
+
+			// Definition
+			if (ch == ':' && m_markdown.ExtraMode && IsLineSpace(CharAtOffset(1)))
+			{
+				SkipForward(1);
+				SkipLinespace();
+				b.contentStart = position;
+				return BlockType.dd;
 			}
 
 			// Ordered list
@@ -1051,6 +1128,7 @@ namespace MarkdownDeep
 		 * 
 		 * 1-3 spaces - Promote to indented if more spaces than original item
 		 * 
+		 */
 
 		/* 
 		 * BuildList - build a single <ol> or <ul> list
@@ -1065,13 +1143,13 @@ namespace MarkdownDeep
 			// 1. Collapse all plain lines (ie: handle hardwrapped lines)
 			// 2. Promote any unindented lines that have more leading space 
 			//    than the original list item to indented, including leading 
-			//    specal chars
+			//    special chars
 			int leadingSpace = lines[0].leadingSpaces;
 			for (int i = 1; i < lines.Count; i++)
 			{
 				// Join plain paragraphs
-				if ((lines[i].blockType == BlockType.p) && 
-					(lines[i - 1].blockType == BlockType.p || lines[i-1].blockType==listType))
+				if ((lines[i].blockType == BlockType.p) &&
+					(lines[i - 1].blockType == BlockType.p || lines[i - 1].blockType == listType))
 				{
 					lines[i - 1].contentEnd = lines[i].contentEnd;
 					FreeBlock(lines[i]);
@@ -1080,9 +1158,9 @@ namespace MarkdownDeep
 					continue;
 				}
 
-				if (lines[i].blockType != BlockType.indent && lines[i].blockType!=BlockType.Blank)
+				if (lines[i].blockType != BlockType.indent && lines[i].blockType != BlockType.Blank)
 				{
-					int thisLeadingSpace=lines[i].leadingSpaces;
+					int thisLeadingSpace = lines[i].leadingSpaces;
 					if (thisLeadingSpace > leadingSpace)
 					{
 						// Change line to indented, including original leading chars 
@@ -1112,7 +1190,7 @@ namespace MarkdownDeep
 
 				// Find end of the item, including trailing blanks
 				int end_of_li = i;
-				while (end_of_li < lines.Count-1 && lines[end_of_li + 1].blockType != listType)
+				while (end_of_li < lines.Count - 1 && lines[end_of_li + 1].blockType != listType)
 					end_of_li++;
 
 				// Is this a simple or complex list item?
@@ -1129,7 +1207,7 @@ namespace MarkdownDeep
 					StringBuilder sb = m_markdown.GetStringBuilder();
 					for (int j = start_of_li; j <= end_of_li; j++)
 					{
-						var l=lines[j];
+						var l = lines[j];
 						sb.Append(l.buf, l.contentStart, l.contentLen);
 						sb.Append('\n');
 
@@ -1168,6 +1246,86 @@ namespace MarkdownDeep
 
 			// Continue processing after this item
 			return List;
+		}
+
+		/* 
+		 * BuildDefinition - build a single <dd> item
+		 */
+		private Block BuildDefinition(List<Block> lines)
+		{
+			// Collapse all plain lines (ie: handle hardwrapped lines)
+			for (int i = 1; i < lines.Count; i++)
+			{
+				// Join plain paragraphs
+				if ((lines[i].blockType == BlockType.p) &&
+					(lines[i - 1].blockType == BlockType.p || lines[i - 1].blockType == BlockType.dd))
+				{
+					lines[i - 1].contentEnd = lines[i].contentEnd;
+					FreeBlock(lines[i]);
+					lines.RemoveAt(i);
+					i--;
+					continue;
+				}
+			}
+
+			// Single line definition
+			bool bPreceededByBlank=(bool)lines[0].data;
+			if (lines.Count==1 && !bPreceededByBlank)
+			{
+				var ret=lines[0];
+				lines.Clear();
+				return ret;
+			}
+
+			// Build a new string containing all child items
+			StringBuilder sb = m_markdown.GetStringBuilder();
+			for (int i = 0; i < lines.Count; i++)
+			{
+				var l = lines[i];
+				sb.Append(l.buf, l.contentStart, l.contentLen);
+				sb.Append('\n');
+			}
+
+			// Create the item and process child blocks
+			var item = this.CreateBlock();
+			item.blockType = BlockType.dd;
+			item.children = new BlockProcessor(m_markdown, m_bMarkdownInHtml, BlockType.dd).Process(sb.ToString());
+
+			FreeBlocks(lines);
+			lines.Clear();
+
+			// Continue processing after this item
+			return item;
+		}
+
+		void BuildDefinitionLists(List<Block> blocks)
+		{
+			Block currentList = null;
+			for (int i = 0; i < blocks.Count; i++)
+			{
+				switch (blocks[i].blockType)
+				{
+					case BlockType.dt:
+					case BlockType.dd:
+						if (currentList==null)
+						{
+							currentList=CreateBlock();
+							currentList.blockType=BlockType.dl;
+							currentList.children=new List<Block>();
+							blocks.Insert(i, currentList);
+							i++;
+						}
+
+						currentList.children.Add(blocks[i]);
+						blocks.RemoveAt(i);
+						i--;
+						break;
+
+					default:
+						currentList = null;
+						break;
+				}
+			}
 		}
 
 		bool ProcessFencedCodeBlock(Block b)

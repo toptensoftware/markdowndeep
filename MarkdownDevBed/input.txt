@@ -1,1 +1,7 @@
-﻿&nbsp;
+﻿term1
+: definition1
+continued
+
+term2
+: definition2
+continued

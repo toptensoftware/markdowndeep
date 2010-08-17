@@ -1,0 +1,54 @@
+﻿simple:
+
+term1
+: definition1
+
+term2
+: definition2
+
+multiline:
+
+term1
+: definition1
+continued
+
+term2
+: definition2
+continued
+
+blanks before definitions:
+
+term1
+
+: definition1
+
+term2
+
+: definition2
+
+with formatting in terms:
+
+**term1**
+: definition1
+
+term2 [link](target.com)
+: definition2
+
+with complex definition:
+
+term1
+:   Definition
+
+    * Apples
+    * Pears 
+    * Bananas
+    
+    ~~~
+    Code
+    ~~~
+
+term2
+: Simple
+
+
+post
