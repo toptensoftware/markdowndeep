@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDevBed", "MarkdownD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepGui", "MarkdownDeepGui\MarkdownDeepGui.csproj", "{FBDF1B77-BF84-4B3D-83DE-46271C468690}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepJSTests", "MarkdownDeepJSTests\MarkdownDeepJSTests.csproj", "{F87EA750-3A17-48D2-AEEC-39E2A75AE262}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MarkdownDeepJS", "MarkdownDeepJS\MarkdownDeepJS.vcproj", "{38139B29-BE83-47E5-A850-E31A5CD0A28E}"
 EndProject
 Global
@@ -75,16 +73,6 @@ Global
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Win32.ActiveCfg = Release|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F87EA750-3A17-48D2-AEEC-39E2A75AE262}.Release|Win32.ActiveCfg = Release|Any CPU
 		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Mixed Platforms.Build.0 = Debug|Win32
