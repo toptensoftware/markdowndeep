@@ -3,8 +3,8 @@
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
 <link rel="stylesheet" href="dingus.css" type="text/css" />
-<script type="text/javascript" src="/js/jquery-1.4.2.js"></script>
-<script type="text/javascript" src="/js/MarkdownDeep.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.js"></script>
+<script type="text/javascript" src="MarkdownDeep.js"></script>
 <script type="text/javascript">
 
 var last_content="";
@@ -34,7 +34,6 @@ $(function() {
 	$("#markdown_input").bind("keyup", onMarkdownChanged);
 	$("#markdown_input").bind("paste", onMarkdownChanged);
 	$("#markdown_input").bind("input", onMarkdownChanged);
-
 	$("#markdown_input").focus();
 });
 

@@ -1,4 +1,1 @@
-﻿This the WWW.
-
-*[WWW]: World Wide Web
-
+﻿Type some markdown here (input.txt)!
