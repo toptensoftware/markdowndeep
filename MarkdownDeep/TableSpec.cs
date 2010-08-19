@@ -94,7 +94,7 @@ namespace MarkdownDeep
 				}
 
 				b.Append(">");
-				m.processSpan(b, row[i]);
+				m.SpanFormatter.Format(b, row[i]);
 				b.Append("</");
 				b.Append(type);
 				b.Append(">\n");

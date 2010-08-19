@@ -15,8 +15,26 @@ namespace MarkdownDevBed
 			m.SafeMode = false;
 			m.ExtraMode = true;
 			m.AutoHeadingIDs = true;
-			string str=m.Transform(FileContents("input.txt"));
+//			m.SectionHeader = "<div class=\"header\">{0}</div>\n";
+//			m.SectionHeadingSuffix = "<div class=\"heading\">{0}</div>\n";
+//			m.SectionFooter = "<div class=\"footer\">{0}</div>\n\n";
+
+//			m.SectionHeader = "\n<div class=\"section_links\"><a href=\"/edit?section={0}\">Edit</a></div>\n";
+			m.HtmlClassTitledImages = "figure";
+
+			string markdown=FileContents("input.txt");
+			string str = m.Transform(markdown);
 			Console.Write(str);
+
+			var sections = MarkdownDeep.Markdown.SplitSections(markdown);
+			for (int i = 0; i < sections.Count; i++)
+			{
+				Console.WriteLine("---- Section {0} ----", i);
+				Console.Write(sections[i]);
+				Console.WriteLine("\n");
+			}
+			Console.WriteLine("------------------");
+
 		}
 
 

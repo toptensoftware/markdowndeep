@@ -546,7 +546,7 @@ namespace MarkdownDeep
 					level = 6;
 
 				// Skip any whitespace
-				SkipWhitespace();
+				SkipLinespace();
 
 				// Save start position
 				b.contentStart = position;

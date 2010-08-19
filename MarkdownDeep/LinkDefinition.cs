@@ -63,16 +63,27 @@ namespace MarkdownDeep
 			}
 			else
 			{
-				b.Append("<a href=\"");
-				Utils.SmartHtmlEncodeAmpsAndAngles(b, url);
-				b.Append('\"');
-				if (!String.IsNullOrEmpty(title))
+				HtmlTag tag = new HtmlTag("a");
+
+				// encode url
+				StringBuilder sb = m.GetStringBuilder();
+				Utils.SmartHtmlEncodeAmpsAndAngles(sb, url);
+				tag.attributes["href"] = sb.ToString();
+
+				// encode title
+				if (!String.IsNullOrEmpty(title ))
 				{
-					b.Append(" title=\"");
-					Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
-					b.Append('\"');
+					sb.Length = 0;
+					Utils.SmartHtmlEncodeAmpsAndAngles(sb, title);
+					tag.attributes["title"] = sb.ToString();
 				}
-				b.Append('>');
+
+				// Do user processing
+				m.OnPrepareLink(tag);
+
+				// Render the opening tag
+				tag.RenderOpening(b);
+
 				b.Append(link_text);	  // Link text already escaped by SpanFormatter
 				b.Append("</a>");
 			}
@@ -80,22 +91,34 @@ namespace MarkdownDeep
 
 		public void RenderImg(Markdown m, StringBuilder b, string alt_text)
 		{
-			b.Append("<img src=\"");
-			Utils.SmartHtmlEncodeAmpsAndAngles(b, url);
-			b.Append('\"');
+			HtmlTag tag = new HtmlTag("img");
+
+			// encode url
+			StringBuilder sb = m.GetStringBuilder();
+			Utils.SmartHtmlEncodeAmpsAndAngles(sb, url);
+			tag.attributes["src"] = sb.ToString();
+
+			// encode alt text
 			if (!String.IsNullOrEmpty(alt_text))
 			{
-				b.Append(" alt=\"");
-				Utils.SmartHtmlEncodeAmpsAndAngles(b, alt_text);
-				b.Append('\"');
+				sb.Length = 0;
+				Utils.SmartHtmlEncodeAmpsAndAngles(sb, alt_text);
+				tag.attributes["alt"] = sb.ToString();
 			}
+
+			// encode title
 			if (!String.IsNullOrEmpty(title))
 			{
-				b.Append(" title=\"");
-				Utils.SmartHtmlEncodeAmpsAndAngles(b, title);
-				b.Append('\"');
+				sb.Length = 0;
+				Utils.SmartHtmlEncodeAmpsAndAngles(sb, title);
+				tag.attributes["title"] = sb.ToString();
 			}
-			b.Append(" />");
+
+			tag.closed = true;
+
+			m.OnPrepareImage(tag);
+
+			tag.RenderOpening(b);
 		}
 
 

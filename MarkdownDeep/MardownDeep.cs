@@ -6,12 +6,15 @@ using System.Text;
 namespace MarkdownDeep
 {
 
+
 	public class Markdown
 	{
 		// Constructor
 		public Markdown()
 		{
+			HtmlClassFootnotes = "footnotes";
 			m_StringBuilder = new StringBuilder();
+			m_StringBuilderFinal = new StringBuilder();
 			m_StringScanner = new StringScanner();
 			m_SpanFormatter = new SpanFormatter(this);
 			m_LinkDefinitions = new Dictionary<string, LinkDefinition>(StringComparer.CurrentCultureIgnoreCase);
@@ -20,8 +23,7 @@ namespace MarkdownDeep
 			m_UsedHeaderIDs = new Dictionary<string, bool>();
 		}
 
-		// Transform a string
-		public string Transform(string str)
+		internal List<Block> ProcessBlocks(string str)
 		{
 			// Reset the list of link definitions
 			m_LinkDefinitions.Clear();
@@ -32,7 +34,14 @@ namespace MarkdownDeep
 			m_AbbreviationList = null;
 
 			// Process blocks
-			List<Block> blocks = new BlockProcessor(this, MarkdownInHtml).Process(str);
+			return new BlockProcessor(this, MarkdownInHtml).Process(str);
+		}
+
+		// Transform a string
+		public string Transform(string str)
+		{
+			// Build blocks
+			var blocks = ProcessBlocks(str);
 			
 			// Sort abbreviations by length, longest to shortest
 			if (m_AbbreviationMap!=null)
@@ -48,15 +57,62 @@ namespace MarkdownDeep
 			}
 
 			// Render
-			StringBuilder sb = GetStringBuilder();
-			foreach (var b in blocks)
-				b.Render(this, sb);
+			StringBuilder sb = m_StringBuilderFinal;
+			sb.Length = 0;
+
+			int iSection = -1;
+
+			// Leading section (ie: plain text before first heading)
+			if (blocks.Count>0 && !IsSectionHeader(blocks[0]))
+			{
+				iSection = 0;
+				OnSectionHeader(sb, 0);
+				OnSectionHeadingSuffix(sb, 0);
+			}
+
+			// Render all blocks
+			for (int i = 0; i < blocks.Count; i++)
+			{
+				var b=blocks[i];
+
+				// New section?
+				if (IsSectionHeader(b))
+				{
+					// Finish the previous section
+					if (iSection >= 0)
+					{
+						OnSectionFooter(sb, iSection);
+					}
+
+					// Work out next section index
+					iSection = iSection < 0 ? 1 : iSection+1;
+
+					// Section header
+					OnSectionHeader(sb, iSection);
+
+					// Section Heading
+					b.Render(this, sb);
+
+					// Section Heading suffix
+					OnSectionHeadingSuffix(sb, iSection);
+				}
+				else
+				{
+					// Regular section
+					b.Render(this, sb);
+				}
+			}
+
+			// Finish final section
+			if (blocks.Count>0)
+				OnSectionFooter(sb, iSection);
 
 			// Render footnotes
 			if (m_UsedFootnotes.Count > 0)
 			{
-
-				sb.Append("\n<div class=\"footnotes\">\n");
+				sb.Append("\n<div class=\"");
+				sb.Append(HtmlClassFootnotes);
+				sb.Append("\">\n");
 				sb.Append("<hr />\n");
 				sb.Append("<ol>\n");
 				for (int i=0; i<m_UsedFootnotes.Count; i++)
@@ -108,27 +164,306 @@ namespace MarkdownDeep
 			set;
 		}
 
-		// Set to true to allow extra features
+		// Set to true to enable ExtraMode, which enables the same set of 
+		// features as implemented by PHP Markdown Extra.
+		//  - Markdown in html (eg: <div markdown="1"> or <div markdown="deep"> )
+		//  - Header ID attributes
+		//  - Fenced code blocks
+		//  - Definition lists
+		//  - Footnotes
+		//  - Abbreviations
+		//  - Simple tables
 		public bool ExtraMode
 		{
 			get;
 			set;
 		}
 
+		// When set, all html block level elements automatically support
+		// markdown syntax within them.  
+		// (Similar to Pandoc's handling of markdown in html)
 		public bool MarkdownInHtml
 		{
 			get;
 			set;
 		}
 
+		// When set, all headings will have an auto generated ID attribute
+		// based on the heading text (uses the same algorithm as Pandoc)
 		public bool AutoHeadingIDs
 		{
 			get;
 			set;
 		}
 
+		// When set, all non-qualified urls (links and images) will
+		// be qualified using this location as the base.
+		// Useful when rendering RSS feeds that require fully qualified urls.
+		public string UrlBaseLocation
+		{
+			get;
+			set;
+		}
+
+		// When true, all fully qualified urls will be give `target="_blank"' attribute
+		// causing them to appear in a separate browser window/tab
+		// ie: relative links open in same window, qualified links open externally
+		public bool NewWindowForExternalLinks
+		{
+			get;
+			set;
+		}
+
+		// When true, all urls (qualified or not) will get target="_blank" attribute
+		// (useful for preview mode on posts)
+		public bool NewWindowForLocalLinks
+		{
+			get;
+			set;
+		}
+
+		// When set, will try to determine the width/height for local images by searching
+		// for an appropriately named file relative to the specified location
+		public bool ImageFileLocation
+		{
+			get;
+			set;
+		}
+
+		// Set rel="nofollow" on all links
+		public bool NoFollowLinks
+		{
+			get;
+			set;
+		}
+
+		// Override to qualify non-local image and link urls
+		public virtual string OnQualifyUrl(string url)
+		{
+			// Quit if we don't have a base location
+			if (String.IsNullOrEmpty(UrlBaseLocation))
+				return url;
+
+			// Is the url already fully qualified?
+			if (Utils.IsUrlFullyQualified(url))
+				return url;
+
+			if (url.StartsWith("/"))
+			{
+				// Need to find domain root
+				int pos = UrlBaseLocation.IndexOf("://");
+				if (pos == -1)
+					pos = 0;
+				else
+					pos += 3;
+
+				// Find the first slash after the protocol separator
+				pos = UrlBaseLocation.IndexOf('/', pos);
+
+				// Get the domain name
+				string strDomain=pos<0 ? UrlBaseLocation : UrlBaseLocation.Substring(0, pos);
+
+				// Join em
+				return strDomain + url;
+			}
+			else
+			{
+				if (!UrlBaseLocation.EndsWith("/"))
+					return UrlBaseLocation + "/" + url;
+				else
+					return UrlBaseLocation + url;
+			}
+		}
+
+		// Override to supply the size of an image
+		public virtual bool OnGetImageSize(string url, out int width, out int height)
+		{
+			// TODO:
+			width = 0;
+			height = 0;
+			return false;
+		}
+
+		// Override to modify the attributes of a link
+		public virtual void OnPrepareLink(HtmlTag tag)
+		{
+			string url = tag.attributes["href"];
+
+			// No follow?
+			if (NoFollowLinks)
+			{
+				tag.attributes["rel"] = "nofollow";
+			}
+
+			// New window?
+			if ( (NewWindowForExternalLinks && Utils.IsUrlFullyQualified(url)) ||
+				 (NewWindowForLocalLinks && !Utils.IsUrlFullyQualified(url)) )
+			{
+				tag.attributes["target"] = "_blank";
+			}
+
+			// Qualify url
+			tag.attributes["href"] = OnQualifyUrl(url);
+		}
+
+		// Override to modify the attributes of an image
+		public virtual void OnPrepareImage(HtmlTag tag)
+		{
+			// Try to determine width and height
+			int width, height;
+			if (OnGetImageSize(tag.attributes["src"], out width, out height))
+			{
+				tag.attributes["width"] = width.ToString();
+				tag.attributes["height"] = height.ToString();
+			}
+
+			// Now qualify the url
+			tag.attributes["src"] = OnQualifyUrl(tag.attributes["src"]);
+		}
+
+		// Set the html class for the footnotes div
+		// (defaults to "footnotes")
+		// btw fyi: you can use css to disable the footnotes horizontal rule. eg:
+		// div.footnotes hr { display:none }
+		public string HtmlClassFootnotes
+		{
+			get;
+			set;
+		}
+
+		// Set the classname for titled images
+		// A titled image is defined as a paragraph that contains an image and nothing else.
+		// If not set (the default), this features is disabled, otherwise the output is:
+		// 
+		// <div class="<%=this.HtmlClassTitledImags%>">
+		//	<img src="image.png" />
+		//	<p>Alt text goes here</p>
+		// </div>
+		//
+		// Use CSS to style the figure and the caption
+		public string HtmlClassTitledImages
+		{
+			// TODO:
+			get;
+			set;
+		}
+
+		// Set a format string to be rendered before headings
+		// {0} = section number
+		// (useful for rendering links that can lead to a page that edits that section)
+		// (eg: "<a href=/edit/page?section={0}>"
+		public string SectionHeader
+		{
+			get;
+			set;
+		}
+
+		// Set a format string to be rendered after each section heading
+		public string SectionHeadingSuffix
+		{
+			get;
+			set;
+		}
+
+		// Set a format string to be rendered after the section content (ie: before
+		// the next section heading, or at the end of the document).
+		public string SectionFooter
+		{
+			get;
+			set;
+		}
+
+		public virtual void OnSectionHeader(StringBuilder dest, int Index)
+		{
+			if (SectionHeader != null)
+			{
+				dest.AppendFormat(SectionHeader, Index);
+			}
+		}
+
+		public virtual void OnSectionHeadingSuffix(StringBuilder dest, int Index)
+		{
+			if (SectionHeadingSuffix != null)
+			{
+				dest.AppendFormat(SectionHeadingSuffix, Index);
+			}
+		}
+
+		public virtual void OnSectionFooter(StringBuilder dest, int Index)
+		{
+			if (SectionFooter!=null)
+			{
+				dest.AppendFormat(SectionFooter, Index);
+			}
+		}
+
+		bool IsSectionHeader(Block b)
+		{
+			return b.blockType >= BlockType.h1 && b.blockType <= BlockType.h3;
+		}
+
+
+
+		// Split the markdown into sections, one section for each
+		// top level heading
+		public static List<string> SplitSections(string markdown)
+		{
+			// Build blocks
+			var md = new MarkdownDeep.Markdown();
+
+			// Process blocks
+			var blocks = md.ProcessBlocks(markdown);
+
+			// Create sections
+			var Sections = new List<string>();
+			int iPrevSectionOffset = 0;
+			for (int i = 0; i < blocks.Count; i++)
+			{
+				var b = blocks[i];
+				if (md.IsSectionHeader(b))
+				{
+					// Get the offset of the section
+					int iSectionOffset = b.lineStart;
+
+					// Add section
+					Sections.Add(markdown.Substring(iPrevSectionOffset, iSectionOffset - iPrevSectionOffset));
+
+					iPrevSectionOffset = iSectionOffset;
+				}
+			}
+
+			// Add the last section
+			if (markdown.Length > iPrevSectionOffset)
+			{
+				Sections.Add(markdown.Substring(iPrevSectionOffset));
+			}
+
+			return Sections;
+		}
+
+		// Join previously split sections back into one document
+		public static string JoinSections(List<string> sections)
+		{
+			var sb = new StringBuilder();
+			for (int i = 0; i < sections.Count; i++)
+			{
+				if (i > 0)
+				{
+					// For subsequent sections, need to make sure we
+					// have a line break after the previous section.
+					string strPrev = sections[sections.Count - 1];
+					if (strPrev.Length>0 && !strPrev.EndsWith("\n") && !strPrev.EndsWith("\r"))
+						sb.Append("\n");
+				}
+
+				sb.Append(sections[i]);
+			}
+
+			return null;
+		}
+
 		// Add a link definition
-		public void AddLinkDefinition(LinkDefinition link)
+		internal void AddLinkDefinition(LinkDefinition link)
 		{
 			// Store it
 			m_LinkDefinitions[link.id]=link;
@@ -157,7 +492,7 @@ namespace MarkdownDeep
 		}
 
 		// Get a link definition
-		public LinkDefinition GetLinkDefinition(string id)
+		internal LinkDefinition GetLinkDefinition(string id)
 		{
 			LinkDefinition link;
 			if (m_LinkDefinitions.TryGetValue(id, out link))
@@ -278,13 +613,13 @@ namespace MarkdownDeep
 			}
 		}
 
-		public string MakeUniqueHeaderID(string strHeaderText)
+		internal string MakeUniqueHeaderID(string strHeaderText)
 		{
 			return MakeUniqueHeaderID(strHeaderText, 0, strHeaderText.Length);
 
 		}
 
-		public string MakeUniqueHeaderID(string strHeaderText, int startOffset, int length)
+		internal string MakeUniqueHeaderID(string strHeaderText, int startOffset, int length)
 		{
 			if (!AutoHeadingIDs)
 				return null;
@@ -323,24 +658,19 @@ namespace MarkdownDeep
 		 * Note, care should be taken when using this string builder to not
 		 * call out to another function that also uses it.
 		 */
-		public StringBuilder GetStringBuilder()
+		internal StringBuilder GetStringBuilder()
 		{
 			m_StringBuilder.Length = 0;
 			return m_StringBuilder;
 		}
 
 
-		/*
-		 * Process a span of text to the specified destination string buffer
-		 */
-		internal void processSpan(StringBuilder sb, string str, int start, int len)
+		internal SpanFormatter SpanFormatter
 		{
-			m_SpanFormatter.Format(sb, str, start, len);
-		}
-
-		internal void processSpan(StringBuilder sb, string str)
-		{
-			m_SpanFormatter.Format(sb, str, 0, str.Length);
+			get
+			{
+				return m_SpanFormatter;
+			}
 		}
 
 		#region Block Pooling
@@ -366,6 +696,7 @@ namespace MarkdownDeep
 
 		// Attributes
 		StringBuilder m_StringBuilder;
+		StringBuilder m_StringBuilderFinal;
 		StringScanner m_StringScanner;
 		SpanFormatter m_SpanFormatter;
 		Dictionary<string, LinkDefinition> m_LinkDefinitions;

@@ -15,30 +15,59 @@ namespace MarkdownDeep
 			m_Markdown = m;
 		}
 
-		// Format a range in an input string and write it to the destination string builder.
-		internal void Format(StringBuilder dest, string str, int start, int len)
-		{
-			// Reset the string scanner
-			base.Reset(str, start, len);
 
+		internal void FormatParagraph(StringBuilder dest, string str, int start, int len)
+		{
 			// Parse the string into a list of tokens
-			List<Token> tokens=Tokenize();
-			if (tokens == null)
+			Tokenize(str, start, len);
+
+			// Titled image?
+			if (m_Tokens.Count == 1 && m_Markdown.HtmlClassTitledImages != null && m_Tokens[0].type == TokenType.img)
 			{
-				// Nothing special, just html encode and write the entire string
-				m_Markdown.HtmlEncode(dest, str, start, len);
+				// Grab the link info
+				LinkInfo li = (LinkInfo)m_Tokens[0].data;
+
+				// Render the div opening
+				dest.Append("<div class=\"");
+				dest.Append(m_Markdown.HtmlClassTitledImages);
+				dest.Append("\">\n");
+
+				// Render the img
+				Render(dest, str);
+				dest.Append("\n");
+
+				// Render the title
+				if (!String.IsNullOrEmpty(li.def.title))
+				{
+					dest.Append("<p>");
+					Utils.SmartHtmlEncodeAmpsAndAngles(dest, li.def.title);
+					dest.Append("</p>\n");
+				}
+				
+				dest.Append("</div>\n");
 			}
 			else
 			{
-				// Render all tokens
-				RenderTokens(dest, str, tokens);
-
-				// Return all tokens to the spare token pool
-				foreach (var t in tokens)
-				{
-					FreeToken(t);
-				}
+				// Render the paragraph
+				dest.Append("<p>");
+				Render(dest, str);
+				dest.Append("</p>\n");
 			}
+		}
+
+		internal void Format(StringBuilder dest, string str)
+		{
+			Format(dest, str, 0, str.Length);
+		}
+
+		// Format a range in an input string and write it to the destination string builder.
+		internal void Format(StringBuilder dest, string str, int start, int len)
+		{
+			// Parse the string into a list of tokens
+			Tokenize(str, start, len);
+
+			// Render all tokens
+			Render(dest, str);
 		}
 
 		// Format a string and return it as a new string
@@ -57,33 +86,26 @@ namespace MarkdownDeep
 
 		internal string MakeID(string str, int start, int len)
 		{
-			// Reset the string scanner
-			base.Reset(str, start, len);
-
 			// Parse the string into a list of tokens
-			List<Token> tokens=Tokenize();
+			Tokenize(str, start, len);
 	
 			StringBuilder sb = new StringBuilder();
-			if (tokens == null)
-			{
-				sb.Append(str, start, len);
-			}
-			else
-			{
-				foreach (var t in tokens)
-				{
-					switch (t.type)
-					{
-						case TokenType.Text:
-							sb.Append(str, t.startOffset, t.length);
-							break;
 
-						case TokenType.link:
-							LinkInfo li = (LinkInfo)t.data;
-							sb.Append(li.link_text);
-							break;
-					}
+			foreach (var t in m_Tokens)
+			{
+				switch (t.type)
+				{
+					case TokenType.Text:
+						sb.Append(str, t.startOffset, t.length);
+						break;
+
+					case TokenType.link:
+						LinkInfo li = (LinkInfo)t.data;
+						sb.Append(li.link_text);
+						break;
 				}
+
+				FreeToken(t);
 			}
 
 			// Now clean it using the same rules as pandoc
@@ -120,9 +142,9 @@ namespace MarkdownDeep
 		}
 
 		// Render a list of tokens to a destinatino string builder.
-		private void RenderTokens(StringBuilder sb, string str, List<Token> tokens)
+		private void Render(StringBuilder sb, string str)
 		{
-			foreach (Token t in tokens)
+			foreach (Token t in m_Tokens)
 			{
 				switch (t.type)
 				{
@@ -216,13 +238,18 @@ namespace MarkdownDeep
 						break;
 					}
 				}
+
+				FreeToken(t);
 			}
 		}
 
 		// Scan the input string, creating tokens for anything special 
-		public List<Token> Tokenize()
+		public void Tokenize(string str, int start, int len)
 		{
-			List<Token> tokens = null;
+			// Prepare
+			base.Reset(str, start, len);
+			m_Tokens.Clear();
+
 			List<Token> emphasis_marks = null;
 
 			List<Abbreviation> Abbreviations=m_Markdown.GetAbbreviations();
@@ -394,20 +421,14 @@ namespace MarkdownDeep
 				// If token found, append any preceeding text and the new token to the token list
 				if (token!=null)
 				{
-					// Make sure the token list has been created
-					if (tokens == null)
-					{
-						tokens = new List<Token>();
-					}
-
 					// Create a token for everything up to the special character
 					if (end_text_token > start_text_token)
 					{
-						tokens.Add(CreateToken(TokenType.Text, start_text_token, end_text_token-start_text_token));
+						m_Tokens.Add(CreateToken(TokenType.Text, start_text_token, end_text_token-start_text_token));
 					}
 
 					// Add the new token
-					tokens.Add(token);
+					m_Tokens.Add(token);
 
 					// Remember where the next text token starts
 					start_text_token=position;
@@ -419,24 +440,20 @@ namespace MarkdownDeep
 				}
 			}
 
-			// No tokens?
-			if (tokens==null)
-				return null;
-
 			// Append a token for any trailing text after the last token.
 			if (position > start_text_token)
 			{
-				tokens.Add(CreateToken(TokenType.Text, start_text_token, position-start_text_token));
+				m_Tokens.Add(CreateToken(TokenType.Text, start_text_token, position-start_text_token));
 			}
 
 			// Do we need to resolve and emphasis marks?
 			if (emphasis_marks != null)
 			{
-				ResolveEmphasisMarks(tokens, emphasis_marks);
+				ResolveEmphasisMarks(m_Tokens, emphasis_marks);
 			}
 
 			// Done!
-			return tokens;
+			return;
 		}
 
 		static bool IsEmphasisChar(char ch)
@@ -1068,5 +1085,6 @@ namespace MarkdownDeep
 
 		Markdown m_Markdown;
 		internal bool DisableLinks;
+		List<Token> m_Tokens=new List<Token>();
 	}
 }

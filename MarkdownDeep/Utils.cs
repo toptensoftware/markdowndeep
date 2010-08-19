@@ -181,6 +181,9 @@ namespace MarkdownDeep
 		// Like HtmlEncode, but don't escape &'s that look like html entities
 		public static void SmartHtmlEncodeAmpsAndAngles(StringBuilder dest, string str)
 		{
+			if (str == null)
+				return;
+
 			for (int i=0; i<str.Length; i++)
 			{
 				switch (str[i])
@@ -469,6 +472,10 @@ namespace MarkdownDeep
 			return strID;
 		}
 
+		public static bool IsUrlFullyQualified(string url)
+		{
+			return url.Contains("://") || url.StartsWith("mailto:");
+		}
 
 	}
 }

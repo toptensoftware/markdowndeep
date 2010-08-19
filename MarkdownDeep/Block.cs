@@ -117,13 +117,11 @@ namespace MarkdownDeep
 					return;
 
 				case BlockType.p:
-					b.Append("<p>");
-					m.processSpan(b, buf, contentStart, contentLen);
-					b.Append("</p>\n");
+					m.SpanFormatter.FormatParagraph(b, buf, contentStart, contentLen);
 					break;
 
 				case BlockType.span:
-					m.processSpan(b, buf, contentStart, contentLen);
+					m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("\n");
 					break;
 
@@ -152,7 +150,7 @@ namespace MarkdownDeep
 					{
 						b.Append("<" + blockType.ToString() + ">");
 					}
-					m.processSpan(b, buf, contentStart, contentLen);
+					m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("</" + blockType.ToString() + ">\n");
 					break;
 
@@ -163,7 +161,7 @@ namespace MarkdownDeep
 				case BlockType.ol_li:
 				case BlockType.ul_li:
 					b.Append("<li>");
-					m.processSpan(b, buf, contentStart, contentLen);
+					m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("</li>\n");
 					break;
 
@@ -175,7 +173,7 @@ namespace MarkdownDeep
 						RenderChildren(m, b);
 					}
 					else
-						m.processSpan(b, buf, contentStart, contentLen);
+						m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("</dd>\n");
 					break;
 
@@ -186,7 +184,7 @@ namespace MarkdownDeep
 						foreach (var l in Content.Split('\n'))
 						{
 							b.Append("<dt>");
-							m.processSpan(b, l.Trim());
+							m.SpanFormatter.Format(b, l.Trim());
 							b.Append("</dt>\n");
 						}
 					}
@@ -249,9 +247,23 @@ namespace MarkdownDeep
 
 				case BlockType.HtmlTag:
 					var tag = (HtmlTag)data;
+
+					// Prepare special tags
+					var name=tag.name.ToLowerInvariant();
+					if (name == "a")
+					{
+						m.OnPrepareLink(tag);
+					}
+					else if (name == "img")
+					{
+						m.OnPrepareImage(tag);
+					}
+
 					tag.RenderOpening(b);
+					b.Append("\n");
 					RenderChildren(m, b);
 					tag.RenderClosing(b);
+					b.Append("\n");
 					return;
 
 				case BlockType.Composite:
@@ -267,7 +279,7 @@ namespace MarkdownDeep
 					b.Append("<p>");
 					if (contentLen > 0)
 					{
-						m.processSpan(b, buf, contentStart, contentLen);
+						m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 						b.Append("&nbsp;");
 					}
 					b.Append((string)data);
@@ -276,7 +288,7 @@ namespace MarkdownDeep
 
 				default:
 					b.Append("<" + blockType.ToString() + ">");
-					m.processSpan(b, buf, contentStart, contentLen);
+					m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("</" + blockType.ToString() + ">\n");
 					break;
 			}

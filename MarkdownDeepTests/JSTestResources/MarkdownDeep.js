@@ -29,59 +29,33 @@ var MarkdownDeep = new function(){
         this.m_SpanFormatter=new SpanFormatter(this);
         this.m_SpareBlocks=new Array();
         this.m_StringBuilder=new StringBuilder();
-        this.SafeMode=false;
-        this.ExtraMode=false;
-        this.MarkdownInHtml=false;
-        this.AutoHeadingIDs=false;
+        this.m_StringBuilderFinal=new StringBuilder();
     }
     
-    var p=Markdown.prototype;
+    Markdown.prototype = 
+    {
+        SafeMode:false,
+        ExtraMode:false,
+        MarkdownInHtml:false,
+        AutoHeadingIDs:false,
+        UrlBaseLocation:null,
+        NewWindowForExternalLinks:false,    
+        NewWindowForLocalLinks:false,
+        NoFollowLinks:false,
+        HtmlClassFootnotes:"footnotes",
+        HtmlClassTitledImages:null
+    };
     
+    var p=Markdown.prototype;
+
+    // Main entry point    
     Markdown.prototype.Transform=function(input)
     {
-        // Normalize line ends
-        var rpos=input.indexOf("\r");
-        if (rpos>=0)
-        {
-            var npos=input.indexOf("\n");
-            if (npos>=0)
-            {
-                if (npos<rpos)
-                {
-                    input=input.replace(/\n\r/g, "\n");
-                }
-                else
-                {
-                    input=input.replace(/\r\n/g, "\n");
-                }
-            }
-
-            input=input.replace(/\r/g, "\n")
-        }
+        var blocks=this.ProcessBlocks(input);
         
-    
-		// Reset the list of link definitions
-		this.m_LinkDefinitions=new Array();
-		this.m_Footnotes=new Array();
-		this.m_UsedFootnotes=new Array();
-		this.m_UsedHeaderIDs=new Array();
-		this.m_Abbreviations=null;
-
-		// Process blocks
-		var blocks = new BlockProcessor(this, this.MarkdownInHtml).Process(input);
-
 		// Sort abbreviations by length, longest to shortest
 		if (this.m_Abbreviations!=null)
 		{
-		/*
-		    this.m_Abbreviations.sort(
-		        function(a,b)
-		        {
-		            return b.length - a.length;
-                }
-            );
-            */
-            
 		    var list=new Array();
 		    for (var a in this.m_Abbreviations)
 		    {
@@ -97,19 +71,21 @@ var MarkdownDeep = new function(){
 		}
 
 		// Render
-		var sb = this.GetStringBuilder();
+		var sb = this.m_StringBuilderFinal;
+		sb.Clear();
 		for (var i = 0; i < blocks.length; i++)
 		{
 		    var b=blocks[i];
 		    b.Render(this, sb);
 	    }
-		
 
 		// Render footnotes
 		if (this.m_UsedFootnotes.length > 0)
 		{
 
-			sb.Append("\n<div class=\"footnotes\">\n");
+			sb.Append("\n<div class=\"");
+			sb.Append(this.HtmlClassFootnotes);
+			sb.Append("\">\n");
 			sb.Append("<hr />\n");
 			sb.Append("<ol>\n");
 			for (var i=0; i<this.m_UsedFootnotes.length; i++)
@@ -153,6 +129,121 @@ var MarkdownDeep = new function(){
 
 		// Done
 		return sb.ToString();
+    }
+    
+    Markdown.prototype.OnQualifyUrl=function(url)
+    {
+		// Quit if we don't have a base location
+		if (!this.UrlBaseLocation)
+			return url;
+
+		// Is the url already fully qualified?
+		if (IsUrlFullyQualified(url))
+			return url;
+
+		if (starts_with(url, "/"))
+		{
+			// Need to find domain root
+			var pos = this.UrlBaseLocation.indexOf("://");
+			if (pos == -1)
+				pos = 0;
+			else
+				pos += 3;
+
+			// Find the first slash after the protocol separator
+			pos = this.UrlBaseLocation.indexOf('/', pos);
+
+			// Get the domain name
+			var strDomain=pos<0 ? this.UrlBaseLocation : this.UrlBaseLocation.substr(0, pos);
+
+			// Join em
+			return strDomain + url;
+		}
+		else
+		{
+			if (!ends_with(this.UrlBaseLocation, "/"))
+				return this.UrlBaseLocation + "/" + url;
+			else
+				return this.UrlBaseLocation + url;
+		}
+    }
+    
+    
+    // Override and return an object with width and height properties
+    Markdown.prototype.OnGetImageSize=function(image)
+    {
+        return null;
+    }
+
+    Markdown.prototype.OnPrepareLink=function(tag)
+    {
+		var url = tag.m_attributes["href"];
+
+		// No follow?
+		if (this.NoFollowLinks)
+		{
+			tag.m_attributes["rel"] = "nofollow";
+		}
+
+		// New window?
+		if ( (this.NewWindowForExternalLinks && IsUrlFullyQualified(url)) ||
+			 (this.NewWindowForLocalLinks && !IsUrlFullyQualified(url)) )
+		{
+			tag.m_attributes["target"] = "_blank";
+		}
+
+		// Qualify url
+		tag.m_attributes["href"] = this.OnQualifyUrl(url);
+    }
+    
+    Markdown.prototype.OnPrepareImage=function(tag)
+    {
+		// Try to determine width and height
+		var size=this.OnGetImageSize(tag.m_attributes["src"])
+		if (size!=null)
+		{
+			tag.m_attributes["width"] = size.width;
+			tag.m_attributes["height"] = size.height;
+		}
+
+		// Now qualify the url
+		tag.m_attributes["src"] = this.OnQualifyUrl(tag.m_attributes["src"]);
+    }
+
+
+    
+    p.ProcessBlocks=function(str)
+    {
+        // Normalize line ends
+        var rpos=str.indexOf("\r");
+        if (rpos>=0)
+        {
+            var npos=str.indexOf("\n");
+            if (npos>=0)
+            {
+                if (npos<rpos)
+                {
+                    str=str.replace(/\n\r/g, "\n");
+                }
+                else
+                {
+                    str=str.replace(/\r\n/g, "\n");
+                }
+            }
+
+            str=str.replace(/\r/g, "\n")
+        }
+        
+    
+		// Reset the list of link definitions
+		this.m_LinkDefinitions=new Array();
+		this.m_Footnotes=new Array();
+		this.m_UsedFootnotes=new Array();
+		this.m_UsedHeaderIDs=new Array();
+		this.m_Abbreviations=null;
+
+		// Process blocks
+		return new BlockProcessor(this, this.MarkdownInHtml).Process(str);
     }
 
 	// Add a link definition
@@ -249,18 +340,6 @@ var MarkdownDeep = new function(){
 	    this.m_StringBuilder.Clear();
 	    return this.m_StringBuilder;
 	}
-
-    // private
-    p.processSpan=function(sb, str, start, len)
-    {
-        return this.m_SpanFormatter.Format(sb, str, start, len);
-    }
-
-    // private
-    p.processSpan2=function(sb, str)
-    {
-        return this.m_SpanFormatter.Format(sb, str, 0, str.length);
-    }
 
     /////////////////////////////////////////////////////////////////////////////
     // CharTypes
@@ -530,7 +609,21 @@ var MarkdownDeep = new function(){
 		return {id:strID, end:pos};
 	}
 
+    function starts_with(str, match)
+    {
+        return str.substr(0, match.length)==match;
+    }
+    
+    function ends_with(str, match)
+    {
+        return str.substr(-match.length)==match;
+    }
 
+	function IsUrlFullyQualified(url)
+	{
+		return url.indexOf("://")>=0 || starts_with(url, "mailto:");
+	}
+ 
         
     /////////////////////////////////////////////////////////////////////////////
     // StringBuilder
@@ -1038,7 +1131,7 @@ var MarkdownDeep = new function(){
 			}
 		}
 
-		position = savepos;
+		this.m_position = savepos;
 		return null;
 	}
 
@@ -1173,7 +1266,11 @@ var MarkdownDeep = new function(){
 			dest.Append(this.m_attributes[i]);
 			dest.Append("\"");
 		}
-		dest.Append(">\n");
+
+		if (this.closed)
+			dest.Append(" />");
+		else
+			dest.Append(">");
 	}
 
 	// Render closing tag (eg: </tag>)
@@ -1181,7 +1278,7 @@ var MarkdownDeep = new function(){
 	{
 		dest.Append("</");
 		dest.Append(this.m_name);
-		dest.Append(">\n");
+		dest.Append(">");
 	}
 
 
@@ -1411,16 +1508,27 @@ var MarkdownDeep = new function(){
 	    }
 	    else
 	    {
-		    b.Append("<a href=\"");
-		    b.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
-		    b.Append('\"');
-		    if (this.title)
-		    {
-			    b.Append(" title=\"");
-			    b.SmartHtmlEncodeAmpsAndAngles(this.title, 0, this.title.length);
-			    b.Append('\"');
-		    }
-		    b.Append('>');
+			var tag = new HtmlTag("a");
+
+			// encode url
+			var sb = m.GetStringBuilder();
+			sb.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
+			tag.m_attributes["href"] = sb.ToString();
+
+			// encode title
+			if (this.title)
+			{
+			    sb.Clear();
+			    sb.SmartHtmlEncodeAmpsAndAngles(this.title, 0, this.title.length);
+				tag.m_attributes["title"] = sb.ToString();
+			}
+
+			// Do user processing
+			m.OnPrepareLink(tag);
+
+			// Render the opening tag
+			tag.RenderOpening(b);
+
 		    b.Append(link_text);	  // Link text already escaped by SpanFormatter
 		    b.Append("</a>");
 	    }
@@ -1428,6 +1536,36 @@ var MarkdownDeep = new function(){
 
     p.RenderImg=function(m, b, alt_text)
     {
+		var tag = new HtmlTag("img");
+
+		// encode url
+		var sb = m.GetStringBuilder();
+		sb.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
+		tag.m_attributes["src"] = sb.ToString();
+
+		// encode alt text
+		if (alt_text)
+		{
+		    sb.Clear();
+			sb.SmartHtmlEncodeAmpsAndAngles(alt_text, 0, alt_text.length);
+			tag.m_attributes["alt"] = sb.ToString();
+		}
+
+		// encode title
+		if (this.title)
+		{
+			sb.Clear();
+			sb.SmartHtmlEncodeAmpsAndAngles(this.title, 0, this.title.length);
+			tag.m_attributes["title"] = sb.ToString();
+		}
+
+		tag.closed = true;
+
+		m.OnPrepareImage(tag);
+
+		tag.RenderOpening(b);
+
+/*
 	    b.Append("<img src=\"");
 	    b.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
 	    b.Append('\"');
@@ -1444,6 +1582,7 @@ var MarkdownDeep = new function(){
 		    b.Append('\"');
 	    }
 	    b.Append(" />");
+	    */
     }
 
     function ParseLinkDefinition(p, ExtraMode)
@@ -1690,34 +1829,65 @@ var MarkdownDeep = new function(){
         this.m_Scanner=new StringScanner();
         this.m_SpareTokens=new Array();
         this.m_DisableLinks=false;
+        this.m_Tokens=new Array();
     }
 
     p=SpanFormatter.prototype;
+    
+    p.FormatParagraph = function(dest, str, start, len)
+    {
+		// Parse the string into a list of tokens
+		this.Tokenize(str, start, len);
+
+		// Titled image?
+		if (this.m_Tokens.length == 1 && this.m_Markdown.HtmlClassTitledImages != null && this.m_Tokens[0].type == TokenType_img)
+		{
+			// Grab the link info
+			var li = this.m_Tokens[0].data;
+
+			// Render the div opening
+			dest.Append("<div class=\"");
+			dest.Append(this.m_Markdown.HtmlClassTitledImages);
+			dest.Append("\">\n");
+
+			// Render the img
+			this.Render(dest, str);
+			dest.Append("\n");
+
+			// Render the title
+			if (li.def.title)
+			{
+				dest.Append("<p>");
+				dest.SmartHtmlEncodeAmpsAndAngles(li.def.title, 0, li.def.title.length);
+				dest.Append("</p>\n");
+			}
+			
+			dest.Append("</div>\n");
+		}
+		else
+		{
+			// Render the paragraph
+            dest.Append("<p>");
+            this.Render(dest, str);
+            dest.Append("</p>\n");
+		}
+
+    }
+
+    // Format part of a string into a destination string builder
+    p.Format2 = function(dest, str) 
+    {
+        this.Format(dest, str, 0, str.length);
+    }
 
     // Format part of a string into a destination string builder
     p.Format = function(dest, str, start, len) 
     {
-        // Reset the string scanner
-        this.m_Scanner.reset(str, start, len);
-
         // Parse the string into a list of tokens
-        var tokens = this.Tokenize();
-        if (tokens == null) 
-        {
-            // Nothing special, just html encode and write the entire string
-            dest.HtmlEncode(str, start, len);
-        }
-        else 
-        {
-            // Render all tokens
-            this.RenderTokens(dest, str, tokens);
+        this.Tokenize(str, start, len);
 
-            // Return all tokens to the spare token pool
-            for (var i = 0; i < tokens.length; i++) 
-            {
-                this.FreeToken(tokens[i]);
-            }
-        }
+        // Render all tokens
+        this.Render(dest, str);
     }
 
 	// Format a string and return it as a new string
@@ -1731,37 +1901,29 @@ var MarkdownDeep = new function(){
 
 	p.MakeID=function(str, start, len)
 	{
-		// Reset the string scanner
-		var p=this.m_Scanner;
-		p.reset(str, start, len);
-
 		// Parse the string into a list of tokens
-		var tokens=this.Tokenize();
+		this.Tokenize(str, start, len);
+		var tokens=this.m_Tokens;
 
-		var sb = new StringBuilder();
-		if (tokens == null)
+        var sb=new StringBuilder();
+		for (var i=0; i<tokens.length; i++)
 		{
-			sb.Append(str.substr(start, len));
-		}
-		else
-		{
-			for (var i=0; i<tokens.length; i++)
+		    var t=tokens[i];
+			switch (t.type)
 			{
-			    var t=tokens[i];
-				switch (t.type)
-				{
-					case TokenType_Text:
-						sb.Append(str.substr(t.startOffset, t.length));
-						break;
+				case TokenType_Text:
+					sb.Append(str.substr(t.startOffset, t.length));
+					break;
 
-					case TokenType_link:
-						sb.Append(t.data.link_text);
-						break;
-				}
+				case TokenType_link:
+					sb.Append(t.data.link_text);
+					break;
 			}
+			this.FreeToken(t);
 		}
 
 		// Now clean it using the same rules as pandoc
+		var p=this.m_Scanner;
 		p.reset(sb.ToString());
 
 		// Skip everything up to the first letter
@@ -1797,8 +1959,9 @@ var MarkdownDeep = new function(){
 
 
 	// Render a list of tokens to a destination string builder.
-    p.RenderTokens=function(sb, str, tokens)
+    p.Render=function(sb, str)
     {
+        var tokens=this.m_Tokens;
         var len=tokens.length;
 	    for (var i=0; i<len; i++)
 	    {
@@ -1897,15 +2060,21 @@ var MarkdownDeep = new function(){
 
 
 		    }
+		    
+            this.FreeToken(t);
 		}
     }
 
-    p.Tokenize=function()
+    p.Tokenize=function(str, start, len) 
     {
+        // Reset the string scanner
         var p=this.m_Scanner;
+        p.reset(str, start, len);
         
-		var tokens = null;
-		var emphasis_marks = null;
+        var tokens=this.m_Tokens;
+        tokens.length=0;
+
+  		var emphasis_marks = null;
 		var Abbreviations=this.m_Markdown.GetAbbreviations();
 					
 		var re=Abbreviations==null ? /[\*\_\`\[\!\<\&\ \\]/g : null;
@@ -2031,31 +2200,11 @@ var MarkdownDeep = new function(){
 
 				case '\\':
 				{
-					// Special handling for escaping <autolinks>
-					/*
-					if (p.CharAtOffset(1) == '<')
-					{
-						// Is it an autolink?
-						var savepos = p.m_position;
-						p.SkipForward(1);
-						var AutoLink = this.ProcessAutoLink() != null;
-						p.m_position = savepos;
-
-						if (AutoLink)
-						{
-							token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
-							p.SkipForward(2);
-						}
-					}
-					else
-					*/
-					{
-					    // Check followed by an escapable character
-					    if (is_escapable(p.CharAtOffset(1), ExtraMode))
-					    {
-						    token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
-						    p.SkipForward(2);
-					    }
+				    // Check followed by an escapable character
+				    if (is_escapable(p.CharAtOffset(1), ExtraMode))
+				    {
+					    token = this.CreateToken(TokenType_Text, p.m_position + 1, 1);
+					    p.SkipForward(2);
 				    }
 					break;
 				}
@@ -2082,12 +2231,6 @@ var MarkdownDeep = new function(){
 			// If token found, append any preceeding text and the new token to the token list
 			if (token!=null)
 			{
-				// Make sure the token list has been created
-				if (tokens == null)
-				{
-					tokens = new Array();
-				}
-
 				// Create a token for everything up to the special character
 				if (end_text_token > start_text_token)
 				{
@@ -2107,10 +2250,6 @@ var MarkdownDeep = new function(){
 			}
 		}
 
-		// No tokens?
-		if (tokens==null)
-			return null;
-
 		// Append a token for any trailing text after the last token.
 		if (p.m_position > start_text_token)
 		{
@@ -2122,9 +2261,6 @@ var MarkdownDeep = new function(){
 		{
 			this.ResolveEmphasisMarks(tokens, emphasis_marks);
 		}
-
-		// Done!
-		return tokens;
 	}
 
 	/*
@@ -2381,7 +2517,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// Rewind
-			position = savepos;
+			this.m_position = savepos;
 		}
 
 		if (this.m_DisableLinks)
@@ -2703,13 +2839,11 @@ var MarkdownDeep = new function(){
 				return;
 
 			case BlockType_p:
-				b.Append("<p>");
-				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
-				b.Append("</p>\n");
+				m.m_SpanFormatter.FormatParagraph(b, this.buf, this.contentStart, this.contentLen);
 				break;
 
 			case BlockType_span:
-				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+				m.m_SpanFormatter.Format(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("\n");
 				break;
 
@@ -2738,7 +2872,7 @@ var MarkdownDeep = new function(){
 				{
 					b.Append("<h" + (this.blockType-BlockType_h1+1).toString() + ">");
 				}
-				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+				m.m_SpanFormatter.Format(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</h" + (this.blockType-BlockType_h1+1).toString() + ">\n");
 				break;
 
@@ -2749,7 +2883,7 @@ var MarkdownDeep = new function(){
 			case BlockType_ol_li:
 			case BlockType_ul_li:
 				b.Append("<li>");
-				m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+				m.m_SpanFormatter.Format(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</li>\n");
 				break;
 
@@ -2797,9 +2931,24 @@ var MarkdownDeep = new function(){
 				return;
 				
             case BlockType_HtmlTag:
-				this.data.RenderOpening(b);
+                var tag=this.data;
+
+				// Prepare special tags
+				var name=tag.m_name.toLowerCase();
+				if (name == "a")
+				{
+					m.OnPrepareLink(tag);
+				}
+				else if (name == "img")
+				{
+					m.OnPrepareImage(tag);
+				}
+
+				tag.RenderOpening(b);
+				b.Append("\n");
 				this.RenderChildren(m, b);
-				this.data.RenderClosing(b);
+				tag.RenderClosing(b);
+				b.Append("\n");
 				return;
 
 		    case BlockType_Composite:
@@ -2819,7 +2968,7 @@ var MarkdownDeep = new function(){
 					this.RenderChildren(m, b);
 				}
 				else
-					m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+					m.m_SpanFormatter.Format(b, this.buf, this.contentStart, this.contentLen);
 				b.Append("</dd>\n");
 				break;
 
@@ -2831,7 +2980,7 @@ var MarkdownDeep = new function(){
 					{
 					    var l=lines[i];
 						b.Append("<dt>");
-						m.processSpan2(b, Trim(l));
+						m.m_SpanFormatter.Format2(b, Trim(l));
 						b.Append("</dt>\n");
 					}
 				}
@@ -2853,7 +3002,7 @@ var MarkdownDeep = new function(){
 				b.Append("<p>");
 				if (this.contentLen > 0)
 				{
-					m.processSpan(b, this.buf, this.contentStart, this.contentLen);
+					m.m_SpanFormatter.Format(b, this.buf, this.contentStart, this.contentLen);
 					b.Append("&nbsp;");
 				}
 				b.Append(this.data);
@@ -3459,7 +3608,7 @@ var MarkdownDeep = new function(){
 				level = 6;
 
 			// Skip any whitespace
-			p.SkipWhitespace();
+			p.SkipLinespace();
 
 			// Save start position
 			b.contentStart = p.m_position;
@@ -4481,7 +4630,7 @@ var MarkdownDeep = new function(){
 			}
 
 			b.Append(">");
-			m.processSpan2(b, row[i]);
+			m.m_SpanFormatter.Format2(b, row[i]);
 			b.Append("</");
 			b.Append(type);
 			b.Append(">\n");

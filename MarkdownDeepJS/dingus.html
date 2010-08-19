@@ -3,7 +3,7 @@
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
 <link rel="stylesheet" href="dingus.css" type="text/css" />
-<script type="text/javascript" src="jquery-1.4.2.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="MarkdownDeep.js"></script>
 <script type="text/javascript">
 
@@ -12,6 +12,7 @@ var markdown=new MarkdownDeep.Markdown();
 markdown.SafeMode=false;
 markdown.ExtraMode=true;
 markdown.AutoHeadingIDs=true;
+markdown.UrlBaseLocation="http://www.toptensoftware.com/blog";
 
 function onMarkdownChanged()
 {

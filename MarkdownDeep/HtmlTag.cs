@@ -37,6 +37,7 @@ namespace MarkdownDeep
 		public bool closed
 		{
 			get { return m_closed; }
+			set { m_closed = value; }
 		}
 
 		// Is this a closing tag eg: </div>
@@ -169,7 +170,11 @@ namespace MarkdownDeep
 				dest.Append(i.Value);
 				dest.Append("\"");
 			}
-			dest.Append(">\n");
+
+			if (m_closed)
+				dest.Append(" />");
+			else
+				dest.Append(">");
 		}
 
 		// Render closing tag (eg: </tag>)
@@ -177,7 +182,7 @@ namespace MarkdownDeep
 		{
 			dest.Append("</");
 			dest.Append(name);
-			dest.Append(">\n");
+			dest.Append(">");
 		}
 
 
