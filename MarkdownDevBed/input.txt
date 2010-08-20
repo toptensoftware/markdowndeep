@@ -8,5 +8,6 @@ More Stuff
 
 More Stuff
 
-![My Image](image.png "This is a cool image")
+![My Image](b/DSC_0060.jpg "This is a cool image")
+
 

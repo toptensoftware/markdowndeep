@@ -224,7 +224,26 @@ namespace MarkdownDeep
 
 		// When set, will try to determine the width/height for local images by searching
 		// for an appropriately named file relative to the specified location
-		public bool ImageFileLocation
+		// Local file system location of the document root.  Used to locate image
+		// files that start with slash.
+		// Typical value: c:\inetpub\www\wwwroot
+		public string DocumentRoot
+		{
+			get;
+			set;
+		}
+
+		// Local file system location of the current document.  Used to locate relative
+		// path images for image size.
+		// Typical value: c:\inetpub\www\wwwroot\subfolder
+		public string DocumentLocation
+		{
+			get;
+			set;
+		}
+
+		// Limit the width of images (0 for no limit)
+		public int MaxImageWidth
 		{
 			get;
 			set;
@@ -278,10 +297,52 @@ namespace MarkdownDeep
 		// Override to supply the size of an image
 		public virtual bool OnGetImageSize(string url, out int width, out int height)
 		{
-			// TODO:
 			width = 0;
 			height = 0;
-			return false;
+
+			if (Utils.IsUrlFullyQualified(url))
+				return false;
+
+			// Work out base location
+			string str = url.StartsWith("/") ? DocumentRoot : DocumentLocation;
+			if (String.IsNullOrEmpty(str))
+				return false;
+
+			// Work out file location
+			if (str.EndsWith("/") || str.EndsWith("\\"))
+			{
+				str=str.Substring(0, str.Length-1);
+			}
+
+			if (url.StartsWith("/"))
+			{
+				url=url.Substring(1);
+			}
+
+			str=str + "\\" + url.Replace("/", "\\");
+
+
+			// 
+
+			//Create an image object from the uploaded file
+			try
+			{
+				var img = System.Drawing.Image.FromFile(str);
+				width=img.Width;
+				height=img.Height;
+
+				if (MaxImageWidth != 0 && width>MaxImageWidth)
+				{
+					height=(int)((double)height * (double)MaxImageWidth / (double)width);
+					width=MaxImageWidth;
+				}
+
+				return true;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 		}
 
 		// Override to modify the attributes of a link

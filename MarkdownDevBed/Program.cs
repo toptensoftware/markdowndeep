@@ -18,9 +18,12 @@ namespace MarkdownDevBed
 //			m.SectionHeader = "<div class=\"header\">{0}</div>\n";
 //			m.SectionHeadingSuffix = "<div class=\"heading\">{0}</div>\n";
 //			m.SectionFooter = "<div class=\"footer\">{0}</div>\n\n";
-
 //			m.SectionHeader = "\n<div class=\"section_links\"><a href=\"/edit?section={0}\">Edit</a></div>\n";
-			m.HtmlClassTitledImages = "figure";
+//			m.HtmlClassTitledImages = "figure";
+//			m.DocumentRoot = "C:\\users\\bradr\\desktop";
+//			m.DocumentLocation = "C:\\users\\bradr\\desktop\\100D5000";
+//			m.MaxImageWidth = 500;
+
 
 			string markdown=FileContents("input.txt");
 			string str = m.Transform(markdown);
