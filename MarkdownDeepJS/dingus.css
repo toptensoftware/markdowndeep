@@ -8,3 +8,30 @@ textarea
 	width:100%;
 	height:50%;
 }
+
+div.syntax
+{
+	float:right;
+	width:250px;
+	font-size:10pt;
+}
+div.syntax h2
+{
+	font-size:12pt;
+}
+div.syntax h3
+{
+	font-size:10pt;
+}
+div.syntax pre
+{
+	font-size:7.5pt;
+	border:solid 1px silver;
+	padding:4px;
+	background-color:#f8f8f8;
+}
+
+div.content
+{
+	margin-right:280px;
+}

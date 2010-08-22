@@ -78,6 +78,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\dingus.js"
+			>
+		</File>
+		<File
 			RelativePath=".\jquery-1.4.2.js"
 			>
 		</File>
@@ -100,6 +104,10 @@
 					Name="MiniME"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\jquery.textarea.js"
+			>
 		</File>
 		<File
 			RelativePath=".\MarkdownDeep.js"

@@ -12,6 +12,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepGui", "MarkdownDeepGui\MarkdownDeepGui.csproj", "{FBDF1B77-BF84-4B3D-83DE-46271C468690}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MarkdownDeepJS", "MarkdownDeepJS\MarkdownDeepJS.vcproj", "{38139B29-BE83-47E5-A850-E31A5CD0A28E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1569ED47-C7C9-4261-B6F4-7445BD0F2C95} = {1569ED47-C7C9-4261-B6F4-7445BD0F2C95}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
