@@ -424,7 +424,7 @@ var MarkdownDeepEditor=new function(){
     priv.DetectListType=function(pos)
     {
         var prefix=this.m_text.substr(pos, 10);
-        var m=prefix.match(/^\s{0,3}(\*|\d+\.)\s*/);
+        var m=prefix.match(/^\s{0,3}(\*|\d+\.)(?:\ |\t)*/);
         if (!m)
             return {listType:"", prefixLen:0};
             
@@ -527,8 +527,9 @@ var MarkdownDeepEditor=new function(){
                 // Text mode
                 newMode=undomode_text;
         }
-        
+
         this.SetUndoMode(newMode);
+        
     } 
 
     priv.SetUndoMode=function(newMode)
@@ -822,6 +823,20 @@ var MarkdownDeepEditor=new function(){
     // Code
     pub.cmd_code=function(state)
     {
+        // Cursor on a blank line?
+        if (state.m_selectionStart==state.m_selectionEnd)
+        {
+            var line=state.FindStartOfLine(state.m_selectionStart);
+            if (state.IsBlankLine(line))
+            {
+                state.SelectSurroundingWhiteSpace();
+                state.ReplaceSelection("\n\n    Code\n\n");
+                state.m_selectionStart+=6;
+                state.m_selectionEnd=state.m_selectionStart + 4;
+                return true;
+            }
+        }       
+    
         // If the current text is preceeded by a non-whitespace, or followed by a non-whitespace
         // then do an inline code
         if (state.getSelectedText().indexOf("\n")<0)
@@ -1047,7 +1062,12 @@ var MarkdownDeepEditor=new function(){
                 dx += newNumber.length - lt.prefixLen;
             }
             
-            listitems=mdd.GetListItems(state.m_text, listitems[listitems.length-1]+dx);
+            
+            var newlistitems=mdd.GetListItems(state.m_text, listitems[listitems.length-1]+dx);
+            if (newlistitems!=null && newlistitems[0]!=listitems[0])
+                listitems=newlistitems;
+            else
+                listitems=null;
         }
         
         
