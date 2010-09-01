@@ -3,8 +3,9 @@
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
 <link rel="stylesheet" href="dingus.css" type="text/css" />
-<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
-<script type="text/javascript" src="MarkdownDeep.min.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.js"></script>
+<script type="text/javascript" src="MarkdownDeep.js"></script>
+<script type="text/javascript" src="MarkdownDeepEditor.js"></script>
 <script type="text/javascript" src="jquery.textarea.js"></script>
 <script type="text/javascript" src="dingus.js"></script>
 </head>
@@ -185,6 +186,30 @@ Term 2
 </div>
 
 <div class="content">
+
+<div class="toolbar">
+<ul>
+<li><a href="#" id="mdd_undo" title="Undo (Ctrl+Z)"></a></li>
+<li><a href="#" id="mdd_redo" title="Redo (Ctrl+Y)"></a></li>
+<li><span class="tbsep"></span></li>
+<li><a href="#" id="mdd_heading" title="Change Heading Style (Ctrl+H, or Ctrl+0 to Ctrl+6)"></a></li>
+<li><a href="#" id="mdd_code" title="Preformatted Code (Ctrl+K)"></a></li>
+<li><span class="tbsep"></span></li>
+<li><a href="#" id="mdd_bold" title="Bold (Ctrl+B)"></a></li>
+<li><a href="#" id="mdd_italic" title="Italic (Ctrl+I)"></a></li>
+<li><span class="tbsep"></span></li>
+<li><a href="#" id="mdd_ullist" title="Bullets (Ctrl+U)"></a></li>
+<li><a href="#" id="mdd_ollist" title="Numbering (Ctrl+O)"></a></li>
+<li><a href="#" id="mdd_outdent" title="Unquote (Ctrl+W)"></a></li>
+<li><a href="#" id="mdd_indent" title="Quote (Ctrl+Q)"></a></li>
+<li><span class="tbsep"></span></li>
+<li><a href="#" id="mdd_link" title="Insert Hyperlink (Ctrl+L)"></a></li>
+<li><a href="#" id="mdd_img" title="Insert Image (Ctrl+G)"></a></li>
+<li><a href="#" id="mdd_hr" title="Insert Horizontal Rule (Ctrl+R)"></a></li>
+</ul>
+</div>
+
+<div style="clear:left"></div>
 <textarea cols=20 rows=20 id="markdown_input">## Welcome to MarkdownDeep
 
 This demo page lets you try the JavaScript version of MarkdownDeep in your browser.
@@ -206,7 +231,7 @@ extensions, is open source and has many other useful integration features.
 <input type="checkbox" id="SafeMode" /><label for="SafeMode">Safe Mode</label>
 <input type="checkbox" id="MarkdownInHtml" /><label for="MarkdownInHtml">Markdown in HTML</label>
 <input type="checkbox" id="ViewHtml" /><label for="ViewHtml">Show Generated HTML</label>
-<p><small><span id="processingTime"></span></small></p>
+<p><small><span id="processingTime">Stuff</span></small></p>
 
 <div id="markdown_output"></div>
 <pre id="markdown_output_source" style="display:none"></pre>

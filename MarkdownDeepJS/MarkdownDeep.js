@@ -17,7 +17,7 @@ var MarkdownDeep = new function(){
             if (array[i]===obj)
                 return i;
         }
-        
+
         return -1;
     };
 
@@ -27,7 +27,7 @@ var MarkdownDeep = new function(){
     function Markdown()
     {
         this.m_SpanFormatter=new SpanFormatter(this);
-        this.m_SpareBlocks=new Array();
+        this.m_SpareBlocks=[];
         this.m_StringBuilder=new StringBuilder();
         this.m_StringBuilderFinal=new StringBuilder();
     }
@@ -47,16 +47,102 @@ var MarkdownDeep = new function(){
     };
     
     var p=Markdown.prototype;
+    
+    function splice_array(dest, position, del, ins)
+    {
+        return dest.slice(0, position).concat(ins).concat(dest.slice(position+del));
+    }
+    
+    Markdown.prototype.GetListItems=function(input, offset)
+    {
+        // Parse content into blocks
+        var blocks=this.ProcessBlocks(input);
+        
+
+        // Find the block        
+        var i;
+        for (i=0; i<blocks.length; i++)
+        {
+            var b=blocks[i];
+            
+            if ((b.blockType==BlockType_Composite || b.blockType==BlockType_html || b.blockType==BlockType_HtmlTag) && b.children)
+            {
+                blocks=splice_array(blocks, i, 1, b.children);
+                i--;
+                continue;
+            }
+            
+            if (offset < b.lineStart)
+            {
+                break;
+            }
+        }
+        
+        i--;
+        
+        // Quit if at top
+        if (i<0)
+            return null;
+            
+        // Get the block before
+        var block=blocks[i];
+        
+        // Check if it's a list
+        if (block.blockType!=BlockType_ul && block.blockType!=BlockType_ol)
+            return null;
+
+        // Build list of line offsets
+        var list=[];
+        var items=block.children;
+        for (var j=0; j<items.length; j++)
+        {
+            list.push(items[j].lineStart);
+        }     
+        
+        // Also push the line offset of the following block
+        i++;
+        if (i < blocks.length)
+        {
+            list.push(blocks[i].lineStart);
+        }
+        else
+        {  
+            list.push(input.length);
+        }
+        
+        return list;
+    }
 
     // Main entry point    
     Markdown.prototype.Transform=function(input)
     {
+        // Normalize line ends
+        var rpos=input.indexOf("\r");
+        if (rpos>=0)
+        {
+            var npos=input.indexOf("\n");
+            if (npos>=0)
+            {
+                if (npos<rpos)
+                {
+                    input=input.replace(/\n\r/g, "\n");
+                }
+                else
+                {
+                    input=input.replace(/\r\n/g, "\n");
+                }
+            }
+
+            input=input.replace(/\r/g, "\n");
+        }
+        
+    
         var blocks=this.ProcessBlocks(input);
         
 		// Sort abbreviations by length, longest to shortest
 		if (this.m_Abbreviations!=null)
 		{
-		    var list=new Array();
+		    var list=[];
 		    for (var a in this.m_Abbreviations)
 		    {
 		        list.push(this.m_Abbreviations[a]);
@@ -199,7 +285,7 @@ var MarkdownDeep = new function(){
     Markdown.prototype.OnPrepareImage=function(tag)
     {
 		// Try to determine width and height
-		var size=this.OnGetImageSize(tag.m_attributes["src"])
+		var size=this.OnGetImageSize(tag.m_attributes["src"]);
 		if (size!=null)
 		{
 			tag.m_attributes["width"] = size.width;
@@ -214,32 +300,11 @@ var MarkdownDeep = new function(){
     
     p.ProcessBlocks=function(str)
     {
-        // Normalize line ends
-        var rpos=str.indexOf("\r");
-        if (rpos>=0)
-        {
-            var npos=str.indexOf("\n");
-            if (npos>=0)
-            {
-                if (npos<rpos)
-                {
-                    str=str.replace(/\n\r/g, "\n");
-                }
-                else
-                {
-                    str=str.replace(/\r\n/g, "\n");
-                }
-            }
-
-            str=str.replace(/\r/g, "\n")
-        }
-        
-    
 		// Reset the list of link definitions
-		this.m_LinkDefinitions=new Array();
-		this.m_Footnotes=new Array();
-		this.m_UsedFootnotes=new Array();
-		this.m_UsedHeaderIDs=new Array();
+		this.m_LinkDefinitions=[];
+		this.m_Footnotes=[];
+		this.m_UsedFootnotes=[];
+		this.m_UsedHeaderIDs=[];
 		this.m_Abbreviations=null;
 
 		// Process blocks
@@ -289,7 +354,7 @@ var MarkdownDeep = new function(){
 	{
 		if (this.m_Abbreviations == null)
 		{
-		    this.m_Abbreviations=new Array();
+		    this.m_Abbreviations=[];
 		}
 
 		// Store abbreviation
@@ -350,7 +415,7 @@ var MarkdownDeep = new function(){
     }
     function is_hex(ch)
     {
-	    return (ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')
+	    return (ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F');
     }
     function is_alpha(ch)
     {
@@ -630,7 +695,7 @@ var MarkdownDeep = new function(){
 
     function StringBuilder()
     {
-	    this.m_content = new Array();
+	    this.m_content = [];
     }
 
     p=StringBuilder.prototype;
@@ -678,7 +743,8 @@ var MarkdownDeep = new function(){
     p.HtmlEncode = function(str, startOffset, length) {
         var end = startOffset + length;
         var piece = startOffset;
-        for (var i = startOffset; i < end; i++) 
+        var i;
+        for (i = startOffset; i < end; i++) 
         {
             switch (str.charAt(i)) 
             {
@@ -720,7 +786,8 @@ var MarkdownDeep = new function(){
     {
         var end=startOffset+length;
         var piece=startOffset;
-	    for (var i=startOffset; i<end; i++)
+        var i;
+	    for (i=startOffset; i<end; i++)
 	    {
 		    switch (str.charAt(i))
 		    {
@@ -772,7 +839,8 @@ var MarkdownDeep = new function(){
     {
         var end=startOffset + length;
         var piece=startOffset;
-	    for (var i=startOffset; i<end; i++)
+        var i;
+	    for (i=startOffset; i<end; i++)
 	    {
 		    switch (str.charAt(i))
 		    {
@@ -805,7 +873,8 @@ var MarkdownDeep = new function(){
         var end=startOffset+length;
         var piece=startOffset;
 		var pos = 0;
-	    for (var i=startOffset; i<end; i++)
+		var i;
+	    for (i=startOffset; i<end; i++)
 	    {
 		    switch (str.charAt(i))
 		    {
@@ -1094,7 +1163,7 @@ var MarkdownDeep = new function(){
 			this.m_position++;
 			while (true)
 			{
-				var ch=this.buf.charAt(this.m_position);
+				ch=this.buf.charAt(this.m_position);
 				if ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || ch=='_' || (ch>='0' && ch<='9'))
 					this.m_position++;
 				else
@@ -1201,7 +1270,7 @@ var MarkdownDeep = new function(){
     {
         if (this.m_flags==0)
         {
-            this.m_flags=tag_flags[this.m_name.toLowerCase()]
+            this.m_flags=tag_flags[this.m_name.toLowerCase()];
             if (this.m_flags==undefined)
             {
                 this.m_flags=HtmlTagFlags_Inline;
@@ -1288,7 +1357,7 @@ var MarkdownDeep = new function(){
         url=url.toLowerCase();
         return (url.substr(0, 7)=="http://" ||
                 url.substr(0, 8)=="https://" ||
-                url.substr(0, 6)=="ftp://")
+                url.substr(0, 6)=="ftp://");
     }
 
     function ParseHtmlTag(p)
@@ -1827,9 +1896,9 @@ var MarkdownDeep = new function(){
     {
         this.m_Markdown=markdown;
         this.m_Scanner=new StringScanner();
-        this.m_SpareTokens=new Array();
+        this.m_SpareTokens=[];
         this.m_DisableLinks=false;
-        this.m_Tokens=new Array();
+        this.m_Tokens=[];
     }
 
     p=SpanFormatter.prototype;
@@ -2013,24 +2082,19 @@ var MarkdownDeep = new function(){
 				    break;
 
 			    case TokenType_link:
-			    {
 				    var li = t.data;
 				    var sf = new SpanFormatter(this.m_Markdown);
 				    sf.m_DisableLinks = true;
 
 				    li.def.RenderLink(this.m_Markdown, sb, sf.FormatDirect(li.link_text));
 				    break;
-			    }
 
 			    case TokenType_img:
-			    {
 				    var li = t.data;
 				    li.def.RenderImg(this.m_Markdown, sb, li.link_text);
 				    break;
-			    }
 			    
 				case TokenType_footnote:
-				{
 					var r=t.data;
 					sb.Append("<sup id=\"fnref:");
 					sb.Append(r.id);
@@ -2040,10 +2104,8 @@ var MarkdownDeep = new function(){
 					sb.Append(r.index + 1);
 					sb.Append("</a></sup>");
 					break;
-				}
 			
 				case TokenType_abbreviation:
-				{
 					var a = t.data;
 					sb.Append("<abbr");
 					if (a.Title)
@@ -2056,7 +2118,6 @@ var MarkdownDeep = new function(){
 					sb.HtmlEncode(a.Abbr, 0, a.Abbr.length);
 					sb.Append("</abbr>");
 					break;
-				}
 
 
 		    }
@@ -2110,7 +2171,7 @@ var MarkdownDeep = new function(){
 						    case TokenType_closing_mark:
 							    if (emphasis_marks==null)
 							    {
-								    emphasis_marks = new Array();
+								    emphasis_marks = [];
 							    }
 							    emphasis_marks.push(token);
 							    break;
@@ -2124,7 +2185,6 @@ var MarkdownDeep = new function(){
 
 				case '[':
 				case '!':
-				{
 					// Process link reference
 					var linkpos = p.m_position;
 					token = this.ProcessLinkOrImageOrFootnote();
@@ -2134,10 +2194,8 @@ var MarkdownDeep = new function(){
 					if (token == null)
 						p.m_position = linkpos;
 					break;
-				}
 
 				case '<':
-				{
 					// Is it a valid html tag?
 					var save = p.m_position;
 					var tag = ParseHtmlTag(p);
@@ -2165,10 +2223,8 @@ var MarkdownDeep = new function(){
 							p.m_position = save;
 					}
 					break;
-				}
 
 				case '&':
-				{
 					// Is it a valid html entity
 					var save=p.m_position;
 					if (p.SkipHtmlEntity())
@@ -2178,10 +2234,8 @@ var MarkdownDeep = new function(){
 					}
 
 					break;
-				}
 
 				case ' ':
-				{
 					// Check for double space at end of a line
 					if (p.CharAtOffset(1)==' ' && is_lineend(p.CharAtOffset(2)))
 					{
@@ -2196,10 +2250,8 @@ var MarkdownDeep = new function(){
 						}
 					}
 					break;
-				}
 
 				case '\\':
-				{
 				    // Check followed by an escapable character
 				    if (is_escapable(p.CharAtOffset(1), ExtraMode))
 				    {
@@ -2207,7 +2259,6 @@ var MarkdownDeep = new function(){
 					    p.SkipForward(2);
 				    }
 					break;
-				}
 			}
 
 			// Look for abbreviations.
@@ -2557,7 +2608,7 @@ var MarkdownDeep = new function(){
 		p.SkipForward(1);
 
 		// Save position in case we need to rewind
-		var savepos = p.m_position;
+		savepos = p.m_position;
 
 		// Inline links must follow immediately
 		if (p.SkipChar('('))
@@ -2627,7 +2678,7 @@ var MarkdownDeep = new function(){
                     
                 var start=i;
                 while (start>0 && is_whitespace(link_id.charAt(start-1)))
-                    start--
+                    start--;
                     
                 var end=i;
                 while (end<link_id.length && is_whitespace(link_id.charAt(end)))
@@ -2829,7 +2880,6 @@ var MarkdownDeep = new function(){
 		this.data = id;
 		return id;
 	}
-
 
 	p.Render=function(m, b)
 	{
@@ -3131,11 +3181,11 @@ var MarkdownDeep = new function(){
     p.ScanLines=function(p)
     {
 		// The final set of blocks will be collected here
-		var blocks = new Array();
+		var blocks = [];
 
 		// The current paragraph/list/codeblock etc will be accumulated here
 		// before being collapsed into a block and store in above `blocks` list
-		var lines = new Array();
+		var lines = [];
 
 		// Add all blocks
 		var PrevBlockType=-1;
@@ -3404,22 +3454,25 @@ var MarkdownDeep = new function(){
     
         if (this.m_Markdown.ExtraMode)
         {
-            this.BuildDefinitionLists(blocks)
+            this.BuildDefinitionLists(blocks);
         }
 
 		return blocks;
 	}
 
-	p.CreateBlock=function()
+	p.CreateBlock=function(lineStart)
 	{
+	    var b;
 		if (this.m_Markdown.m_SpareBlocks.length>1)
 		{
-		    return this.m_Markdown.m_SpareBlocks.pop();
+		    b=this.m_Markdown.m_SpareBlocks.pop();
 		}
 		else
 		{
-		    return new Block();
+		    b=new Block();
 		}
+		b.lineStart=lineStart;
+		return b;
 	}
 
 	p.FreeBlock=function(b)
@@ -3465,9 +3518,8 @@ var MarkdownDeep = new function(){
 		switch (lines[0].blockType)
 		{
 			case BlockType_p:
-			{
 				// Collapse all lines into a single paragraph
-				var para = this.CreateBlock();
+				var para = this.CreateBlock(lines[0].lineStart);
 				para.blockType = BlockType_p;
 				para.buf = lines[0].buf;
 				para.contentStart = lines[0].contentStart;
@@ -3475,10 +3527,8 @@ var MarkdownDeep = new function(){
 				blocks.push(para);
 				this.FreeBlocks(lines);
 				break;
-			}
 
 			case BlockType_quote:
-			{
 			    // Get the content
 			    var str=this.RenderLines(lines);
 			    
@@ -3487,13 +3537,12 @@ var MarkdownDeep = new function(){
 			    bp.m_parentType=BlockType_quote;
 			
 				// Create a new quote block
-				var quote = this.CreateBlock();
+				var quote = this.CreateBlock(lines[0].lineStart);
 				quote.blockType = BlockType_quote;
 				quote.children = bp.Process(str);
 				this.FreeBlocks(lines);
 				blocks.push(quote);
 				break;
-			}
 
 			case BlockType_ol_li:
 			case BlockType_ul_li:
@@ -3514,9 +3563,9 @@ var MarkdownDeep = new function(){
 							break;
 
 						default:
-							var wrapper = this.CreateBlock();
+							var wrapper = this.CreateBlock(prev.lineStart);
 							wrapper.blockType = BlockType_dt;
-							wrapper.children = new Array();
+							wrapper.children = [];
 							wrapper.children.push(prev);
 							blocks.pop();
 							blocks.push(wrapper);
@@ -3533,10 +3582,9 @@ var MarkdownDeep = new function(){
 				
 
 			case BlockType_indent:
-			{
-				var codeblock = this.CreateBlock();
+				var codeblock = this.CreateBlock(lines[0].lineStart);
 				codeblock.blockType=BlockType_codeblock;
-				codeblock.children = new Array();
+				codeblock.children = [];
 				for (var i=0; i<lines.length; i++)
 				{
 				    codeblock.children.push(lines[i]);
@@ -3544,17 +3592,15 @@ var MarkdownDeep = new function(){
 				blocks.push(codeblock);
 				lines.length=0;
 				break;
-			}
 		}
 	}
 
 	p.EvaluateLine=function(p)
 	{
 		// Create a block
-		var b=this.CreateBlock();
+		var b=this.CreateBlock(p.m_position);
 
 		// Store line start
-		b.lineStart=p.m_position;
 		b.buf=p.buf;
 
 		// Scan the line
@@ -3998,29 +4044,24 @@ var MarkdownDeep = new function(){
 						switch (mode)
 						{
 							case MarkdownInHtmlMode_Span:
-							{
-								var span = this.CreateBlock();
+								var span = this.CreateBlock(inner_pos);
 								span.buf = p.buf;
 								span.blockType = BlockType_span;
 								span.contentStart = inner_pos;
 								span.contentLen = tagpos - inner_pos;
 
-								b.children = new Array();
+								b.children = [];
 								b.children.push(span);
 								break;
-							}
 
 							case MarkdownInHtmlMode_Block:
 							case MarkdownInHtmlMode_Deep:
-							{
 								// Scan the internal content
 								var bp = new BlockProcessor(this.m_Markdown, mode == MarkdownInHtmlMode_Deep);
 								b.children = bp.ProcessRange(p.buf, inner_pos, tagpos - inner_pos);
 								break;
-							}
 
 							case MarkdownInHtmlMode_Off:
-							{
 								if (bHasUnsafeContent)
 								{
 									b.blockType = BlockType_unsafe_html;
@@ -4028,17 +4069,16 @@ var MarkdownDeep = new function(){
 								}
 								else
 								{
-									var span = this.CreateBlock();
+									var span = this.CreateBlock(inner_pos);
 									span.buf = p.buf;
 									span.blockType = BlockType_html;
 									span.contentStart = inner_pos;
 									span.contentLen = tagpos - inner_pos;
 
-									b.children = new Array();
+									b.children = [];
 									b.children.push(span);
 								}
 								break;
-							}
 						}
 
 
@@ -4145,18 +4185,18 @@ var MarkdownDeep = new function(){
 				var MarkdownMode = this.GetMarkdownMode(tag);
 				if (MarkdownMode != MarkdownInHtmlMode_NA)
 				{
-					var markdownBlock = this.CreateBlock();
+					var markdownBlock = this.CreateBlock(posStartPiece);
 					if (this.ProcessMarkdownEnabledHtml(p, markdownBlock, tag, MarkdownMode))
 					{
 						if (childBlocks==null)
 						{
-							childBlocks = new Array();
+							childBlocks = [];
 						}
 
 						// Create a block for everything before the markdown tag
 						if (posStartCurrentTag > posStartPiece)
 						{
-							var htmlBlock = this.CreateBlock();
+							var htmlBlock = this.CreateBlock(posStartPiece);
 							htmlBlock.buf = p.buf;
 							htmlBlock.blockType = BlockType_html;
 							htmlBlock.contentStart = posStartPiece;
@@ -4206,7 +4246,7 @@ var MarkdownDeep = new function(){
 							// Create a block for the remainder
 							if (p.m_position > posStartPiece)
 							{
-								var htmlBlock = this.CreateBlock();
+								var htmlBlock = this.CreateBlock(posStartPiece);
 								htmlBlock.buf = p.buf;
 								htmlBlock.blockType = BlockType_html;
 								htmlBlock.contentStart = posStartPiece;
@@ -4283,9 +4323,9 @@ var MarkdownDeep = new function(){
 
 
 		// Create the wrapping list item
-		var List = this.CreateBlock();
+		var List = this.CreateBlock(0);
 		List.blockType=(listType == BlockType_ul_li ? BlockType_ul : BlockType_ol);
-		List.children = new Array();
+		List.children = [];
 
 		// Process all lines in the range		
 		for (var i = 0; i < lines.length; i++)
@@ -4326,16 +4366,17 @@ var MarkdownDeep = new function(){
 				// Create the item and process child blocks
 				var item = this.CreateBlock();
 				item.blockType = BlockType_li;
-				var bp=new BlockProcessor(this.m_Markdown)
+				item.lineStart = lines[start_of_li].lineStart;
+				var bp=new BlockProcessor(this.m_Markdown);
 				bp.m_parentType=listType;
 				item.children = bp.Process(sb.ToString());
 
 				// If no blank lines, change all contained paragraphs to plain text
 				if (!bAnyBlanks)
 				{
-					for (var i=0; i<item.children.length; i++)
+					for (var j=0; j<item.children.length; j++)
 					{
-					    var child=item.children[i];
+					    var child=item.children[j];
 						if (child.blockType == BlockType_p)
 						{
 							child.blockType = BlockType_span;
@@ -4350,6 +4391,8 @@ var MarkdownDeep = new function(){
 			// Continue processing from end of li
 			i = end_of_li;
 		}
+		
+		List.lineStart=List.children[0].lineStart;
 
 		this.FreeBlocks(lines);
 		lines.length=0;
@@ -4397,7 +4440,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Create the item and process child blocks
-		var item = this.CreateBlock();
+		var item = this.CreateBlock(lines[0].lineStart);
 		item.blockType=BlockType_dd;
 		var bp=new BlockProcessor(this.m_Markdown);
 		bp.m_parentType=BlockType_dd;
@@ -4421,9 +4464,9 @@ var MarkdownDeep = new function(){
 				case BlockType_dd:
 					if (currentList==null)
 					{
-						currentList=this.CreateBlock();
+						currentList=this.CreateBlock(blocks[i].lineStart);
 						currentList.blockType=BlockType_dl;
-						currentList.children=new Array();
+						currentList.children=[];
 						blocks.splice(i, 0, currentList);
 						i++;
 					}
@@ -4471,7 +4514,7 @@ var MarkdownDeep = new function(){
 		bp.m_parentType=BlockType_footnote;
 
 		// Create the item and process child blocks
-		var item = this.CreateBlock();
+		var item = this.CreateBlock(lines[0].lineStart);
 		item.blockType = BlockType_footnote;
 		item.data = lines[0].data;
 		item.children = bp.Process(sb.ToString());
@@ -4486,6 +4529,8 @@ var MarkdownDeep = new function(){
 	
 	p.ProcessFencedCodeBlock=function(p, b)
 	{
+	    var fenceStart=p.m_position;
+	
 		// Extract the fence
 		p.Mark();
 		while (p.current() == '~')
@@ -4525,14 +4570,14 @@ var MarkdownDeep = new function(){
 
 		// Create the code block
 		b.blockType = BlockType_codeblock;
-		b.children = new Array();
+		b.children = [];
 
 		// Remove the trailing line end
 		// (Javascript version has already normalized line ends to \n)
 		endCode--;
 
 		// Create the child block with the entire content
-		var child = this.CreateBlock();
+		var child = this.CreateBlock(fenceStart);
 		child.blockType = BlockType_indent;
 		child.buf = p.buf;
 		child.contentStart = startCode;
@@ -4551,12 +4596,12 @@ var MarkdownDeep = new function(){
 	
 	function TableSpec()
 	{
-	    this.m_Columns=new Array();
+	    this.m_Columns=[];
 	    this.m_Headers=null;
-	    this.m_Rows=new Array();
+	    this.m_Rows=[];
 	}
 	
-	var p=TableSpec.prototype;
+	p=TableSpec.prototype;
 	
 	p.LeadingBar=false;
 	p.TrailingBar=false;
@@ -4576,7 +4621,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Create the row
-		var row = new Array();
+		var row = [];
 
 		// Parse all columns except the last
 

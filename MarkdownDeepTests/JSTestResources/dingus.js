@@ -1,65 +1,44 @@
-var last_content="";
-var markdown=new MarkdownDeep.Markdown();
-markdown.SafeMode=false;
-markdown.ExtraMode=true;
-
-function onMarkdownChanged()
-{
-	var new_content=$("#markdown_input").attr("value");
-	if (new_content==last_content)
-		return;
-		
-	var startTime = new Date().getTime();
-	var output=markdown.Transform(new_content);
-	var processingTime = new Date().getTime()- startTime;
-
-		
-	startTime = new Date().getTime();
-	$("#markdown_output").html(output);
-	$("#markdown_output_source").text(output);
-	var domTime = new Date().getTime()- startTime;
-
-	$("#processingTime").text("Transformed in " + processingTime + "ms, updated DOM in " + domTime + "ms");
-				
-	last_content=new_content;
-}
-
-function onOptionsChanged()
-{
-    last_content="";
-    onMarkdownChanged();
-}
+var mdd_editor;
 
 $(function() {
-	$("#markdown_input").bind("keyup", onMarkdownChanged);
-	$("#markdown_input").bind("paste", onMarkdownChanged);
-	$("#markdown_input").bind("input", onMarkdownChanged);
-	$("#markdown_input").tabby();
-	$("#markdown_input").focus();
 
+    // Create MarkdownDeep Editor
+    mdd_editor=new MarkdownDeepEditor.Editor($("#markdown_input")[0], $("#markdown_output")[0], $("#markdown_output_source")[0]);
+    
 	$("#SafeMode").click(function(){ 
-	    markdown.SafeMode=$(this).attr("checked") 
-	    onOptionsChanged();
+	    mdd_editor.markdown.SafeMode=$(this).attr("checked");
+	    mdd_editor.onOptionsChanged();
 	});
 	$("#ExtraMode").click(function(){ 
-	    markdown.ExtraMode=$(this).attr("checked") 
-	    onOptionsChanged();
+	    mdd_editor.markdown.ExtraMode=$(this).attr("checked");
+	    mdd_editor.onOptionsChanged();
 	});
 	$("#MarkdownInHtml").click(function(){ 
-	    markdown.MarkdownInHtml=$(this).attr("checked") 
-	    onOptionsChanged();
+	    mdd_editor.markdown.MarkdownInHtml=$(this).attr("checked"); 
+	    mdd_editor.onOptionsChanged();
 	});
+	
+
+	// Toggle between html/source view
 	$("#ViewHtml").click(function(){ 
     	$("#markdown_output").toggle();
 	    $("#markdown_output_source").toggle();
 	});
+	
+	// Toggle between help views
 	$(".toggleHelp").click(function(){ 
     	$("#ExtraModeHelp").toggle();
 	    $("#StdModeHelp").toggle();
 	    return false;
 	});
 	
-	onMarkdownChanged();
+	// Bind toolbar buttons
+	$("div.toolbar a").click(function(){
+	    mdd_editor.InvokeCommand($(this).attr("id").substr(4));
+	});
+
 });
+    				
+
 
 

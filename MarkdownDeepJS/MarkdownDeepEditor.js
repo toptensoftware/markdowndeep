@@ -1,0 +1,1179 @@
+var MarkdownDeepEditor=new function(){
+
+    // private:priv.
+    // private:.m_*
+    
+
+    var ie=false;
+    
+    // Various keycodes
+    var keycode_tab = 9;
+    var keycode_enter = 13;
+    var keycode_pgup = 33;
+    var keycode_pgdn = 34;
+    var keycode_home = 36;
+    var keycode_end = 35;
+    var keycode_left = 37;
+    var keycode_right = 39;
+    var keycode_up = 38;
+    var keycode_down = 40;
+    var keycode_backspace = 8;
+    var keycode_delete = 46;
+    
+    // Undo modes for the undo stack
+    var undomode_unknown = 0;
+    var undomode_text = 1;
+    var undomode_erase = 2;
+    var undomode_navigate = 3;
+    var undomode_whitespace = 4;
+    
+    // Shortcut keys Ctrl+key
+    var shortcut_keys={
+        "Z": "undo",
+        "Y": "redo",
+        "B": "bold",
+        "I": "italic",
+        "H": "heading",
+        "K": "code",
+        "U": "ullist",
+        "O": "ollist",
+        "Q": "indent",
+        "E": "outdent",
+        "L": "link",
+        "G": "img",
+        "R": "hr",
+        "0": "h0",
+        "1": "h1",
+        "2": "h2",
+        "3": "h3",
+        "4": "h4",
+        "5": "h5",
+        "6": "h6"
+    }
+
+/*
+    // Don't need these as they're onlyl weird in keyPress which we're not using
+    var keycode_safari_left=37;
+    var keycode_safari_right=39;
+    var keycode_safari_up=38;
+    var keycode_safari_down=40;
+    var keycode_safari_delete=63272;
+    var keycode_safari_end=63275;
+    var keycode_safari_home=63273;
+    var keycode_safari_pgup=63276;
+    var keycode_safari_pgdn=63277;
+*/    
+
+    function starts_with(str, match)
+    {
+        return str.substr(0, match.length)==match;
+    }
+    
+    function ends_with(str, match)
+    {
+        return str.substr(-match.length)==match;
+    }
+
+    function is_whitespace(ch)
+    {
+        return (ch==' ' || ch=='\t' || ch=='\r' || ch=='\n');
+    }
+    
+    function is_crlf(ch)
+    {
+        return (ch=='\r' || ch=='\n');
+    }
+    
+    function trim(str)
+    {
+        var i=0;
+        var l=str.length;
+        
+        while (i<l && is_whitespace(str.charAt(i)))
+            i++;
+        while (l-1>i && is_whitespace(str.charAt(l-1)))
+            l--;
+            
+        return str.substr(i, l-i);
+    }
+
+
+    // Helper for binding events
+    function BindEvent(obj, event, handler)
+    {
+        if (obj.addEventListener)
+        {
+            obj.addEventListener(event, handler, false);
+        }
+        else if (obj.attachEvent)
+        {
+            obj.attachEvent("on"+event, handler);
+        }
+    }
+    
+    function PreventEventDefault(event)
+    {
+        if (event.preventDefault)
+        {
+            event.preventDefault();
+            return false;
+        }
+        if (event.cancelBubble!==undefined)
+        {
+            event.cancelBubble=true;
+            return false;
+        }
+        return false;
+    }
+    
+    function offsetToRangeCharacterMove(el, offset) 
+    {
+        return offset - (el.value.slice(0, offset).split("\r\n").length - 1);
+    }
+
+    // EditorState represents the initial and final state of an edit
+    function EditorState()
+    {
+    }
+
+    priv=EditorState.prototype;
+
+    priv.InitFromTextArea=function(textarea)
+    {
+        this.m_textarea=textarea;
+        if (ie)
+        {
+            var sel=document.selection.createRange();
+            var temp=sel.duplicate();
+            temp.moveToElementText(textarea);
+            temp.setEndPoint("EndToEnd", sel);
+            this.m_selectionEnd = temp.text.length;
+            this.m_selectionStart = this.m_selectionEnd - sel.text.length;
+        }
+        else
+        {
+            this.m_selectionStart = textarea.selectionStart;
+            this.m_selectionEnd = textarea.selectionEnd;
+        }
+        
+        this.m_text=textarea.value;
+    }
+    
+    priv.Duplicate=function()
+    {
+        var other=new EditorState();
+        other.m_textarea=this.m_textarea;
+        other.m_selectionEnd=this.m_selectionEnd;
+        other.m_selectionStart=this.m_selectionStart;
+        other.m_text=this.m_text;
+        return other;
+    }
+    
+    priv.Apply=function()
+    {
+        // Set the new text 
+        this.m_textarea.value=this.m_text;
+        this.m_textarea.focus();
+        
+        if (ie)
+        {
+            var r=this.m_textarea.createTextRange();
+            r.collapse(true);
+            r.moveEnd("character", offsetToRangeCharacterMove(this.m_textarea, this.m_selectionEnd));
+            r.moveStart("character", offsetToRangeCharacterMove(this.m_textarea, this.m_selectionStart));
+            r.select();
+        }
+        else
+        {
+            this.m_textarea.setSelectionRange(this.m_selectionStart, this.m_selectionEnd);
+        }
+    }
+    
+    priv.ReplaceSelection=function(str)
+    {
+        this.m_text=this.m_text.substr(0, this.m_selectionStart) + str + this.m_text.substr(this.m_selectionEnd);
+        this.m_selectionEnd=this.m_selectionStart + str.length;
+    }
+
+    function adjust_pos(pos2, editpos, del, ins)
+    {
+        if (pos2<editpos)
+            return pos2;
+        return pos2<editpos+del ? editpos : pos2 + ins - del;
+    }
+    
+    priv.ReplaceAt=function(pos, len, str)
+    {
+        this.m_text=this.m_text.substr(0, pos) + str + this.m_text.substr(pos+len);
+        this.m_selectionStart=adjust_pos(this.m_selectionStart, pos, len, str.length);
+        this.m_selectionEnd=adjust_pos(this.m_selectionEnd, pos, len, str.length);
+    }
+    
+    priv.getSelectedText=function()
+    {
+        return this.m_text.substr(this.m_selectionStart, this.m_selectionEnd-this.m_selectionStart);
+    }
+    
+    priv.InflateSelection=function(ds, de)
+    {
+        this.m_selectionEnd+=de;
+        this.m_selectionStart-=ds;
+    }
+    
+    priv.PreceededBy=function(str)
+    {
+        return this.m_selectionStart >= str.length && this.m_text.substr(this.m_selectionStart-str.length, str.length)==str;
+    }
+    
+    priv.FollowedBy=function(str)
+    {
+        return this.m_text.substr(this.m_selectionEnd, str.length)==str;
+    }
+    
+    priv.TrimSelection=function()
+    {
+        while (is_whitespace(this.m_text.charAt(this.m_selectionStart)))
+            this.m_selectionStart++;
+        while (this.m_selectionEnd>this.m_selectionStart && is_whitespace(this.m_text.charAt(this.m_selectionEnd-1)))
+            this.m_selectionEnd--;
+    }
+    
+    priv.IsStartOfLine=function(pos)
+    {
+        return pos==0 || is_crlf(this.m_text.charAt(pos-1));
+    }
+    
+    priv.FindStartOfLine=function(pos)
+    {
+        // Move start of selection back to line start
+        while (pos>0 && !is_crlf(this.m_text.charAt(pos-1)))
+        {  
+            pos--;
+        }
+        return pos;
+    }    
+    
+    priv.FindEndOfLine=function(pos)
+    {
+        while (pos<this.m_text.length && !is_crlf(this.m_text.charAt(pos)))
+        {
+            pos++;
+        }
+        return pos;
+    }
+    
+    priv.FindNextLine=function(pos)
+    {
+        return this.SkipEol(this.FindEndOfLine(pos));
+    }
+    
+    priv.SkipWhiteSpace=function(pos)
+    {
+        while (pos<this.m_text.length && is_whitespace(this.m_text.charAt(pos)))
+            pos++;
+        return pos;
+    }
+    
+    priv.SkipEol=function(pos)
+    {
+        if (this.m_text.substr(pos, 2)=="\r\n")
+            return pos+2;
+        if (is_crlf(this.m_text.charAt(pos)))
+            return pos+1;
+        return pos;
+    }
+    
+    priv.SkipPreceedingEol=function(pos)
+    {
+        if (pos>2 && this.m_text.substr(pos-2, 2)=="\r\n")
+            return pos-2;
+        if (pos>1 && is_crlf(this.m_text.charAt(pos-1)))
+            return pos-1;
+        return pos;
+    }
+    
+    priv.SelectWholeLines=function()
+    {
+        // Move selection to start of line
+        this.m_selectionStart=this.FindStartOfLine(this.m_selectionStart);
+        
+        // Move end of selection to start of the next line
+        if (!this.IsStartOfLine(this.m_selectionEnd))
+        {
+            this.m_selectionEnd=this.SkipEol(this.FindEndOfLine(this.m_selectionEnd));
+        }
+    }
+    
+    priv.SkipPreceedingWhiteSpace=function(pos)
+    {
+        while (pos>0 && is_whitespace(this.m_text.charAt(pos-1)))
+        {
+            pos--;
+        }
+        return pos;
+    }
+    
+    priv.SkipFollowingWhiteSpace=function(pos)
+    {
+        while (is_whitespace(this.m_text.charAt(pos)))
+        {
+            pos++;
+        }
+        return pos;
+    }
+    priv.SelectSurroundingWhiteSpace=function()
+    {
+        this.m_selectionStart=this.SkipPreceedingWhiteSpace(this.m_selectionStart);
+        this.m_selectionEnd=this.SkipFollowingWhiteSpace(this.m_selectionEnd);
+    }
+    
+    priv.CheckSimpleSelection=function()
+    {
+        var text=this.getSelectedText();
+        var m=text.match(/\n[ \t\r]*\n/);
+        
+        if (m)
+        {
+            alert("Please make a selection that doesn't include a paragraph break");
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Check if line is completely blank    
+    priv.IsBlankLine=function(p)
+    {
+        var len=this.m_text.length;
+        for (var i=p; i<len; i++)
+        {
+            var ch=this.m_text[i];
+            if (is_crlf(ch))
+                return true;
+            if (!is_whitespace(this.m_text.charAt(i)))
+                return false;
+        }
+        
+        return true;
+    }
+    
+    priv.FindStartOfParagraph=function(pos)
+    {
+        var savepos=pos;
+        
+        // Move to start of first line
+        pos=this.FindStartOfLine(pos);
+        
+        if (this.IsBlankLine(pos))
+            return pos;
+
+        // Move to first line after blank line
+        while (pos>0)
+        {
+            var p=this.FindStartOfLine(this.SkipPreceedingEol(pos));
+            if (p==0)
+                break;
+            if (this.IsBlankLine(p))
+                break;
+            pos=p;
+        }
+        
+        // Is it a list?
+        if (this.DetectListType(pos).prefixLen!=0)
+        {
+            // Do it again, but stop at line with list prefix
+            pos=this.FindStartOfLine(savepos);
+            
+            // Move to first line after blank line
+            while (pos>0)
+            {
+                if (this.DetectListType(pos).prefixLen!=0)
+                    return pos;
+                    
+                // go to line before
+                pos=this.FindStartOfLine(this.SkipPreceedingEol(pos));
+            }
+        }
+        
+        return pos;
+    }
+    
+    priv.FindEndOfParagraph=function(pos)
+    {
+        // Skip all lines that aren't blank
+        while (pos<this.m_text.length)
+        {
+            if (this.IsBlankLine(pos))
+                break;
+                
+            pos=this.FindNextLine(pos);
+        }
+        
+        return pos;
+    }
+    
+    // Select the paragraph
+    priv.SelectParagraph=function()
+    {
+        this.m_selectionStart=this.FindStartOfParagraph(this.m_selectionStart);
+        this.m_selectionEnd=this.FindEndOfParagraph(this.m_selectionStart);        
+    }
+    
+    // Starting at position pos, return the list type
+    // returns { listtype, length } 
+    priv.DetectListType=function(pos)
+    {
+        var prefix=this.m_text.substr(pos, 10);
+        var m=prefix.match(/^\s{0,3}(\*|\d+\.)\s*/);
+        if (!m)
+            return {listType:"", prefixLen:0};
+            
+        if (m[1]=='*')
+            return {listType:"*", prefixLen:m[0].length};
+        else
+            return {listType:"1", prefixLen:m[0].length};
+    }
+
+    // Starting a position pos, change the list type to newType.
+    // Returns     
+    priv.ChangeListType=function(pos, newType)
+    {
+    
+    }
+        
+    // Constructor
+    function Editor(textarea, div_html, div_source)
+    {
+        // Is it IE?
+        if (!textarea.setSelectionRange)
+        {
+            ie=true;
+        }
+    
+        // Initialize
+        this.m_lastContent=null;
+        this.m_undoStack=[];
+        this.m_undoPos=0;
+        this.m_undoMode=undomode_navigate;
+        this.m_markdown=new MarkdownDeep.Markdown();
+        this.m_markdown.SafeMode=false;
+        this.m_markdown.ExtraMode=true;
+        
+        // Store DOM elements
+        this.m_textarea=textarea;
+        this.m_divHtml=div_html;
+        this.m_divSource=div_source;
+
+        // Bind events
+        var ed=this;
+        BindEvent(textarea, "keyup", function(){ed.onMarkdownChanged();});
+        BindEvent(textarea, "keydown", function(e){return ed.onKeyDown(e);});
+        BindEvent(textarea, "paste", function(){ed.onMarkdownChanged();});
+        BindEvent(textarea, "input", function(){ed.onMarkdownChanged();});
+        BindEvent(textarea, "mousedown", function(){ed.SetUndoMode(undomode_navigate);});
+
+        // Do initial update
+        this.onMarkdownChanged();
+    }
+
+    var priv=Editor.prototype;
+    var pub=Editor.prototype;
+    
+    priv.onKeyDown=function(e)
+    {
+        // Normal keys only
+        if(e.ctrlKey || e.metaKey)
+        {
+            var key=String.fromCharCode(e.charCode||e.keyCode);
+            if (shortcut_keys[key]!=undefined)
+            {
+                this.InvokeCommand(shortcut_keys[key]);
+                return PreventEventDefault(e);
+            }
+            return true;
+        }
+
+        var newMode;            
+        switch (e.keyCode)
+        {
+            case keycode_tab:
+                this.InvokeCommand(e.shiftKey ? "untab" : "tab");
+                return PreventEventDefault(e);
+        
+            case keycode_left:
+            case keycode_right:
+            case keycode_up:
+            case keycode_down:
+            case keycode_home:
+            case keycode_end:
+            case keycode_pgup:
+            case keycode_pgdn:
+                // Navigation mode
+                newMode=undomode_navigate;
+                break;
+
+            case keycode_backspace:
+            case keycode_delete:
+                // Delete mode
+                newMode=undomode_erase;
+                break;
+            
+            case keycode_enter:
+                // New lines mode
+                newMode=undomode_whitespace;
+                break;
+            
+            default:
+                // Text mode
+                newMode=undomode_text;
+        }
+        
+        this.SetUndoMode(newMode);
+    } 
+
+    priv.SetUndoMode=function(newMode)
+    {
+        // Same mode?
+        if (this.m_undoMode==newMode)
+            return;
+            
+        // Enter new mode, after capturing current state
+        this.m_undoMode=newMode;
+        
+        // Capture undo state
+        this.CaptureUndoState();
+    }
+
+    
+    priv.CaptureUndoState=function()
+    {
+        // Store a copy on the undo stack
+        var state=new EditorState();
+        state.InitFromTextArea(this.m_textarea);
+        this.m_undoStack.splice(this.m_undoPos, this.m_undoStack.length-this.m_undoPos, state);        
+        this.m_undoPos=this.m_undoStack.length;
+    }
+    
+    priv.onMarkdownChanged=function(bCreateUndoUnit)
+    {
+        // Get the markdown, see if it's changed
+        var new_content=this.m_textarea.value;
+        if (new_content===this.m_lastContent && this.m_lastContent!==null)
+	        return;
+	        
+    	// Convert Markdown to HTML
+        var startTime = new Date().getTime();
+        var output=this.m_markdown.Transform(new_content);
+        this.timeTransform = new Date().getTime()- startTime;
+
+    	// Update the DOM
+        startTime = new Date().getTime();
+        if (this.m_divHtml)
+            this.m_divHtml.innerHTML=output;
+        if (this.m_divSource)
+        {
+            this.m_divSource.innerHTML="";
+            this.m_divSource.appendChild(document.createTextNode(output));
+        }
+        this.timeUpdateDOM = new Date().getTime()- startTime;
+
+        // Save previous content
+        this.m_lastContent=new_content;
+    }
+
+    // Public method, should be called by client code if any of the MarkdownDeep
+    // transform options have changed
+    pub.onOptionsChanged=function()
+    {
+        this.m_lastContent=null;
+        this.onMarkdownChanged();
+    }
+    
+    pub.cmd_undo=function()
+    {
+        if (this.m_undoPos > 0)
+        {
+            // Capture current state at end of undo buffer.
+            if (this.m_undoPos==this.m_undoStack.length)
+            {
+                this.CaptureUndoState();
+                this.m_undoPos--;
+            }
+
+            this.m_undoPos--;
+            this.m_undoStack[this.m_undoPos].Apply();
+            this.m_undoMode=undomode_unknown;
+
+            // Update markdown rendering
+            this.onMarkdownChanged();
+        }
+    }
+    
+    pub.cmd_redo=function()
+    {
+        if (this.m_undoPos+1 < this.m_undoStack.length)
+        {
+            this.m_undoPos++;
+            this.m_undoStack[this.m_undoPos].Apply();
+            this.m_undoMode=undomode_unknown;
+
+            // Update markdown rendering
+            this.onMarkdownChanged();
+
+            // We're back at the current state            
+            if (this.m_undoPos==this.m_undoStack.length-1)
+            {
+                this.m_undoStack.pop();
+            }
+        }
+    }
+    
+    priv.setHeadingLevel=function(state, headingLevel)
+    {
+        // Select the entire heading
+        state.SelectParagraph();
+        state.SelectSurroundingWhiteSpace();
+        
+        // Get the selected text
+        var text=state.getSelectedText();
+        
+        // Trim all whitespace
+        text=trim(text);
+
+        var currentHeadingLevel=0;
+        var m=text.match(/^(\#+)(.*?)(\#+)?$/);
+        if (m)
+        {
+            text=trim(m[2]);
+            currentHeadingLevel=m[1].length;
+        }
+        else
+        {
+            m=text.match(/^(.*?)(?:\r\n|\n|\r)\s*(\-*|\=*)$/);
+            if (m)
+            {
+                text=trim(m[1]);
+                currentHeadingLevel=m[2].charAt(0)=="=" ? 1 : 0;
+            }
+            else
+            {
+                // Remove blank lines        
+                text=text.replace(/(\r\n|\n|\r)/gm,"");
+                currentHeadingLevel=0;
+            }
+        }
+        
+        if (headingLevel==-1)
+            headingLevel=(currentHeadingLevel+1) % 4;
+        
+        // Removing a heading
+        var selOffset=0;
+        var selLen=0;
+        if (headingLevel==0)
+        {
+            // Deleting selection
+            if (text=="Heading")
+            {
+                state.ReplaceSelection("");
+                return true;
+            }
+            
+            selLen=text.length;
+            selOffset=0;
+        }
+        else
+        {
+            if (text=="")
+                text="Heading";
+
+            selOffset=headingLevel+1;
+            selLen=text.length;
+                
+            var h="";
+            for (var i=0; i<headingLevel; i++)
+                h+="#";
+                
+            text=h + " " + text + " " + h;
+            
+        }
+        
+        // Require blank after
+        text+="\n\n";
+
+        if (state.m_selectionStart!=0)
+        {
+            if (ie)
+            {
+                text="\r\n\r\n" + text;
+                selOffset+=4;
+            }
+            else
+            {
+                text="\n\n" + text;
+                selOffset+=2;
+            }
+        }
+
+        // Replace text
+        state.ReplaceSelection(text);
+        
+        // Update selection
+        state.m_selectionStart+=selOffset;
+        state.m_selectionEnd=state.m_selectionStart + selLen;
+
+        return true;
+    }
+    
+    pub.cmd_heading=function(state)
+    {
+        return this.setHeadingLevel(state, -1);
+    }
+    
+    pub.cmd_h0=function(state)
+    {
+        return this.setHeadingLevel(state, 0);
+    }
+
+    pub.cmd_h1=function(state)
+    {
+        return this.setHeadingLevel(state, 1);
+    }
+
+    pub.cmd_h2=function(state)
+    {
+        return this.setHeadingLevel(state, 2);
+    }
+
+    pub.cmd_h3=function(state)
+    {
+        return this.setHeadingLevel(state, 3);
+    }
+
+    pub.cmd_h4=function(state)
+    {
+        return this.setHeadingLevel(state, 4);
+    }
+
+    pub.cmd_h5=function(state)
+    {
+        return this.setHeadingLevel(state, 5);
+    }
+
+    pub.cmd_h6=function(state)
+    {
+        return this.setHeadingLevel(state, 6);
+    }
+
+    pub.IndentCodeBlock=function(state, indent)
+    {
+        // Make sure whole lines are selected
+        state.SelectWholeLines();
+        
+        // Get the text, split into lines 
+        var lines=state.getSelectedText().split("\n");
+        
+        // Toggle indent/unindent?
+        if (indent===null)
+        {
+            var i;
+            for (i=0; i<lines.length; i++)
+            {
+                // Blank lines are allowed
+                if (trim(lines[i])=="")
+                    continue;
+                    
+                // Tabbed line
+                if (!starts_with(lines[i], "\t") && !starts_with(lines[i], "    "))
+                    break;
+            }
+
+            // Are we adding or removing indent
+            indent=i!=lines.length;
+        }
+        
+        // Apply the changes
+        for (var i=0; i<lines.length; i++)
+        {
+            // Blank line?
+            if (trim(lines[i])=="")
+                continue;
+                
+            // Tabbed line
+            var newline=lines[i];
+            if (indent)
+            {
+                newline="    " + lines[i];
+            }
+            else
+            {
+                if (starts_with(lines[i], "\t"))
+                    newline=lines[i].substr(1);
+                else if (starts_with(lines[i], "    "))
+                    newline=lines[i].substr(4);
+            }
+            
+            lines.splice(i, 1, newline);
+        }
+        
+        // Replace
+        state.ReplaceSelection(lines.join("\n"));
+    }
+    
+    // Code
+    pub.cmd_code=function(state)
+    {
+        // If the current text is preceeded by a non-whitespace, or followed by a non-whitespace
+        // then do an inline code
+        if (state.getSelectedText().indexOf("\n")<0)
+        {
+            // Expand selection to include leading/trailing stars
+            state.TrimSelection();
+            if (state.PreceededBy("`"))
+                state.m_selectionStart--;
+            if (state.FollowedBy("`"))
+                state.m_selectionEnd++;
+            return this.bold_or_italic(state, "`");
+        }
+        
+        this.IndentCodeBlock(state, null);    
+        return true;        
+    }
+    
+    pub.cmd_tab=function(state)
+    {
+        if (state.getSelectedText().indexOf("\n")>0)
+        {
+            this.IndentCodeBlock(state, true);
+        }
+        else
+        {
+            state.ReplaceSelection("\t");
+            state.m_selectionStart=state.m_selectionEnd;
+        }
+        return true;
+    }
+    
+    pub.cmd_untab=function(state)
+    {
+        if (state.getSelectedText().indexOf("\n")>0)
+        {
+            this.IndentCodeBlock(state, false);
+            return true;
+        }
+        return false;
+    }
+    
+    priv.bold_or_italic=function(state, marker)
+    {
+        var t=state.m_text;
+        var ml=marker.length;
+        
+        // Work out if we're adding or removing bold markers
+        var text=state.getSelectedText();
+        if (starts_with(text, marker) && ends_with(text, marker))
+        {
+            // Remove 
+            state.ReplaceSelection(text.substr(ml, text.length-ml*2));
+        }
+        else
+        {
+            // Add
+            state.TrimSelection();
+            text=state.getSelectedText();
+            if (!text)
+                text="text";
+            else
+                text=text.replace(/(\r\n|\n|\r)/gm,"");
+            state.ReplaceSelection(marker + text + marker);
+            state.InflateSelection(-ml, -ml);
+        }
+        return true;
+    }
+    
+    // Bold
+    pub.cmd_bold=function(state)
+    {
+        if (!state.CheckSimpleSelection())
+            return false;
+        state.TrimSelection();
+            
+        // Expand selection to include leading/trailing stars
+        if (state.PreceededBy("**"))
+            state.m_selectionStart-=2;
+        if (state.FollowedBy("**"))
+            state.m_selectionEnd+=2;
+            
+        return this.bold_or_italic(state, "**");
+    }
+    
+    // Italic
+    pub.cmd_italic=function(state)
+    {
+        if (!state.CheckSimpleSelection())
+            return false;
+        state.TrimSelection();
+            
+        // Expand selection to include leading/trailing stars
+        if ((state.PreceededBy("*") && !state.PreceededBy("**")) || state.PreceededBy("***"))
+            state.m_selectionStart-=1;
+        if ((state.FollowedBy("*") && !state.PreceededBy("**")) || state.FollowedBy("***"))
+            state.m_selectionEnd+=1;
+            
+        return this.bold_or_italic(state, "*");
+    }
+    
+    pub.indent_or_outdent=function(state, outdent)
+    {
+        if (false && state.m_selectionStart==state.m_selectionEnd)
+        {
+            state.SelectSurroundingWhiteSpace();
+            state.ReplaceSelection("\n\n> Quote\n\n");
+            state.m_selectionStart+=4;
+            state.m_selectionEnd=state.m_selectionStart+5;
+            return true;
+        }
+        
+        // Make sure whole lines are selected
+        state.SelectWholeLines();
+        
+        // Get the text, split into lines and check if all lines
+        // are indented
+        var lines=state.getSelectedText().split("\n");
+        
+        // Apply the changes
+        for (var i=0; i<lines.length-1; i++)
+        {
+            // Tabbed line
+            var newline=lines[i];
+            if (outdent)
+            {
+                if (starts_with(lines[i], "> "))
+                    newline=lines[i].substr(2);
+            }
+            else
+            {
+                newline="> " + lines[i];
+            }
+            
+            lines.splice(i, 1, newline);
+        }
+        
+        // Replace
+        state.ReplaceSelection(lines.join("\n"));
+        
+        return true;        
+    }
+    
+    // Quote
+    pub.cmd_indent=function(state)
+    {
+        return this.indent_or_outdent(state, false);
+    }
+    
+    pub.cmd_outdent=function(state)
+    {
+        return this.indent_or_outdent(state, true);
+    }
+
+    priv.handle_list=function(state, type)
+    {
+        // Build an array of selected line offsets        
+        var lines=[];
+        if (state.getSelectedText().indexOf("\n")>0)
+        {
+            state.SelectWholeLines();
+            
+            var line=state.m_selectionStart;
+            lines.push(line);
+            
+            while (true)
+            {
+                line=state.FindNextLine(line)
+                if (line>=state.m_selectionEnd)
+                    break;  
+                lines.push(line);
+            }
+        }
+        else
+        {
+            lines.push(state.FindStartOfLine(state.m_selectionStart));
+        }
+        
+        // Now work out the new list type
+        // If the current selection only contains the current list type
+        // then remove list items
+        prefix = type=="*" ? "* " : "1. ";
+        for (var i=0; i<lines.length; i++)
+        {
+            var lt=state.DetectListType(lines[i]);
+            if (lt.listType==type)
+            {
+                prefix="";
+                break;
+            }
+        }
+
+        // Update the prefix on all lines
+        for (var i=lines.length-1; i>=0; i--)
+        {
+            var line=lines[i];
+            var lt=state.DetectListType(line);
+            state.ReplaceAt(line, lt.prefixLen, prefix);
+        }
+        
+        // We now need to find any surrounding lists and renumber them
+        var mdd=new MarkdownDeep.Markdown();
+        mdd.ExtraMode=true;
+        var listitems=mdd.GetListItems(state.m_text, state.m_selectionStart);
+        
+        while (listitems!=null)
+        {
+            // Process each list item
+            var dx=0;
+            for (var i=0; i<listitems.length-1; i++)
+            {
+                // Detect the list type
+                var lt=state.DetectListType(listitems[i]+dx);
+                if (lt.listType!="1")
+                    break;
+                    
+                // Format new number prefix
+                var newNumber=(i+1).toString() + ". ";
+                
+                // Replace it
+                state.ReplaceAt(listitems[i]+dx, lt.prefixLen, newNumber);
+                
+                // Adjust things if new prefix is different length to the previos
+                dx += newNumber.length - lt.prefixLen;
+            }
+            
+            listitems=mdd.GetListItems(state.m_text, listitems[listitems.length-1]+dx);
+        }
+        
+        
+        // Select lines
+        if (lines.length>1)
+        {
+            state.SelectWholeLines();
+        }
+        
+        return true;
+    }
+    
+    
+    pub.cmd_ullist=function(state)
+    {
+        return this.handle_list(state, "*");
+    }
+    
+    pub.cmd_ollist=function(state)
+    {
+        return this.handle_list(state, "1");
+    }
+    
+    pub.cmd_link=function(ctx)
+    {
+        ctx.TrimSelection();
+        if (!ctx.CheckSimpleSelection())
+            return false;
+            
+        var url=prompt("Enter the target URL:");
+        if (url===null)
+            return false;
+
+        var text=ctx.getSelectedText();
+        if (text.length==0)
+        {
+            text="link text";
+        }
+            
+        var str="[" + text + "](" + url + ")";
+        
+        ctx.ReplaceSelection(str);
+        ctx.m_selectionStart++;
+        ctx.m_selectionEnd=ctx.m_selectionStart + text.length;
+        return true;
+    }
+        
+    pub.cmd_img=function(ctx)
+    {
+        ctx.TrimSelection();
+        if (!ctx.CheckSimpleSelection())
+            return false;
+
+        var url=prompt("Enter the image URL");
+        if (url===null)
+            return false;
+            
+        var alttext=ctx.getSelectedText();
+        if (alttext.length==0)
+        {
+            alttext="Image Text";
+        }
+        
+        var str="![" + alttext + "](" + url + ")";
+        
+        ctx.ReplaceSelection(str);
+        ctx.m_selectionStart+=2;
+        ctx.m_selectionEnd=ctx.m_selectionStart + alttext.length;
+        return true;
+    }
+        
+    pub.cmd_hr=function(state)
+    {
+        state.SelectSurroundingWhiteSpace();
+        if (state.m_selectionStart==0)
+            state.ReplaceSelection("----------\n\n");
+        else
+            state.ReplaceSelection("\n\n----------\n\n");
+        state.m_selectionStart=state.m_selectionEnd;;
+        return true;
+    }
+    
+    // Handle toolbar button
+    pub.InvokeCommand=function(id)
+    {
+        // Special handling for undo and redo
+        if (id=="undo" || id=="redo")
+        {
+            this["cmd_"+id]();
+            this.m_textarea.focus();
+            return;
+        }
+    
+        // Create an editor state from the current selection
+        var state=new EditorState();
+        state.InitFromTextArea(this.m_textarea);
+
+        // Create a copy for undo buffer
+        var originalState=state.Duplicate();        
+        
+        // Call the handler and apply changes
+        if (this["cmd_"+id](state))
+        {
+            // Save current state on undo stack
+            this.m_undoMode=undomode_unknown;
+            this.m_undoStack.splice(this.m_undoPos, this.m_undoStack.length-this.m_undoPos, originalState);        
+            this.m_undoPos++;
+
+            // Apply new state
+            state.Apply();
+            
+            // Update markdown rendering
+            this.onMarkdownChanged();
+            
+            return true;
+        }
+        else
+        {
+            this.m_textarea.focus();
+            return false;
+        }
+    }
+    
+    delete priv;
+    delete pub;
+
+    // Exports
+    this.Editor=Editor;
+}();

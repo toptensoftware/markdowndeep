@@ -84,6 +84,14 @@
 		<File
 			RelativePath=".\jquery-1.4.2.js"
 			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					nowarnings="false"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\jquery-1.4.2.min.js"
@@ -106,8 +114,21 @@
 			</FileConfiguration>
 		</File>
 		<File
+			RelativePath="c:\Users\bradr\Downloads\jquery-ui-1.8.2.js"
+			>
+		</File>
+		<File
 			RelativePath=".\jquery.textarea.js"
 			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					nowarnings="false"
+					NoObfuscate="false"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\MarkdownDeep.js"
@@ -140,6 +161,51 @@
 					Name="MiniME"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\MarkdownDeepEditor.js"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					MaxLineLength="120"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					diagsymbols="false"
+					MaxLineLength="120"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\MarkdownDeepEditor.min.js"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\Toolbar.png"
+			>
 		</File>
 	</Files>
 	<Globals>

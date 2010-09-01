@@ -25,6 +25,12 @@
 					Switch="-stdout"
 				/>
 				<BooleanProperty
+					Name="nowarnings"
+					DisplayName="Disable Warnings"
+					Description="Disable all warning messages"
+					Switch="-no-warnings"
+				/>
+				<BooleanProperty
 					Name="diagformatted"
 					DisplayName="Formatted"
 					PropertyPageName="MiniME Developer"

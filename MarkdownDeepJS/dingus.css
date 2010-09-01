@@ -35,3 +35,70 @@ div.content
 {
 	margin-right:280px;
 }
+
+div.toolbar
+{
+	float:left;	
+	padding-bottom:5px;
+}
+
+div.toolbar ul
+{
+	margin:0;
+	padding:0;
+	list-style:none;
+}
+
+div.toolbar li
+{
+	float:left;
+}
+
+div.toolbar a
+{
+	background-image:url(Toolbar.png);
+	width:20px;
+	height:20px;
+	display:block;
+}
+
+span.tbsep
+{
+	width:10px;
+	height:20px;
+	display:block;
+	border-left:solid 1px #808080;
+	margin-left:5px;
+}
+
+#mdd_bold			{ background-position:0px 0px;}
+#mdd_bold:hover		{ background-position:0px 20px; }
+#mdd_italic			{ background-position:-20px 0px; }
+#mdd_italic:hover	{ background-position:-20px 20px; }
+#mdd_ullist			{ background-position:-160px 0px; }
+#mdd_ullist:hover	{ background-position:-160px 20px; }
+#mdd_ollist			{ background-position:-140px 0px; }
+#mdd_ollist:hover	{ background-position:-140px 20px; }
+#mdd_indent			{ background-position:-60px 0px; }
+#mdd_indent:hover	{ background-position:-60px 20px; }
+#mdd_outdent		{ background-position:-80px 0px; }
+#mdd_outdent:hover	{ background-position:-80px 20px; }
+#mdd_link			{ background-position:-40px 0px; }
+#mdd_link:hover		{ background-position:-40px 20px; }
+#mdd_img			{ background-position:-120px 0px; }
+#mdd_img:hover		{ background-position:-120px 20px; }
+#mdd_hr				{ background-position:-200px 0px; }
+#mdd_hr:hover		{ background-position:-200px 20px; }
+#mdd_code			{ background-position:-100px 0px; }
+#mdd_code:hover		{ background-position:-100px 20px; }
+#mdd_heading		{ background-position:-180px 0px; }
+#mdd_heading:hover	{ background-position:-180px 20px; }
+#mdd_undo			{ background-position:-220px 0px; }
+#mdd_undo:hover		{ background-position:-220px 20px; }
+#mdd_redo			{ background-position:-240px 0px; }
+#mdd_redo:hover		{ background-position:-240px 20px; }
+
+.clear
+{
+	clear:both;
+}
