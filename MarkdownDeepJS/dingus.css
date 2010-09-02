@@ -6,7 +6,10 @@ body
 textarea
 {
 	width:100%;
-	height:50%;
+	height:200px;
+	padding:5px;
+	margin:0;
+	resize:none;
 }
 
 div.syntax
@@ -38,8 +41,11 @@ div.content
 
 div.toolbar
 {
-	float:left;	
-	padding-bottom:5px;
+	float:left;
+	background-color:#f8f8f8;
+	padding:5px;
+	width:100%;
+	border:solid 1px #f8f8f8;
 }
 
 div.toolbar ul
@@ -60,6 +66,21 @@ div.toolbar a
 	width:20px;
 	height:20px;
 	display:block;
+}
+
+div.resizer
+{
+	background:#f8f8f8; 
+	background-image:url(gripper.png);
+	background-repeat:no-repeat;
+	background-position:center 1px;
+	width:100%;
+	height:7px;
+	padding-left:5px;
+	padding-right:5px;
+	border:solid 1px #f0f0f0;
+	margin-top:2px;
+	cursor:n-resize;
 }
 
 span.tbsep

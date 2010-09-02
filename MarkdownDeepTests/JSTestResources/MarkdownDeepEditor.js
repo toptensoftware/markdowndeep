@@ -1,7 +1,62 @@
+//! MarkdownDeep  http://toptensoftware.com/MarkdownDeep
+//! Copyright (C) 2010 Topten Software. Some Rights Reserved
+
+/*
+Usage:
+
+// 1. Create the editor an bind to a text area, output div and an optional source view div
+        - text area: the text area that user types to.
+        - output div: a div where the transformed html will be displayed
+        - source view view: an optional div where a "source" view of the rendered html will be placed
+      
+    var editor=new MarkdownDeepEditor.Editor(textarea_element, output_div, source_div)
+    
+// 2. Optionally set options
+
+        editor.disableShortCutKeys=true;    // Disable Ctrl+B, Ctrl+I etc...
+        editor.disableAutoIndent=true;      // Disable auto indent on enter key
+        editor.disableTabHandling=true;     // Disable tab/shift+tab for indent
+    
+// 3. Optionally install hooks
+    
+        editor.onPreTransform=function(editor, markdown) {}
+        editor.onPostTransform=function(editor, html) {}
+        editor.onPostUpdateDom=function(editor) {}
+
+// 4. Create a toolbar/UI that calls the editor.InvokeCommand(<commandname>) where the following commands
+        are available:
+        
+        - "undo",
+        - "redo",
+        - "bold",
+        - "italic",
+        - "heading",
+        - "code",
+        - "ullist",
+        - "ollist",
+        - "indent",
+        - "outdent",
+        - "link",
+        - "img",
+        - "hr",
+        - "h0",
+        - "h1",
+        - "h2",
+        - "h3",
+        - "h4",
+        - "h5",
+        - "h6"
+        
+      eg: editor.InvokeCommand("heading") to toggle heading style of selection
+    
+*/
+
 var MarkdownDeepEditor=new function(){
 
     // private:priv.
     // private:.m_*
+    // private:.m_listType
+    // private:.m_prefixLen
     
 
     var ie=false;
@@ -50,19 +105,6 @@ var MarkdownDeepEditor=new function(){
         "5": "h5",
         "6": "h6"
     }
-
-/*
-    // Don't need these as they're onlyl weird in keyPress which we're not using
-    var keycode_safari_left=37;
-    var keycode_safari_right=39;
-    var keycode_safari_up=38;
-    var keycode_safari_down=40;
-    var keycode_safari_delete=63272;
-    var keycode_safari_end=63275;
-    var keycode_safari_home=63273;
-    var keycode_safari_pgup=63276;
-    var keycode_safari_pgdn=63277;
-*/    
 
     function starts_with(str, match)
     {
@@ -121,6 +163,7 @@ var MarkdownDeepEditor=new function(){
         if (event.cancelBubble!==undefined)
         {
             event.cancelBubble=true;
+            event.keyCode=0;
             return false;
         }
         return false;
@@ -146,17 +189,18 @@ var MarkdownDeepEditor=new function(){
             var sel=document.selection.createRange();
             var temp=sel.duplicate();
             temp.moveToElementText(textarea);
-            temp.setEndPoint("EndToEnd", sel);
-            this.m_selectionEnd = temp.text.length;
-            this.m_selectionStart = this.m_selectionEnd - sel.text.length;
+            var basepos=-temp.moveStart('character', -10000000);
+            
+            this.m_selectionStart = -sel.moveStart('character', -10000000)-basepos;
+            this.m_selectionEnd = -sel.moveEnd('character', -10000000)-basepos;
+            this.m_text=textarea.value.replace(/\r\n/gm,"\n");
         }
         else
         {
             this.m_selectionStart = textarea.selectionStart;
             this.m_selectionEnd = textarea.selectionEnd;
+            this.m_text=textarea.value;
         }
-        
-        this.m_text=textarea.value;
     }
     
     priv.Duplicate=function()
@@ -179,8 +223,8 @@ var MarkdownDeepEditor=new function(){
         {
             var r=this.m_textarea.createTextRange();
             r.collapse(true);
-            r.moveEnd("character", offsetToRangeCharacterMove(this.m_textarea, this.m_selectionEnd));
-            r.moveStart("character", offsetToRangeCharacterMove(this.m_textarea, this.m_selectionStart));
+            r.moveEnd("character", this.m_selectionEnd);
+            r.moveStart("character", this.m_selectionStart);
             r.select();
         }
         else
@@ -193,6 +237,20 @@ var MarkdownDeepEditor=new function(){
     {
         this.m_text=this.m_text.substr(0, this.m_selectionStart) + str + this.m_text.substr(this.m_selectionEnd);
         this.m_selectionEnd=this.m_selectionStart + str.length;
+    }
+
+    function adjust_pos(pos2, editpos, del, ins)
+    {
+        if (pos2<editpos)
+            return pos2;
+        return pos2<editpos+del ? editpos : pos2 + ins - del;
+    }
+    
+    priv.ReplaceAt=function(pos, len, str)
+    {
+        this.m_text=this.m_text.substr(0, pos) + str + this.m_text.substr(pos+len);
+        this.m_selectionStart=adjust_pos(this.m_selectionStart, pos, len, str.length);
+        this.m_selectionEnd=adjust_pos(this.m_selectionEnd, pos, len, str.length);
     }
     
     priv.getSelectedText=function()
@@ -253,6 +311,13 @@ var MarkdownDeepEditor=new function(){
         return this.SkipEol(this.FindEndOfLine(pos));
     }
     
+    priv.SkipWhiteSpace=function(pos)
+    {
+        while (pos<this.m_text.length && is_whitespace(this.m_text.charAt(pos)))
+            pos++;
+        return pos;
+    }
+    
     priv.SkipEol=function(pos)
     {
         if (this.m_text.substr(pos, 2)=="\r\n")
@@ -283,19 +348,27 @@ var MarkdownDeepEditor=new function(){
         }
     }
     
+    priv.SkipPreceedingWhiteSpace=function(pos)
+    {
+        while (pos>0 && is_whitespace(this.m_text.charAt(pos-1)))
+        {
+            pos--;
+        }
+        return pos;
+    }
+    
+    priv.SkipFollowingWhiteSpace=function(pos)
+    {
+        while (is_whitespace(this.m_text.charAt(pos)))
+        {
+            pos++;
+        }
+        return pos;
+    }
     priv.SelectSurroundingWhiteSpace=function()
     {
-        var originalStart=this.m_selectionStart;
-        
-        // Expand to include all surrounding whitespace
-        while (this.m_selectionStart>0 && is_whitespace(this.m_text.charAt(this.m_selectionStart-1)))
-        {
-            this.m_selectionStart--;
-        }
-        while (is_whitespace(this.m_text.charAt(this.m_selectionEnd)))
-        {
-            this.m_selectionEnd++;
-        }
+        this.m_selectionStart=this.SkipPreceedingWhiteSpace(this.m_selectionStart);
+        this.m_selectionEnd=this.SkipFollowingWhiteSpace(this.m_selectionEnd);
     }
     
     priv.CheckSimpleSelection=function()
@@ -328,37 +401,87 @@ var MarkdownDeepEditor=new function(){
         return true;
     }
     
-    priv.SelectParagraph=function()
+    priv.FindStartOfParagraph=function(pos)
     {
+        var savepos=pos;
+        
         // Move to start of first line
-        this.m_selectionStart=this.FindStartOfLine(this.m_selectionStart);
+        pos=this.FindStartOfLine(pos);
+        
+        if (this.IsBlankLine(pos))
+            return pos;
 
         // Move to first line after blank line
-        find_start_of_para:        
-        while (this.m_selectionStart>0)
+        while (pos>0)
         {
-            var p=this.FindStartOfLine(this.SkipPreceedingEol(this.m_selectionStart));
+            var p=this.FindStartOfLine(this.SkipPreceedingEol(pos));
             if (p==0)
-                break;  // BOF
+                break;
             if (this.IsBlankLine(p))
                 break;
-            this.m_selectionStart=p;
+            pos=p;
         }
         
-        this.m_selectionEnd=this.m_selectionStart;
-        
-        // Skip all lines that aren't blank
-        while (this.m_selectionEnd<this.m_text.length)
+        // Is it a list?
+        if (this.DetectListType(pos).m_prefixLen!=0)
         {
-            if (this.IsBlankLine(this.m_selectionEnd))
-                break;
-                
-            this.m_selectionEnd=this.FindNextLine(this.m_selectionEnd);
+            // Do it again, but stop at line with list prefix
+            pos=this.FindStartOfLine(savepos);
+            
+            // Move to first line after blank line
+            while (pos>0)
+            {
+                if (this.DetectListType(pos).m_prefixLen!=0)
+                    return pos;
+                    
+                // go to line before
+                pos=this.FindStartOfLine(this.SkipPreceedingEol(pos));
+            }
         }
+        
+        return pos;
     }
     
+    priv.FindEndOfParagraph=function(pos)
+    {
+        // Skip all lines that aren't blank
+        while (pos<this.m_text.length)
+        {
+            if (this.IsBlankLine(pos))
+                break;
+                
+            pos=this.FindNextLine(pos);
+        }
+        
+        return pos;
+    }
+    
+    // Select the paragraph
+    priv.SelectParagraph=function()
+    {
+        this.m_selectionStart=this.FindStartOfParagraph(this.m_selectionStart);
+        this.m_selectionEnd=this.FindEndOfParagraph(this.m_selectionStart);        
+    }
+    
+    // Starting at position pos, return the list type
+    // returns { m_listType, m_prefixLen } 
+    priv.DetectListType=function(pos)
+    {
+        var prefix=this.m_text.substr(pos, 10);
+        var m=prefix.match(/^\s{0,3}(\*|\d+\.)(?:\ |\t)*/);
+        if (!m)
+            return {m_listType:"", m_prefixLen:0};
+            
+        if (m[1]=='*')
+            return {m_listType:"*", m_prefixLen:m[0].length};
+        else
+            return {m_listType:"1", m_prefixLen:m[0].length};
+    }
+    
+    
+    
 
-    // Constructor
+    // Editor
     function Editor(textarea, div_html, div_source)
     {
         // Is it IE?
@@ -396,56 +519,96 @@ var MarkdownDeepEditor=new function(){
     var priv=Editor.prototype;
     var pub=Editor.prototype;
     
+    
     priv.onKeyDown=function(e)
     {
+        var newMode=null;
+        var retv=true;
+        
         // Normal keys only
         if(e.ctrlKey || e.metaKey)
         {
             var key=String.fromCharCode(e.charCode||e.keyCode);
-            if (shortcut_keys[key]!=undefined)
+
+            // Built in short cut key?
+            if (!this.disableShortCutKeys && shortcut_keys[key]!=undefined)
             {
                 this.InvokeCommand(shortcut_keys[key]);
                 return PreventEventDefault(e);
             }
-            return true;
+            
+            // Standard keys
+            switch (key)
+            {
+                case "V":   // Paste
+                    newMode=undomode_text;
+                    break;
+                    
+                case "X":   // Cut
+                    newMode=undomode_erase;
+                    break;
+            }
         }
-
-        var newMode;            
-        switch (e.keyCode)
+        else
         {
-            case keycode_tab:
-                this.InvokeCommand(e.shiftKey ? "untab" : "tab");
-                return PreventEventDefault(e);
-        
-            case keycode_left:
-            case keycode_right:
-            case keycode_up:
-            case keycode_down:
-            case keycode_home:
-            case keycode_end:
-            case keycode_pgup:
-            case keycode_pgdn:
-                // Navigation mode
-                newMode=undomode_navigate;
-                break;
+            switch (e.keyCode)
+            {
+                case keycode_tab:
+                    if (!this.disableTabHandling)
+                    {
+                        this.InvokeCommand(e.shiftKey ? "untab" : "tab");
+                        return PreventEventDefault(e);
+                    }
+                    else
+                    {
+                        newMode=undomode_text;
+                    }
+                    break;
+                        
+            
+                case keycode_left:
+                case keycode_right:
+                case keycode_up:
+                case keycode_down:
+                case keycode_home:
+                case keycode_end:
+                case keycode_pgup:
+                case keycode_pgdn:
+                    // Navigation mode
+                    newMode=undomode_navigate;
+                    break;
 
-            case keycode_backspace:
-            case keycode_delete:
-                // Delete mode
-                newMode=undomode_erase;
-                break;
-            
-            case keycode_enter:
-                // New lines mode
-                newMode=undomode_whitespace;
-                break;
-            
-            default:
-                // Text mode
-                newMode=undomode_text;
+                case keycode_backspace:
+                case keycode_delete:
+                    // Delete mode
+                    newMode=undomode_erase;
+                    break;
+                
+                case keycode_enter:
+                    // New lines mode
+                    newMode=undomode_whitespace;
+                    break;
+                
+                default:
+                    // Text mode
+                    newMode=undomode_text;
+            }
         }
-        
-        this.SetUndoMode(newMode);
+
+        if (newMode!=null)
+            this.SetUndoMode(newMode);
+
+        // Special handling for enter key
+        if (!this.disableAutoIndent)
+        {
+            if (e.keyCode==keycode_enter && (!ie || e.ctrlKey))
+            {
+                this.InvokeCommand("indented_newline");
+                this.m_undoStack.pop();
+                this.m_undoPos--;
+                return PreventEventDefault(e);
+            }
+        }
     } 
 
     priv.SetUndoMode=function(newMode)
@@ -478,13 +641,18 @@ var MarkdownDeepEditor=new function(){
         if (new_content===this.m_lastContent && this.m_lastContent!==null)
 	        return;
 	        
-    	// Convert Markdown to HTML
-        var startTime = new Date().getTime();
+    	// Call pre hook
+    	if (this.onPreTransform)
+    	    this.onPreTransform(this, new_content);
+    
+        // Transform
         var output=this.m_markdown.Transform(new_content);
-        this.timeTransform = new Date().getTime()- startTime;
+
+        // Call post hook
+    	if (this.onPostTransform)
+    	    this.onPostTransform(this, output);
 
     	// Update the DOM
-        startTime = new Date().getTime();
         if (this.m_divHtml)
             this.m_divHtml.innerHTML=output;
         if (this.m_divSource)
@@ -492,7 +660,10 @@ var MarkdownDeepEditor=new function(){
             this.m_divSource.innerHTML="";
             this.m_divSource.appendChild(document.createTextNode(output));
         }
-        this.timeUpdateDOM = new Date().getTime()- startTime;
+        
+        // Call post update dom handler
+        if (this.onPostUpdateDom)
+            this.onPostUpdateDom(this);
 
         // Save previous content
         this.m_lastContent=new_content;
@@ -619,16 +790,8 @@ var MarkdownDeepEditor=new function(){
 
         if (state.m_selectionStart!=0)
         {
-            if (ie)
-            {
-                text="\r\n\r\n" + text;
-                selOffset+=4;
-            }
-            else
-            {
-                text="\n\n" + text;
-                selOffset+=2;
-            }
+            text="\n\n" + text;
+            selOffset+=2;
         }
 
         // Replace text
@@ -681,7 +844,7 @@ var MarkdownDeepEditor=new function(){
         return this.setHeadingLevel(state, 6);
     }
 
-    pub.IndentCodeBlock=function(state, indent)
+    priv.IndentCodeBlock=function(state, indent)
     {
         // Make sure whole lines are selected
         state.SelectWholeLines();
@@ -689,6 +852,24 @@ var MarkdownDeepEditor=new function(){
         // Get the text, split into lines 
         var lines=state.getSelectedText().split("\n");
         
+		// Convert leading tabs to spaces   
+        for (var i=0; i<lines.length; i++)
+        {
+			if (lines[i].charAt(0)=="\t")
+			{
+				var newLead="";
+				var p=0;
+				while (lines[i].charAt(p)=="\t")
+				{
+					newLead+="    ";
+					p++;
+				}
+				
+				var newLine=newLead + lines[i].substr(p);
+				lines.splice(i, 1, newLine);
+			}
+        }
+
         // Toggle indent/unindent?
         if (indent===null)
         {
@@ -698,9 +879,24 @@ var MarkdownDeepEditor=new function(){
                 // Blank lines are allowed
                 if (trim(lines[i])=="")
                     continue;
-                    
+                 
+				// Convert leading tabs to spaces   
+				if (lines[i].charAt(0)=="\t")
+				{
+					var newLead="";
+					var p=0;
+					while (lines[i].charAt(p)=="\t")
+					{
+						newLead+="    ";
+						p++;
+					}
+					
+					var newLine=newLead + lines[i].substr(i);
+					lines.splice(i, 1, newLine);
+				}
+					
                 // Tabbed line
-                if (!starts_with(lines[i], "\t") && !starts_with(lines[i], "    "))
+                if (!starts_with(lines[i], "    "))
                     break;
             }
 
@@ -739,6 +935,20 @@ var MarkdownDeepEditor=new function(){
     // Code
     pub.cmd_code=function(state)
     {
+        // Cursor on a blank line?
+		if (state.m_selectionStart==state.m_selectionEnd)
+		{
+			var line=state.FindStartOfLine(state.m_selectionStart);
+			if (state.IsBlankLine(line))
+			{
+				state.SelectSurroundingWhiteSpace();
+				state.ReplaceSelection("\n\n    Code\n\n");
+				state.m_selectionStart+=6;
+				state.m_selectionEnd=state.m_selectionStart + 4;
+				return true;
+			}
+		}       
+	
         // If the current text is preceeded by a non-whitespace, or followed by a non-whitespace
         // then do an inline code
         if (state.getSelectedText().indexOf("\n")<0)
@@ -764,7 +974,26 @@ var MarkdownDeepEditor=new function(){
         }
         else
         {
-            state.ReplaceSelection("\t");
+            // If we're in the leading whitespace of a line
+            // insert spaces instead of an actual tab character
+            var lineStart=state.FindStartOfLine(state.m_selectionStart);
+            var p;
+            for (p=lineStart; p<state.m_selectionStart; p++)
+            {
+                if (state.m_text.charAt(p)!=' ')
+                    break;
+            }
+            
+            // All spaces?
+            if (p==state.m_selectionStart)
+            {
+                var spacesToNextTabStop=4-((p-lineStart)%4);
+                state.ReplaceSelection("    ".substr(0, spacesToNextTabStop));
+            }
+            else
+            {  
+                state.ReplaceSelection("\t");
+            }
             state.m_selectionStart=state.m_selectionEnd;
         }
         return true;
@@ -839,7 +1068,7 @@ var MarkdownDeepEditor=new function(){
         return this.bold_or_italic(state, "*");
     }
     
-    pub.indent_or_outdent=function(state, outdent)
+    priv.indent_or_outdent=function(state, outdent)
     {
         if (false && state.m_selectionStart==state.m_selectionEnd)
         {
@@ -891,12 +1120,106 @@ var MarkdownDeepEditor=new function(){
     {
         return this.indent_or_outdent(state, true);
     }
+
+    priv.handle_list=function(state, type)
+    {
+        // Build an array of selected line offsets        
+        var lines=[];
+        if (state.getSelectedText().indexOf("\n")>0)
+        {
+            state.SelectWholeLines();
+            
+            var line=state.m_selectionStart;
+            lines.push(line);
+            
+            while (true)
+            {
+                line=state.FindNextLine(line);
+                if (line>=state.m_selectionEnd)
+                    break;  
+                lines.push(line);
+            }
+        }
+        else
+        {
+            lines.push(state.FindStartOfLine(state.m_selectionStart));
+        }
+        
+        // Now work out the new list type
+        // If the current selection only contains the current list type
+        // then remove list items
+        var prefix = type=="*" ? "* " : "1. ";
+        for (var i=0; i<lines.length; i++)
+        {
+            var lt=state.DetectListType(lines[i]);
+            if (lt.m_listType==type)
+            {
+                prefix="";
+                break;
+            }
+        }
+
+        // Update the prefix on all lines
+        for (var i=lines.length-1; i>=0; i--)
+        {
+            var line=lines[i];
+            var lt=state.DetectListType(line);
+            state.ReplaceAt(line, lt.m_prefixLen, prefix);
+        }
+        
+        // We now need to find any surrounding lists and renumber them
+        var mdd=new MarkdownDeep.Markdown();
+        mdd.ExtraMode=true;
+        var listitems=mdd.GetListItems(state.m_text, state.m_selectionStart);
+        
+        while (listitems!=null)
+        {
+            // Process each list item
+            var dx=0;
+            for (var i=0; i<listitems.length-1; i++)
+            {
+                // Detect the list type
+                var lt=state.DetectListType(listitems[i]+dx);
+                if (lt.m_listType!="1")
+                    break;
+                    
+                // Format new number prefix
+                var newNumber=(i+1).toString() + ". ";
+                
+                // Replace it
+                state.ReplaceAt(listitems[i]+dx, lt.m_prefixLen, newNumber);
+                
+                // Adjust things if new prefix is different length to the previos
+                dx += newNumber.length - lt.m_prefixLen;
+            }
+            
+            
+            var newlistitems=mdd.GetListItems(state.m_text, listitems[listitems.length-1]+dx);
+            if (newlistitems!=null && newlistitems[0]!=listitems[0])
+                listitems=newlistitems;
+            else
+                listitems=null;
+        }
+        
+        
+        // Select lines
+        if (lines.length>1)
+        {
+            state.SelectWholeLines();
+        }
+        
+        return true;
+    }
+    
+    
+    pub.cmd_ullist=function(state)
+    {
+        return this.handle_list(state, "*");
+    }
     
     pub.cmd_ollist=function(state)
     {
-        var mdd=new MarkdownDeep.Markdown();
-        var listitems=mdd.GetListItems(state.m_text, state.m_selectionStart);
-        alert(listitems);
+        return this.handle_list(state, "1");
     }
     
     pub.cmd_link=function(ctx)
@@ -955,6 +1278,35 @@ var MarkdownDeepEditor=new function(){
         else
             state.ReplaceSelection("\n\n----------\n\n");
         state.m_selectionStart=state.m_selectionEnd;;
+        return true;
+    }
+    
+    pub.cmd_indented_newline=function(state)
+    {
+        // Do default new line
+        state.ReplaceSelection("\n");
+        state.m_selectionStart=state.m_selectionEnd;
+        
+        // Find start of previous line
+        var prevline=state.FindStartOfLine(state.SkipPreceedingEol(state.m_selectionStart));
+        
+        // Count spaces and tabs
+        var i=prevline;
+        while (true)
+        {
+            var ch=state.m_text.charAt(i);
+            if (ch!=' ' && ch!='\t')
+                break;
+            i++;
+        }
+        
+        // Copy spaces and tabs to the new line
+        if (i>prevline)
+        {
+            state.ReplaceSelection(state.m_text.substr(prevline, i-prevline));
+            state.m_selectionStart=state.m_selectionEnd;
+        }
+
         return true;
     }
     

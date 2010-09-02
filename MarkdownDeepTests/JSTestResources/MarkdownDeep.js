@@ -48,16 +48,30 @@ var MarkdownDeep = new function(){
     
     var p=Markdown.prototype;
     
+    function splice_array(dest, position, del, ins)
+    {
+        return dest.slice(0, position).concat(ins).concat(dest.slice(position+del));
+    }
+    
     Markdown.prototype.GetListItems=function(input, offset)
     {
         // Parse content into blocks
         var blocks=this.ProcessBlocks(input);
+        
 
         // Find the block        
         var i;
         for (i=0; i<blocks.length; i++)
         {
             var b=blocks[i];
+            
+            if ((b.blockType==BlockType_Composite || b.blockType==BlockType_html || b.blockType==BlockType_HtmlTag) && b.children)
+            {
+                blocks=splice_array(blocks, i, 1, b.children);
+                i--;
+                continue;
+            }
+            
             if (offset < b.lineStart)
             {
                 break;
@@ -80,10 +94,21 @@ var MarkdownDeep = new function(){
         // Build list of line offsets
         var list=[];
         var items=block.children;
-        for (var i=0; i<items.length; i++)
+        for (var j=0; j<items.length; j++)
         {
-            list.push(items[i].lineStart);
+            list.push(items[j].lineStart);
         }     
+        
+        // Also push the line offset of the following block
+        i++;
+        if (i < blocks.length)
+        {
+            list.push(blocks[i].lineStart);
+        }
+        else
+        {  
+            list.push(input.length);
+        }
         
         return list;
     }
@@ -4341,6 +4366,7 @@ var MarkdownDeep = new function(){
 				// Create the item and process child blocks
 				var item = this.CreateBlock();
 				item.blockType = BlockType_li;
+				item.lineStart = lines[start_of_li].lineStart;
 				var bp=new BlockProcessor(this.m_Markdown);
 				bp.m_parentType=listType;
 				item.children = bp.Process(sb.ToString());

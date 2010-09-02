@@ -5,6 +5,12 @@ $(function() {
     // Create MarkdownDeep Editor
     mdd_editor=new MarkdownDeepEditor.Editor($("#markdown_input")[0], $("#markdown_output")[0], $("#markdown_output_source")[0]);
     
+    /*
+    mdd_editor.disableShortCutKeys=true;
+    mdd_editor.disableAutoIndent=true;
+    mdd_editor.disableTabHandling=true;
+    */
+    
 	$("#SafeMode").click(function(){ 
 	    mdd_editor.markdown.SafeMode=$(this).attr("checked");
 	    mdd_editor.onOptionsChanged();
@@ -18,7 +24,6 @@ $(function() {
 	    mdd_editor.onOptionsChanged();
 	});
 	
-
 	// Toggle between html/source view
 	$("#ViewHtml").click(function(){ 
     	$("#markdown_output").toggle();

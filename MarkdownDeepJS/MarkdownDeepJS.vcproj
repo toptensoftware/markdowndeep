@@ -82,6 +82,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\grippie.png"
+			>
+		</File>
+		<File
 			RelativePath=".\jquery-1.4.2.js"
 			>
 			<FileConfiguration
