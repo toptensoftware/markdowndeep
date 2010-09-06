@@ -170,13 +170,12 @@ var MarkdownDeepEditor=new function(){
         if (event.preventDefault)
         {
             event.preventDefault();
-            return false;
         }
         if (event.cancelBubble!==undefined)
         {
             event.cancelBubble=true;
             event.keyCode=0;
-            return false;
+            event.returnValue=false;
         }
         return false;
     }
@@ -494,7 +493,7 @@ var MarkdownDeepEditor=new function(){
     
 
     // Editor
-    function Editor(textarea, div_html, div_source)
+    function Editor(textarea, div_html)
     {
         // Is it IE?
         if (!textarea.setSelectionRange)
@@ -514,7 +513,7 @@ var MarkdownDeepEditor=new function(){
         // Store DOM elements
         this.m_textarea=textarea;
         this.m_divHtml=div_html;
-        this.m_divSource=div_source;
+        this.m_divSource=null;
 
         // Bind events
         var ed=this;
@@ -1362,48 +1361,6 @@ var MarkdownDeepEditor=new function(){
             return false;
         }
     }
-    
-    pub.BindResizer=function(resizer)
-    {
-        var This=this;
-        var iOriginalMouse;
-        var iOriginalHeight;
-
-        BindEvent(resizer, "mousedown", StartDrag)
-
-        function StartDrag(e)
-        {
-    		iOriginalMouse = e.clientY;
-	        iOriginalHeight = parseFloat(This.m_textarea.style.height);
-	        if (!iOriginalHeight)
-	            iOriginalHeight = This.m_textarea.offsetHeight;
-	            
-
-            BindEvent(document, "mousemove", DoDrag);
-            BindEvent(document, "mouseup", EndDrag);
-            
-            return PreventEventDefault(e);
-        }
-        
-        function EndDrag(e)
-        {
-            UnbindEvent(document, "mousemove", DoDrag);
-            UnbindEvent(document, "mouseup", EndDrag);
-            return PreventEventDefault(e);
-        }
-            
-        function DoDrag(e)
-        {
-            var newHeight=iOriginalHeight + e.clientY - iOriginalMouse;
-            if (newHeight<50)
-                newHeight=50;
-            This.m_textarea.style.height=newHeight + "px";
-            return PreventEventDefault(e);
-        }
-    }
-    
-        
-    
     
     delete priv;
     delete pub;

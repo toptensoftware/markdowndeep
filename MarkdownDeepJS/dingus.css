@@ -3,123 +3,22 @@ body
 	font-family: sans-serif;
 }
 
-textarea
-{
-	width:100%;
-	height:200px;
-	padding:5px;
-	margin:0;
-	resize:none;
-}
-
-div.syntax
-{
-	float:right;
-	width:250px;
-	font-size:10pt;
-}
-div.syntax h2
-{
-	font-size:12pt;
-}
-div.syntax h3
-{
-	font-size:10pt;
-}
-div.syntax pre
-{
-	font-size:7.5pt;
-	border:solid 1px silver;
-	padding:4px;
-	background-color:#f8f8f8;
-}
-
-div.content
-{
-	margin-right:280px;
-}
-
-div.toolbar
-{
-	float:left;
-	background-color:#f8f8f8;
-	padding:5px;
-	width:100%;
-	border:solid 1px #f8f8f8;
-}
-
-div.toolbar ul
-{
-	margin:0;
-	padding:0;
-	list-style:none;
-}
-
-div.toolbar li
-{
-	float:left;
-}
-
-div.toolbar a
-{
-	background-image:url(Toolbar.png);
-	width:20px;
-	height:20px;
-	display:block;
-}
-
-div.resizer
-{
-	background:#f8f8f8; 
-	background-image:url(gripper.png);
-	background-repeat:no-repeat;
-	background-position:center 1px;
-	width:100%;
-	height:7px;
-	padding-left:5px;
-	padding-right:5px;
-	border:solid 1px #f0f0f0;
-	margin-top:2px;
-	cursor:n-resize;
-}
-
-span.tbsep
-{
-	width:10px;
-	height:20px;
-	display:block;
-	border-left:solid 1px #808080;
-	margin-left:5px;
-}
-
-#mdd_bold			{ background-position:0px 0px;}
-#mdd_bold:hover		{ background-position:0px 20px; }
-#mdd_italic			{ background-position:-20px 0px; }
-#mdd_italic:hover	{ background-position:-20px 20px; }
-#mdd_ullist			{ background-position:-160px 0px; }
-#mdd_ullist:hover	{ background-position:-160px 20px; }
-#mdd_ollist			{ background-position:-140px 0px; }
-#mdd_ollist:hover	{ background-position:-140px 20px; }
-#mdd_indent			{ background-position:-60px 0px; }
-#mdd_indent:hover	{ background-position:-60px 20px; }
-#mdd_outdent		{ background-position:-80px 0px; }
-#mdd_outdent:hover	{ background-position:-80px 20px; }
-#mdd_link			{ background-position:-40px 0px; }
-#mdd_link:hover		{ background-position:-40px 20px; }
-#mdd_img			{ background-position:-120px 0px; }
-#mdd_img:hover		{ background-position:-120px 20px; }
-#mdd_hr				{ background-position:-200px 0px; }
-#mdd_hr:hover		{ background-position:-200px 20px; }
-#mdd_code			{ background-position:-100px 0px; }
-#mdd_code:hover		{ background-position:-100px 20px; }
-#mdd_heading		{ background-position:-180px 0px; }
-#mdd_heading:hover	{ background-position:-180px 20px; }
-#mdd_undo			{ background-position:-220px 0px; }
-#mdd_undo:hover		{ background-position:-220px 20px; }
-#mdd_redo			{ background-position:-240px 0px; }
-#mdd_redo:hover		{ background-position:-240px 20px; }
-
 .clear
 {
 	clear:both;
+}
+
+.mdd_editor
+{
+	font-family: Consolas, Menlo, Monaco, 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Courier New' , Courier, monospace;
+	font-weight:normal;
+	font-size: 10pt;
+	color:#202020;
+	width:100%;
+	resize:none;
+}
+
+#options
+{
+	display:none;
 }

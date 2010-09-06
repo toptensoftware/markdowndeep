@@ -23,9 +23,8 @@ Usage:
         editor.onPostTransform=function(editor, html) {}
         editor.onPostUpdateDom=function(editor) {}
 
-// 4. Create a toolbar/UI that calls the editor.InvokeCommand(<commandname>) where the following commands
-        are available:
-        
+// 4. Optionally create a toolbar/UI that calls editor.InvokeCommand(cmd) where cmd is one of:        
+
         - "undo",
         - "redo",
         - "bold",
@@ -153,18 +152,30 @@ var MarkdownDeepEditor=new function(){
         }
     }
     
+    // Helper for unbinding events
+    function UnbindEvent(obj, event, handler)
+    {
+        if (obj.removeEventListener)
+        {
+            obj.removeEventListener(event, handler, false);
+        }
+        else if (obj.detachEvent)
+        {
+            obj.detachEvent("on"+event, handler);
+        }
+    }
+    
     function PreventEventDefault(event)
     {
         if (event.preventDefault)
         {
             event.preventDefault();
-            return false;
         }
         if (event.cancelBubble!==undefined)
         {
             event.cancelBubble=true;
             event.keyCode=0;
-            return false;
+            event.returnValue=false;
         }
         return false;
     }
@@ -482,7 +493,7 @@ var MarkdownDeepEditor=new function(){
     
 
     // Editor
-    function Editor(textarea, div_html, div_source)
+    function Editor(textarea, div_html)
     {
         // Is it IE?
         if (!textarea.setSelectionRange)
@@ -502,7 +513,7 @@ var MarkdownDeepEditor=new function(){
         // Store DOM elements
         this.m_textarea=textarea;
         this.m_divHtml=div_html;
-        this.m_divSource=div_source;
+        this.m_divSource=null;
 
         // Bind events
         var ed=this;

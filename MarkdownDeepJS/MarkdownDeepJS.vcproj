@@ -78,14 +78,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\dingus.js"
-			>
-		</File>
-		<File
-			RelativePath=".\grippie.png"
-			>
-		</File>
-		<File
 			RelativePath=".\jquery-1.4.2.js"
 			>
 			<FileConfiguration
@@ -114,23 +106,6 @@
 				>
 				<Tool
 					Name="MiniME"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="c:\Users\bradr\Downloads\jquery-ui-1.8.2.js"
-			>
-		</File>
-		<File
-			RelativePath=".\jquery.textarea.js"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="MiniME"
-					nowarnings="false"
-					NoObfuscate="false"
 				/>
 			</FileConfiguration>
 		</File>
@@ -208,7 +183,68 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath=".\Toolbar.png"
+			RelativePath=".\MarkdownDeepEditorUI.css"
+			>
+		</File>
+		<File
+			RelativePath=".\MarkdownDeepEditorUI.js"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					MaxLineLength="120"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="MiniME"
+					MaxLineLength="120"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\MarkdownDeepEditorUI.min.js"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="MiniME"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\mdd_ajax_loader.gif"
+			>
+		</File>
+		<File
+			RelativePath=".\mdd_gripper.png"
+			>
+		</File>
+		<File
+			RelativePath=".\mdd_help.htm"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath=".\mdd_modal_background.png"
+			>
+		</File>
+		<File
+			RelativePath=".\mdd_toolbar.png"
 			>
 		</File>
 	</Files>

@@ -3,213 +3,16 @@
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
 <link rel="stylesheet" href="dingus.css" type="text/css" />
+<link rel="stylesheet" href="MarkdownDeepEditorUI.css" type="text/css" />
 <script type="text/javascript" src="jquery-1.4.2.js"></script>
 <script type="text/javascript" src="MarkdownDeep.js"></script>
 <script type="text/javascript" src="MarkdownDeepEditor.js"></script>
-<script type="text/javascript" src="dingus.js"></script>
+<script type="text/javascript" src="MarkdownDeepEditorUI.js"></script>
 </head>
 <body>
 
-<div class="syntax">
-<div id="StdModeHelp">
-<h2>Syntax: Standard Mode</h2>
-<p><small><a href="#" class="toggleHelp">Show Extra Mode Help</a></small></p>
-<h3>Phrase Emphasis</h3>
-<pre><code>*italic*   **bold**
-_italic_   __bold__
-</code></pre>
-
-<h3>Links</h3>
-<p>Inline:</p>
-<pre><code>An [example](http://url.com/ &quot;Title&quot;)
-</code></pre>
-
-<p>Reference-style labels (titles are optional):</p>
-<pre><code>An [example][id]. Then, anywhere
-else in the doc, define the link:
-
-  [id]: http://example.com/  &quot;Title&quot;
-</code></pre>
-
-<h3>Images</h3>
-<p>Inline (titles are optional):</p>
-<pre><code>![alt text](/path/img.jpg &quot;Title&quot;)
-</code></pre>
-
-<p>Reference-style:</p>
-<pre><code>![alt text][id]
-
-[id]: /url/to/img.jpg &quot;Title&quot;
-</code></pre>
-
-<h3>Headers</h3>
-<p>Setext-style:</p>
-<pre><code>Header 1
-========
-
-Header 2
---------
-</code></pre>
-
-<p>atx-style (closing #'s are optional):</p>
-<pre><code># Header 1 #
-
-## Header 2 ##
-
-###### Header 6
-</code></pre>
-
-<h3>Lists</h3>
-<p>Ordered, without paragraphs:</p>
-<pre><code>1.  Foo
-2.  Bar
-</code></pre>
-
-<p>Unordered, with paragraphs:</p>
-<pre><code>*   A list item.
-
-    With multiple paragraphs.
-
-*   Bar
-</code></pre>
-
-<p>You can nest them:</p>
-<pre><code>*   Abacus
-    * answer
-*   Bubbles
-    1.  bunk
-    2.  bupkis
-        * BELITTLER
-    3. burper
-*   Cunning
-</code></pre>
-
-<h3>Blockquotes</h3>
-<pre><code>&gt; Email-style angle brackets
-&gt; are used for blockquotes.
-
-&gt; &gt; And, they can be nested.
-
-&gt; #### Headers in blockquotes
-&gt; 
-&gt; * You can quote a list.
-&gt; * Etc.
-</code></pre>
-
-<h3>Code Spans</h3>
-<pre><code>`&lt;code&gt;` spans are delimited
-by backticks.
-
-You can include literal backticks
-like `` `this` ``.
-</code></pre>
-
-<h3>Preformatted Code Blocks</h3>
-<p>Indent every line of a code block by at least 4 spaces or 1 tab.</p>
-<pre><code>This is a normal paragraph.
-
-    This is a preformatted
-    code block.
-</code></pre>
-
-<h3>Horizontal Rules</h3>
-<p>Three or more dashes or asterisks:</p>
-<pre><code>---
-
-* * *
-
-- - - - 
-</code></pre>
-
-<h3>Manual Line Breaks</h3>
-<p>End a line with two or more spaces:</p>
-<pre><code>Roses are red,   
-Violets are blue.
-</code></pre>
-</div>
-
-<div id="ExtraModeHelp" style="display:none">
-
-<h2>Syntax: Extra Mode</h2>
-
-<p><small><a href="#" class="toggleHelp">Show Standard Mode Help</a></small></p>
-
-<h3>Markdown In Html</h3>
-<p>Enable markdown in HTML block level elements:</p>
-<pre><code>&lt;div markdown=&quot;1&quot;&gt;
-Markdown **still** works.
-&lt;/div&gt;
-</code></pre>
-
-<h3>Fenced Code Blocks</h3>
-<p>Code blocks delimited by 3 or more tildas:</p>
-<pre><code>~~~
-This is a preformatted
-code block
-~~~
-</code></pre>
-
-<h3>Header IDs</h3>
-<p>Set the id of headings with <code>{#&lt;id&gt;}</code> at end of heading line:</p>
-<pre><code>## My Heading {#myheading}
-</code></pre>
-
-<h3>Tables</h3>
-
-<pre><code>Fruit    |Color
----------|----------
-Apples   |Red
-Pears	 |Green
-Bananas  |Yellow</code></pre>
-<h3>Definition Lists</h3>
-<pre><code>Term 1
-: Definition 1
-
-Term 2
-: Definition 2</code></pre>
-
-<h3>Footnotes</h3>
-<pre><code>Body text with a footnote [^1]
-
-[^1]: Footnote text here
-</code></pre>
-
-<h3>Abbreviations</h3>
-<pre><code>MDD &lt;- will have title
-
-*[MDD]: MarkdownDeep
-</code></pre>
-</div>
-
-
-</div>
-
-<div class="content">
-
-<div class="toolbar">
-<ul>
-<li><a href="#" id="mdd_undo" title="Undo (Ctrl+Z)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_redo" title="Redo (Ctrl+Y)" tabindex=-1></a></li>
-<li><span class="tbsep"></span></li>
-<li><a href="#" id="mdd_heading" title="Change Heading Style (Ctrl+H, or Ctrl+0 to Ctrl+6)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_code" title="Preformatted Code (Ctrl+K)" tabindex=-1></a></li>
-<li><span class="tbsep"></span></li>
-<li><a href="#" id="mdd_bold" title="Bold (Ctrl+B)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_italic" title="Italic (Ctrl+I)" tabindex=-1></a></li>
-<li><span class="tbsep"></span></li>
-<li><a href="#" id="mdd_ullist" title="Bullets (Ctrl+U)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_ollist" title="Numbering (Ctrl+O)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_outdent" title="Unquote (Ctrl+W)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_indent" title="Quote (Ctrl+Q)" tabindex=-1></a></li>
-<li><span class="tbsep"></span></li>
-<li><a href="#" id="mdd_link" title="Insert Hyperlink (Ctrl+L)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_img" title="Insert Image (Ctrl+G)" tabindex=-1></a></li>
-<li><a href="#" id="mdd_hr" title="Insert Horizontal Rule (Ctrl+R)" tabindex=-1></a></li>
-</ul>
-</div>
-
-<div style="clear:left"></div>
-<textarea cols=20 rows=20 id="markdown_input" style="height:200px">## Welcome to MarkdownDeep
+<script type="text/javascript">MarkdownDeepEditorUI.RenderToolbar()</script>
+<textarea cols=20 rows=20 class="mdd_editor" style="height:200px">## Welcome to MarkdownDeep
 
 This demo page lets you try the JavaScript version of MarkdownDeep in your browser.
 
@@ -224,19 +27,11 @@ extensions, is open source and has many other useful integration features.
 
 [Read more here](http://www.toptensoftware.com/markdowndeep).
 
-
 </textarea>
-<div class="resizer"></div>
-<br />
-<input type="checkbox" checked="1" id="ExtraMode" /><label for="ExtraMode">Extra Mode</label>
-<input type="checkbox" id="SafeMode" /><label for="SafeMode">Safe Mode</label>
-<input type="checkbox" id="MarkdownInHtml" /><label for="MarkdownInHtml">Markdown in HTML</label>
-<input type="checkbox" id="ViewHtml" /><label for="ViewHtml">Show Generated HTML</label>
-<p><small><span id="processingTime"></span></small></p>
+<script type="text/javascript">MarkdownDeepEditorUI.RenderResizeBar()</script>
+<div class="mdd_preview"></div>
 
-<div id="markdown_output"></div>
-<pre id="markdown_output_source" style="display:none"></pre>
-</div>
+
 
 </body>
 </html>
