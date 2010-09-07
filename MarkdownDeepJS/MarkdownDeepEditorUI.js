@@ -1,4 +1,4 @@
-//! MarkdownDeep  http://toptensoftware.com/MarkdownDeep
+//! MarkdownDeepEditorUI  http://toptensoftware.com/MarkdownDeep
 //! Copyright (C) 2010 Topten Software. Some Rights Reserved
 
 var MarkdownDeepEditorUI=new function(){
@@ -11,7 +11,7 @@ var MarkdownDeepEditorUI=new function(){
     var helpDivWritten=false;
 
     // Helper function that returns the HTML content of the toolbar
-    this.ToolbarHtml=function()
+    this.ToolbarHtml=function(help_location)
     {
         // Start with nothing
         var str=''; 
@@ -23,6 +23,7 @@ var MarkdownDeepEditorUI=new function(){
             str+='<div class="mdd_modal" id="mdd_syntax_container" style="display:none">\n';
             str+='<div class="mdd_modal_frame">\n';
             str+='<div class="mdd_modal_button">\n';
+            str+='<a href="' + help_location + '" id="mdd_help_location" style="display:none"></a>\n';
             str+='<a href="#" id="mdd_close_help">Close</a>\n';
             str+='</div>\n';
             str+='<div class="mdd_modal_content">\n';
@@ -64,9 +65,9 @@ var MarkdownDeepEditorUI=new function(){
     }
     
     // Write the toolbar 
-    this.RenderToolbar=function()
+    this.RenderToolbar=function(help_location)
     {
-        document.write(this.ToolbarHtml());
+        document.write(this.ToolbarHtml(help_location));
     }
     
     // Write the resize bar
@@ -136,7 +137,12 @@ var MarkdownDeepEditorUI=new function(){
         if (!contentLoaded)
         {
             contentLoaded=true;
-            $("#mdd_syntax").load("mdd_help.htm");
+            
+            var help_location=$("#mdd_help_location").attr("href");
+            if (!help_location)
+                help_location="mdd_help.htm";
+                
+            $("#mdd_syntax").load(help_location);
         }
         
         return false;
@@ -196,6 +202,7 @@ var MarkdownDeepEditorUI=new function(){
 	        // Create the editor helper
             var editor=new MarkdownDeepEditor.Editor(textarea, preview);
             editor.onOptionsChanged();
+            
             
             // Store the editor
             $(textarea).data("mdd", editor);

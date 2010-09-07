@@ -439,6 +439,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)MarkdownDeepJS\*.js" "$(ProjectDir)JSTestResources"</PostBuildEvent>
+    <PostBuildEvent>xcopy /D /Y "$(SolutionDir)MarkdownDeepJS\*.js" "$(ProjectDir)JSTestResources"</PostBuildEvent>
   </PropertyGroup>
 </Project>

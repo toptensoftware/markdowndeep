@@ -1,4 +1,4 @@
-//! MarkdownDeep  http://toptensoftware.com/MarkdownDeep
+//! MarkdownDeepEditor  http://toptensoftware.com/MarkdownDeep
 //! Copyright (C) 2010 Topten Software. Some Rights Reserved
 
 /*
@@ -509,11 +509,12 @@ var MarkdownDeepEditor=new function(){
         this.m_markdown=new MarkdownDeep.Markdown();
         this.m_markdown.SafeMode=false;
         this.m_markdown.ExtraMode=true;
+        this.m_markdown.NewWindowForLocalLinks=true;
+        this.m_markdown.NewWindowForExternalLinks=true;
         
         // Store DOM elements
         this.m_textarea=textarea;
         this.m_divHtml=div_html;
-        this.m_divSource=null;
 
         // Bind events
         var ed=this;
@@ -666,11 +667,13 @@ var MarkdownDeepEditor=new function(){
     	// Update the DOM
         if (this.m_divHtml)
             this.m_divHtml.innerHTML=output;
+            /*
         if (this.m_divSource)
         {
             this.m_divSource.innerHTML="";
             this.m_divSource.appendChild(document.createTextNode(output));
         }
+        */
         
         // Call post update dom handler
         if (this.onPostUpdateDom)

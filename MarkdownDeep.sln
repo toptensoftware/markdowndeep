@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeep", "MarkdownDeep\MarkdownDeep.csproj", "{1569ED47-C7C9-4261-B6F4-7445BD0F2C95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepTests", "MarkdownDeepTests\MarkdownDeepTests.csproj", "{CD1F5BFF-0118-4994-86A2-92658A36CE1B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37} = {AE271B39-C3D2-422B-860F-E3BA86AE4C37}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepBenchmark", "MarkdownDeepBenchmark\MarkdownDeepBenchmark.csproj", "{655AA41D-B9F5-48C6-99A8-3D04659B2591}"
 EndProject
@@ -11,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDevBed", "MarkdownD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepGui", "MarkdownDeepGui\MarkdownDeepGui.csproj", "{FBDF1B77-BF84-4B3D-83DE-46271C468690}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MarkdownDeepJS", "MarkdownDeepJS\MarkdownDeepJS.vcproj", "{38139B29-BE83-47E5-A850-E31A5CD0A28E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownDeepJS", "MarkdownDeepJS\MarkdownDeepJS.csproj", "{AE271B39-C3D2-422B-860F-E3BA86AE4C37}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1569ED47-C7C9-4261-B6F4-7445BD0F2C95} = {1569ED47-C7C9-4261-B6F4-7445BD0F2C95}
 	EndProjectSection
@@ -76,16 +79,16 @@ Global
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FBDF1B77-BF84-4B3D-83DE-46271C468690}.Release|Win32.ActiveCfg = Release|Any CPU
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Debug|Win32.Build.0 = Debug|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Release|Any CPU.ActiveCfg = Release|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Release|Win32.ActiveCfg = Release|Win32
-		{38139B29-BE83-47E5-A850-E31A5CD0A28E}.Release|Win32.Build.0 = Release|Win32
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AE271B39-C3D2-422B-860F-E3BA86AE4C37}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

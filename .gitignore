@@ -9,3 +9,5 @@ Debug
 *.swp
 *.swo
 *.ncb
+*.minime-options
+*.zip

@@ -1,13 +1,2 @@
-﻿Prefix
-
-# Welcome #
-
-More Stuff
-
-## Introduction ##
-
-More Stuff
-
-![My Image](b/DSC_0060.jpg "This is a cool image")
-
-
+﻿This is a simple test bed for use during development
+Type markdown here, run and see output in console window
