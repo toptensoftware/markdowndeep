@@ -21,6 +21,7 @@ if "%1"=="Release" (
 	mkdir .\temp\js
 	copy MarkdownDeepJS\MarkdownDeep*.js .\temp\js\
 	copy MarkdownDeepJS\mdd* .\temp\js\
+	copy MarkdownDeepJS\readme.txt .\temp\
 
 	mkdir .\temp\bin
 	copy MarkdownDeep\bin\release\MarkdownDeep.dll .\temp\bin\

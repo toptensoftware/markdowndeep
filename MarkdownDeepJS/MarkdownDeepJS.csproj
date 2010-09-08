@@ -74,6 +74,7 @@
     <Content Include="mdd_toolbar.png" />
     <Content Include="minime\MiniME.dll" />
     <Content Include="minime\mm.exe" />
+    <Content Include="readme.txt" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
