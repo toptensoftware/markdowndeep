@@ -127,39 +127,39 @@ div.mdd_toolbar a.mdd_button
 
 span.mdd_sep
 {
-	width:10px;
+	width:5px;
 	height:20px;
 	display:block;
 	border-left:solid 1px #808080;
 	margin-left:5px;
 }
 
-#mdd_bold			{ background-position:0px 0px;}
-#mdd_bold:hover		{ background-position:0px 20px; }
-#mdd_italic			{ background-position:-20px 0px; }
-#mdd_italic:hover	{ background-position:-20px 20px; }
-#mdd_ullist			{ background-position:-160px 0px; }
-#mdd_ullist:hover	{ background-position:-160px 20px; }
-#mdd_ollist			{ background-position:-140px 0px; }
-#mdd_ollist:hover	{ background-position:-140px 20px; }
-#mdd_indent			{ background-position:-60px 0px; }
-#mdd_indent:hover	{ background-position:-60px 20px; }
-#mdd_outdent		{ background-position:-80px 0px; }
-#mdd_outdent:hover	{ background-position:-80px 20px; }
-#mdd_link			{ background-position:-40px 0px; }
-#mdd_link:hover		{ background-position:-40px 20px; }
-#mdd_img			{ background-position:-120px 0px; }
-#mdd_img:hover		{ background-position:-120px 20px; }
-#mdd_hr				{ background-position:-200px 0px; }
-#mdd_hr:hover		{ background-position:-200px 20px; }
-#mdd_code			{ background-position:-100px 0px; }
-#mdd_code:hover		{ background-position:-100px 20px; }
-#mdd_heading		{ background-position:-180px 0px; }
-#mdd_heading:hover	{ background-position:-180px 20px; }
-#mdd_undo			{ background-position:-220px 0px; }
-#mdd_undo:hover		{ background-position:-220px 20px; }
-#mdd_redo			{ background-position:-240px 0px; }
-#mdd_redo:hover		{ background-position:-240px 20px; }
+#mdd_bold			{ background-position:-1px -1px;}
+#mdd_bold:hover		{ background-position:-1px -23px; }
+#mdd_italic			{ background-position:-23px -1px; }
+#mdd_italic:hover	{ background-position:-23px -23px; }
+#mdd_ullist			{ background-position:-177px -1px; }
+#mdd_ullist:hover	{ background-position:-177px -23px; }
+#mdd_ollist			{ background-position:-155px -1px; }
+#mdd_ollist:hover	{ background-position:-155px -23px; }
+#mdd_indent			{ background-position:-67px -1px; }
+#mdd_indent:hover	{ background-position:-67px -23px; }
+#mdd_outdent		{ background-position:-89px -1px; }
+#mdd_outdent:hover	{ background-position:-89px -23px; }
+#mdd_link			{ background-position:-45px -1px; }
+#mdd_link:hover		{ background-position:-45px -23px; }
+#mdd_img			{ background-position:-133px -1px; }
+#mdd_img:hover		{ background-position:-133px -23px; }
+#mdd_hr				{ background-position:-221px -1px; }
+#mdd_hr:hover		{ background-position:-221px -23px; }
+#mdd_code			{ background-position:-111px -1px; }
+#mdd_code:hover		{ background-position:-111px -23px; }
+#mdd_heading		{ background-position:-199px -1px; }
+#mdd_heading:hover	{ background-position:-199px -23px; }
+#mdd_undo			{ background-position:-243px -1px; }
+#mdd_undo:hover		{ background-position:-243px -23px; }
+#mdd_redo			{ background-position:-265px -1px; }
+#mdd_redo:hover		{ background-position:-265px -23px; }
 
 div.mdd_links
 {

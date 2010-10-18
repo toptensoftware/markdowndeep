@@ -188,6 +188,33 @@ var MarkdownDeepEditorUI=new function(){
         // Supress default
         return false;
 	}
+	
+	jQuery.MarkdownDeep = function(textarea,preview,opt)
+	{
+        // Create the editor helper
+        var editor=new MarkdownDeepEditor.Editor(textarea, preview);
+        
+        // Apply options
+        if (opt)
+            jQuery.extend(editor.Markdown, opt);
+        
+        editor.onOptionsChanged();
+        
+        // Store the editor
+        $(textarea).data("mdd", editor);
+	}
+
+    jQuery.MarkdownDeepAll = function(opt)
+    {	
+	    // Convert all textarea.mdd_editor to markdown editors
+	    $.each($("textarea.mdd_editor"), function(index, textarea){
+	    
+	        // Find the preview div
+	        var preview=$(textarea).nextAll("div.mdd_preview")[0];
+	        
+	        $.MarkdownDeep(textarea, preview, opt);
+	    });
+	}
 
     // jQuery document load handler
     jQuery(function(){
@@ -204,21 +231,5 @@ var MarkdownDeepEditorUI=new function(){
     	
 	    // Bind toolbar buttons
 	    $("a.mdd_button").click(OnToolbarButton);
-	    
-	    // Convert all textarea.mdd_editor to markdown editors
-	    $.each($("textarea.mdd_editor"), function(index, textarea){
-	    
-	        // Find the preview div
-	        var preview=$(textarea).nextAll("div.mdd_preview")[0];
-	    
-	        // Create the editor helper
-            var editor=new MarkdownDeepEditor.Editor(textarea, preview);
-            editor.onOptionsChanged();
-            
-            
-            // Store the editor
-            $(textarea).data("mdd", editor);
-            
-	    });
     });
 }();

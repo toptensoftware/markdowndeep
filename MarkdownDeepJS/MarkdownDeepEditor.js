@@ -517,11 +517,11 @@ var MarkdownDeepEditor=new function(){
         this.m_undoStack=[];
         this.m_undoPos=0;
         this.m_undoMode=undomode_navigate;
-        this.m_markdown=new MarkdownDeep.Markdown();
-        this.m_markdown.SafeMode=false;
-        this.m_markdown.ExtraMode=true;
-        this.m_markdown.NewWindowForLocalLinks=true;
-        this.m_markdown.NewWindowForExternalLinks=true;
+        this.Markdown=new MarkdownDeep.Markdown();
+        this.Markdown.SafeMode=false;
+        this.Markdown.ExtraMode=true;
+        this.Markdown.NewWindowForLocalLinks=true;
+        this.Markdown.NewWindowForExternalLinks=true;
         
         // Store DOM elements
         this.m_textarea=textarea;
@@ -669,7 +669,7 @@ var MarkdownDeepEditor=new function(){
     	    this.onPreTransform(this, new_content);
     
         // Transform
-        var output=this.m_markdown.Transform(new_content);
+        var output=this.Markdown.Transform(new_content);
 
         // Call post hook
     	if (this.onPostTransform)
