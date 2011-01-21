@@ -196,7 +196,10 @@ var MarkdownDeepEditorUI=new function(){
         
         // Apply options
         if (opt)
+        {
             jQuery.extend(editor.Markdown, opt);
+            jQuery.extend(editor, opt);
+        }
         
         editor.onOptionsChanged();
         

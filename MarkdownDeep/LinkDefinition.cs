@@ -55,7 +55,7 @@ namespace MarkdownDeep
 		}
 
 
-		public void RenderLink(Markdown m, StringBuilder b, string link_text)
+		internal void RenderLink(Markdown m, StringBuilder b, string link_text)
 		{
 			if (url.StartsWith("mailto:"))
 			{
@@ -100,7 +100,7 @@ namespace MarkdownDeep
 			}
 		}
 
-		public void RenderImg(Markdown m, StringBuilder b, string alt_text)
+		internal void RenderImg(Markdown m, StringBuilder b, string alt_text)
 		{
 			HtmlTag tag = new HtmlTag("img");
 
@@ -134,7 +134,7 @@ namespace MarkdownDeep
 
 
 		// Parse a link definition from a string (used by test cases)
-		public static LinkDefinition ParseLinkDefinition(string str, bool ExtraMode)
+		internal static LinkDefinition ParseLinkDefinition(string str, bool ExtraMode)
 		{
 			StringScanner p = new StringScanner(str);
 			return ParseLinkDefinitionInternal(p, ExtraMode);
@@ -186,7 +186,7 @@ namespace MarkdownDeep
 		// Parse just the link target
 		// For reference link definition, this is the bit after "[id]: thisbit"
 		// For inline link, this is the bit in the parens: [link text](thisbit)
-		public static LinkDefinition ParseLinkTarget(StringScanner p, string id, bool ExtraMode)
+		internal static LinkDefinition ParseLinkTarget(StringScanner p, string id, bool ExtraMode)
 		{
 			// Skip whitespace
 			p.SkipWhitespace();

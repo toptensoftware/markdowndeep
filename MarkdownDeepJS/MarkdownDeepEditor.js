@@ -237,12 +237,10 @@ var MarkdownDeepEditor=new function(){
     
     priv.Apply=function()
     {
-        // Set the new text 
-        this.m_textarea.value=this.m_text;
-        this.m_textarea.focus();
-        
         if (ie)
         {
+            this.m_textarea.value=this.m_text;
+            this.m_textarea.focus();
             var r=this.m_textarea.createTextRange();
             r.collapse(true);
             r.moveEnd("character", this.m_selectionEnd);
@@ -251,7 +249,12 @@ var MarkdownDeepEditor=new function(){
         }
         else
         {
+            // Set the new text 
+            var scrollTop=this.m_textarea.scrollTop;
+            this.m_textarea.value=this.m_text;
+            this.m_textarea.focus();
             this.m_textarea.setSelectionRange(this.m_selectionStart, this.m_selectionEnd);
+            this.m_textarea.scrollTop=scrollTop;
         }
     }
     
@@ -552,7 +555,7 @@ var MarkdownDeepEditor=new function(){
         if(e.ctrlKey || e.metaKey)
         {
             var key=String.fromCharCode(e.charCode||e.keyCode);
-
+                    
             // Built in short cut key?
             if (!this.disableShortCutKeys && shortcut_keys[key]!=undefined)
             {
@@ -626,10 +629,7 @@ var MarkdownDeepEditor=new function(){
         {
             if (e.keyCode==keycode_enter && (!ie || e.ctrlKey))
             {
-                this.InvokeCommand("indented_newline");
-                this.m_undoStack.pop();
-                this.m_undoPos--;
-                return PreventEventDefault(e);
+                this.IndentNewLine()
             }
         }
     } 
@@ -1304,6 +1304,46 @@ var MarkdownDeepEditor=new function(){
             state.ReplaceSelection("\n\n----------\n\n");
         state.m_selectionStart=state.m_selectionEnd;;
         return true;
+    }
+    
+    pub.IndentNewLine=function()
+    {
+        var editor=this;
+        var timer;
+        var handler=function() 
+        {
+            window.clearInterval(timer);
+                    
+            // Create an editor state from the current selection
+            var state=new EditorState();
+            state.InitFromTextArea(editor.m_textarea);
+
+            // Find start of previous line
+            var prevline=state.FindStartOfLine(state.SkipPreceedingEol(state.m_selectionStart));
+            
+            // Count spaces and tabs
+            var i=prevline;
+            while (true)
+            {
+                var ch=state.m_text.charAt(i);
+                if (ch!=' ' && ch!='\t')
+                    break;
+                i++;
+            }
+            
+            // Copy spaces and tabs to the new line
+            if (i>prevline)
+            {
+                state.ReplaceSelection(state.m_text.substr(prevline, i-prevline));
+                state.m_selectionStart=state.m_selectionEnd;
+            }
+            
+            state.Apply();
+        }
+
+        timer=window.setInterval(handler, 1);
+
+        return false;
     }
     
     pub.cmd_indented_newline=function(state)

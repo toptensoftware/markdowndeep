@@ -47,9 +47,14 @@ namespace MarkdownDeep
 			// Process blocks
 			return new BlockProcessor(this, MarkdownInHtml).Process(str);
 		}
+		public string Transform(string str)
+		{
+			Dictionary<string, LinkDefinition> defs;
+			return Transform(str, out defs);
+		}
 
 		// Transform a string
-		public string Transform(string str)
+		public string Transform(string str, out Dictionary<string, LinkDefinition> definitions)
 		{
 			// Build blocks
 			var blocks = ProcessBlocks(str);
@@ -163,6 +168,8 @@ namespace MarkdownDeep
 				sb.Append("</ol\n");
 				sb.Append("</div>\n");
 			}
+
+			definitions = m_LinkDefinitions;
 
 			// Done
 			return sb.ToString();

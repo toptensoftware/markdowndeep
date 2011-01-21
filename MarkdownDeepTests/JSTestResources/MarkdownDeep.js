@@ -51,6 +51,7 @@ var MarkdownDeep = new function(){
         MarkdownInHtml:false,
         AutoHeadingIDs:false,
         UrlBaseLocation:null,
+        UrlRootLocation:null,
         NewWindowForExternalLinks:false,    
         NewWindowForLocalLinks:false,
         NoFollowLinks:false,
@@ -231,34 +232,42 @@ var MarkdownDeep = new function(){
     
     Markdown.prototype.OnQualifyUrl=function(url)
     {
-		// Quit if we don't have a base location
-		if (!this.UrlBaseLocation)
-			return url;
-
 		// Is the url already fully qualified?
 		if (IsUrlFullyQualified(url))
 			return url;
 
 		if (starts_with(url, "/"))
 		{
-			// Need to find domain root
-			var pos = this.UrlBaseLocation.indexOf("://");
-			if (pos == -1)
-				pos = 0;
-			else
-				pos += 3;
+		    var rootLocation=this.UrlRootLocation;
+		    if (!rootLocation)
+		    {
+		        // Quit if we don't have a base location
+		        if (!this.UrlBaseLocation)
+			        return url;
+			        
+			    // Need to find domain root
+			    var pos = this.UrlBaseLocation.indexOf("://");
+			    if (pos == -1)
+				    pos = 0;
+			    else
+				    pos += 3;
 
-			// Find the first slash after the protocol separator
-			pos = this.UrlBaseLocation.indexOf('/', pos);
+			    // Find the first slash after the protocol separator
+			    pos = this.UrlBaseLocation.indexOf('/', pos);
 
-			// Get the domain name
-			var strDomain=pos<0 ? this.UrlBaseLocation : this.UrlBaseLocation.substr(0, pos);
+			    // Get the domain name
+			    rootLocation=pos<0 ? this.UrlBaseLocation : this.UrlBaseLocation.substr(0, pos);
+			}
 
 			// Join em
-			return strDomain + url;
+			return rootLocation + url;
 		}
 		else
 		{
+		    // Quit if we don't have a base location
+		    if (!this.UrlBaseLocation)
+			    return url;
+
 			if (!ends_with(this.UrlBaseLocation, "/"))
 				return this.UrlBaseLocation + "/" + url;
 			else
