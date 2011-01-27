@@ -8,14 +8,23 @@ body
 	clear:both;
 }
 
-.mdd_editor
+textarea.mdd_editor
 {
 	font-family: Consolas, Menlo, Monaco, 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Courier New' , Courier, monospace;
 	font-weight:normal;
 	font-size: 10pt;
 	color:#202020;
-	width:100%;
-	resize:none;
+	width:700px;
+}
+
+div.mdd_resizer
+{
+	width:700px;
+}
+
+div.mdd_toolbar
+{
+	width:700px;
 }
 
 #options

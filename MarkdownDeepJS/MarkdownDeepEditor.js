@@ -629,7 +629,7 @@ var MarkdownDeepEditor=new function(){
         {
             if (e.keyCode==keycode_enter && (!ie || e.ctrlKey))
             {
-                this.IndentNewLine()
+                this.IndentNewLine();
             }
         }
     } 

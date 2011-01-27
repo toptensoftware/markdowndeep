@@ -2,23 +2,24 @@
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head>
 <title>MarkdownDeep JavaScript Test Page</title>
-<link rel="stylesheet" href="dingus.css" type="text/css" />
 <link rel="stylesheet" href="mdd_styles.css" type="text/css" />
+<link rel="stylesheet" href="dingus.css" type="text/css" />
 <script type="text/javascript" src="jquery-1.4.2.js"></script>
 <script type="text/javascript" src="MarkdownDeep.js"></script>
 <script type="text/javascript" src="MarkdownDeepEditor.js"></script>
 <script type="text/javascript" src="MarkdownDeepEditorUI.js"></script>
 <script type="text/javascript">
 $(function(){
-	$.MarkdownExtraAll();
+	$(".mdd_editor").MarkdownDeep({
+	});
 });
 </script>
 
 </head>
 <body>
 
-<script type="text/javascript">MarkdownDeepEditorUI.RenderToolbar("mdd_help.htm")</script>
-<textarea cols=20 rows=20 class="mdd_editor">## Welcome to MarkdownDeep
+<div class="mdd_toolbar"></div>
+<textarea cols="20" rows="20" class="mdd_editor">## Welcome to MarkdownDeep
 
 This demo page lets you try the JavaScript version of MarkdownDeep in your browser.
 
@@ -34,9 +35,8 @@ extensions, is open source and has many other useful integration features.
 [Read more here](http://www.toptensoftware.com/markdowndeep).
 
 </textarea>
-<script type="text/javascript">MarkdownDeepEditorUI.RenderResizeBar()</script>
+<div class="mdd_resizer"></div>
 <div class="mdd_preview"></div>
-
 
 
 </body>
