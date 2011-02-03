@@ -200,8 +200,8 @@ Example:
 
 Plugin options:
 
-* resizebar - boolean to enable/disable the resize bar (default:true)
-* toolbar - boolean to enable/disable the toolbar (default:false)
+* resizebar - boolean to include the resize bar (default:true)
+* toolbar - boolean to include the toolbar (default:true)
 * help_location - URL of where the help syntax reference should be loaded from (default:"mdd_help.html")
 
 Transform options:

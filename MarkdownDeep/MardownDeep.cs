@@ -58,9 +58,9 @@ namespace MarkdownDeep
 		{
 			// Build blocks
 			var blocks = ProcessBlocks(str);
-			
+
 			// Sort abbreviations by length, longest to shortest
-			if (m_AbbreviationMap!=null)
+			if (m_AbbreviationMap != null)
 			{
 				m_AbbreviationList = new List<Abbreviation>();
 				m_AbbreviationList.AddRange(m_AbbreviationMap.Values);
@@ -72,107 +72,129 @@ namespace MarkdownDeep
 				);
 			}
 
-			// Render
+			// Setup string builder
 			StringBuilder sb = m_StringBuilderFinal;
 			sb.Length = 0;
 
-			int iSection = -1;
-
-			// Leading section (ie: plain text before first heading)
-			if (blocks.Count>0 && !IsSectionHeader(blocks[0]))
+			if (SummaryLength != 0)
 			{
-				iSection = 0;
-				OnSectionHeader(sb, 0);
-				OnSectionHeadingSuffix(sb, 0);
-			}
-
-			// Render all blocks
-			for (int i = 0; i < blocks.Count; i++)
-			{
-				var b=blocks[i];
-
-				// New section?
-				if (IsSectionHeader(b))
+				// Render all blocks
+				for (int i = 0; i < blocks.Count; i++)
 				{
-					// Finish the previous section
-					if (iSection >= 0)
-					{
-						OnSectionFooter(sb, iSection);
-					}
+					var b = blocks[i];
+					b.RenderPlain(this, sb);
 
-					// Work out next section index
-					iSection = iSection < 0 ? 1 : iSection+1;
-
-					// Section header
-					OnSectionHeader(sb, iSection);
-
-					// Section Heading
-					b.Render(this, sb);
-
-					// Section Heading suffix
-					OnSectionHeadingSuffix(sb, iSection);
+					if (SummaryLength>0 && sb.Length > SummaryLength)
+						break;
 				}
-				else
-				{
-					// Regular section
-					b.Render(this, sb);
-				}
+
 			}
-
-			// Finish final section
-			if (blocks.Count>0)
-				OnSectionFooter(sb, iSection);
-
-			// Render footnotes
-			if (m_UsedFootnotes.Count > 0)
+			else
 			{
-				sb.Append("\n<div class=\"");
-				sb.Append(HtmlClassFootnotes);
-				sb.Append("\">\n");
-				sb.Append("<hr />\n");
-				sb.Append("<ol>\n");
-				for (int i=0; i<m_UsedFootnotes.Count; i++)
+				int iSection = -1;
+
+				// Leading section (ie: plain text before first heading)
+				if (blocks.Count > 0 && !IsSectionHeader(blocks[0]))
 				{
-					var fn=m_UsedFootnotes[i];
+					iSection = 0;
+					OnSectionHeader(sb, 0);
+					OnSectionHeadingSuffix(sb, 0);
+				}
 
-					sb.Append("<li id=\"#fn:");
-					sb.Append((string)fn.data);	// footnote id
-					sb.Append("\">\n");
+				// Render all blocks
+				for (int i = 0; i < blocks.Count; i++)
+				{
+					var b = blocks[i];
 
-
-					// We need to get the return link appended to the last paragraph
-					// in the footnote
-					string strReturnLink = string.Format("<a href=\"#fnref:{0}\" rev=\"footnote\">&#8617;</a>", (string)fn.data);
-
-					// Get the last child of the footnote
-					var child = fn.children[fn.children.Count - 1];
-					if (child.blockType == BlockType.p)
+					// New section?
+					if (IsSectionHeader(b))
 					{
-						child.blockType = BlockType.p_footnote;
-						child.data = strReturnLink;
+						// Finish the previous section
+						if (iSection >= 0)
+						{
+							OnSectionFooter(sb, iSection);
+						}
+
+						// Work out next section index
+						iSection = iSection < 0 ? 1 : iSection + 1;
+
+						// Section header
+						OnSectionHeader(sb, iSection);
+
+						// Section Heading
+						b.Render(this, sb);
+
+						// Section Heading suffix
+						OnSectionHeadingSuffix(sb, iSection);
 					}
 					else
 					{
-						child = CreateBlock();
-						child.contentLen = 0;
-						child.blockType = BlockType.p_footnote;
-						child.data = strReturnLink;
-						fn.children.Add(child);
+						// Regular section
+						b.Render(this, sb);
 					}
-
-
-					fn.Render(this, sb);
-
-					sb.Append("</li>\n");
 				}
-				sb.Append("</ol\n");
-				sb.Append("</div>\n");
+
+				// Finish final section
+				if (blocks.Count > 0)
+					OnSectionFooter(sb, iSection);
+
+				// Render footnotes
+				if (m_UsedFootnotes.Count > 0)
+				{
+					sb.Append("\n<div class=\"");
+					sb.Append(HtmlClassFootnotes);
+					sb.Append("\">\n");
+					sb.Append("<hr />\n");
+					sb.Append("<ol>\n");
+					for (int i = 0; i < m_UsedFootnotes.Count; i++)
+					{
+						var fn = m_UsedFootnotes[i];
+
+						sb.Append("<li id=\"#fn:");
+						sb.Append((string)fn.data);	// footnote id
+						sb.Append("\">\n");
+
+
+						// We need to get the return link appended to the last paragraph
+						// in the footnote
+						string strReturnLink = string.Format("<a href=\"#fnref:{0}\" rev=\"footnote\">&#8617;</a>", (string)fn.data);
+
+						// Get the last child of the footnote
+						var child = fn.children[fn.children.Count - 1];
+						if (child.blockType == BlockType.p)
+						{
+							child.blockType = BlockType.p_footnote;
+							child.data = strReturnLink;
+						}
+						else
+						{
+							child = CreateBlock();
+							child.contentLen = 0;
+							child.blockType = BlockType.p_footnote;
+							child.data = strReturnLink;
+							fn.children.Add(child);
+						}
+
+
+						fn.Render(this, sb);
+
+						sb.Append("</li>\n");
+					}
+					sb.Append("</ol\n");
+					sb.Append("</div>\n");
+				}
 			}
 
 			definitions = m_LinkDefinitions;
 
 			// Done
 			return sb.ToString();
+		}
+
+		public int SummaryLength
+		{
+			get;
+			set;
 		}
 
 		// Set to true to only allow whitelisted safe html tags

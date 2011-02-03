@@ -97,6 +97,14 @@ namespace MarkdownDeep
 			}
 		}
 
+		internal void RenderChildrenPlain(Markdown m, StringBuilder b)
+		{
+			foreach (var block in children)
+			{
+				block.RenderPlain(m, b);
+			}
+		}
+
 		internal string ResolveHeaderID(Markdown m)
 		{
 			// Already resolved?
@@ -302,6 +310,86 @@ namespace MarkdownDeep
 					m.SpanFormatter.Format(b, buf, contentStart, contentLen);
 					b.Append("</" + blockType.ToString() + ">\n");
 					break;
+			}
+		}
+
+		internal void RenderPlain(Markdown m, StringBuilder b)
+		{
+			switch (blockType)
+			{
+				case BlockType.Blank:
+					return;
+
+				case BlockType.p:
+				case BlockType.span:
+					m.SpanFormatter.FormatPlain(b, buf, contentStart, contentLen);
+					b.Append(" ");
+					break;
+
+				case BlockType.h1:
+				case BlockType.h2:
+				case BlockType.h3:
+				case BlockType.h4:
+				case BlockType.h5:
+				case BlockType.h6:
+					m.SpanFormatter.FormatPlain(b, buf, contentStart, contentLen);
+					b.Append(" - ");
+					break;
+
+
+				case BlockType.ol_li:
+				case BlockType.ul_li:
+					b.Append("* ");
+					m.SpanFormatter.FormatPlain(b, buf, contentStart, contentLen);
+					b.Append(" ");
+					break;
+
+				case BlockType.dd:
+					if (children != null)
+					{
+						b.Append("\n");
+						RenderChildrenPlain(m, b);
+					}
+					else
+						m.SpanFormatter.FormatPlain(b, buf, contentStart, contentLen);
+					break;
+
+				case BlockType.dt:
+					{
+						if (children == null)
+						{
+							foreach (var l in Content.Split('\n'))
+							{
+								var str = l.Trim();
+								m.SpanFormatter.FormatPlain(b, str, 0, str.Length);
+							}
+						}
+						else
+						{
+							RenderChildrenPlain(m, b);
+						}
+						break;
+					}
+
+				case BlockType.dl:
+					RenderChildrenPlain(m, b);
+					return;
+
+				case BlockType.codeblock:
+					foreach (var line in children)
+					{
+						b.Append(line.buf, line.contentStart, line.contentLen);
+						b.Append(" ");
+					}
+					return;
+
+				case BlockType.quote:
+				case BlockType.li:
+				case BlockType.ol:
+				case BlockType.ul:
+				case BlockType.HtmlTag:
+					RenderChildrenPlain(m, b);
+					return;
 			}
 		}
 

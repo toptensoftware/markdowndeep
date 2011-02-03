@@ -81,6 +81,15 @@ namespace MarkdownDeep
 			Render(dest, str);
 		}
 
+		internal void FormatPlain(StringBuilder dest, string str, int start, int len)
+		{
+			// Parse the string into a list of tokens
+			Tokenize(str, start, len);
+
+			// Render all tokens
+			RenderPlain(dest, str);
+		}
+
 		// Format a string and return it as a new string
 		// (used in formatting the text of links)
 		internal string Format(string str)
@@ -248,6 +257,62 @@ namespace MarkdownDeep
 						sb.Append("</abbr>");
 						break;
 					}
+				}
+
+				FreeToken(t);
+			}
+		}
+
+		// Render a list of tokens to a destinatino string builder.
+		private void RenderPlain(StringBuilder sb, string str)
+		{
+			foreach (Token t in m_Tokens)
+			{
+				switch (t.type)
+				{
+					case TokenType.Text:
+						sb.Append(str, t.startOffset, t.length);
+						break;
+
+					case TokenType.HtmlTag:
+						break;
+
+					case TokenType.Html:
+					case TokenType.opening_mark:
+					case TokenType.closing_mark:
+					case TokenType.internal_mark:
+						break;
+
+					case TokenType.br:
+						break;
+
+					case TokenType.open_em:
+					case TokenType.close_em:
+					case TokenType.open_strong:
+					case TokenType.close_strong:
+						break;
+
+					case TokenType.code_span:
+						sb.Append(str, t.startOffset, t.length);
+						break;
+
+					case TokenType.link:
+						{
+							LinkInfo li = (LinkInfo)t.data;
+							sb.Append(li.link_text);
+							break;
+						}
+
+					case TokenType.img:
+						{
+							LinkInfo li = (LinkInfo)t.data;
+							sb.Append(li.link_text);
+							break;
+						}
+
+					case TokenType.footnote:
+					case TokenType.abbreviation:
+						break;
 				}
 
 				FreeToken(t);
