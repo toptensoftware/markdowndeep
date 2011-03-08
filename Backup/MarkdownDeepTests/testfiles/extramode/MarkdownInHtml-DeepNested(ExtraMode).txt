@@ -1,0 +1,16 @@
+﻿pre
+
+<div markdown="deep">
+this should be **bold**
+
+ <div>
+ this should be **bold**
+
+  <div>
+  this should be **bold**
+  </div>
+ </div>
+</div>
+
+
+post

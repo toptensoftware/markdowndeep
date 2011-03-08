@@ -1,0 +1,15 @@
+﻿1. Apples
+wrapped
+2. Pears
+wrapped
+3. Bananas
+wrapped
+
+sep
+
+1.	Apples
+	wrapped
+2.	Pears
+	wrapped
+3.	Bananas
+	wrapped

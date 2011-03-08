@@ -1,0 +1,7 @@
+﻿pre
+
+| Unspecified | Left | Center | Right |
+| ----------- |:---- |:------:| -----:|
+| NA          | L    | C      | R     |
+
+post

@@ -1,0 +1,73 @@
+﻿pre
+
+\* This
+\* Is
+\* not a list
+
+sep
+
+\- Not
+\- a
+\- list
+
+sep
+
+\+ Even
+\+ this
+\+ is not a list
+
+sep
+
+1\. Nor
+2\. Is
+3\. This
+
+sep
+
+\> This is not a quote
+
+sep
+
+This is not \`a code span\`
+
+sep
+
+\### This is not a heading ###
+
+sep
+
+This is not a heading 2
+\-----
+
+No HR's here:
+
+\-----
+
+\* * * 
+
+\_ _ _ 
+
+
+sep
+
+This is not a \[link](target.html), nor this \[link]\[ref1]
+
+This is not an \!\[image](img.png), nor this \[image]\[ref2], nor this ![image]\(image.png)
+
+[ref1]:target.html
+[ref2]:image.png
+
+\[link]: not a link definition
+
+Not \*\*Strong**
+
+Not \*Emphasis\*
+
+Not \_\_Strong\_\_
+
+Not \_Emphasis\_
+
+
+Not an autolink <http://www.toptensoftware.com\>.
+
+post

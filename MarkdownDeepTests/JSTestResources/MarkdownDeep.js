@@ -56,7 +56,8 @@ var MarkdownDeep = new function(){
         NewWindowForLocalLinks:false,
         NoFollowLinks:false,
         HtmlClassFootnotes:"footnotes",
-        HtmlClassTitledImages:null
+        HtmlClassTitledImages:null,
+        RenderingTitledImage:false
     };
     
     var p=Markdown.prototype;
@@ -277,44 +278,44 @@ var MarkdownDeep = new function(){
     
     
     // Override and return an object with width and height properties
-    Markdown.prototype.OnGetImageSize=function(image)
+    Markdown.prototype.OnGetImageSize=function(image, TitledImage)
     {
         return null;
     }
 
     Markdown.prototype.OnPrepareLink=function(tag)
     {
-		var url = tag.m_attributes["href"];
+		var url = tag.attributes["href"];
 
 		// No follow?
 		if (this.NoFollowLinks)
 		{
-			tag.m_attributes["rel"] = "nofollow";
+			tag.attributes["rel"] = "nofollow";
 		}
 
 		// New window?
 		if ( (this.NewWindowForExternalLinks && IsUrlFullyQualified(url)) ||
 			 (this.NewWindowForLocalLinks && !IsUrlFullyQualified(url)) )
 		{
-			tag.m_attributes["target"] = "_blank";
+			tag.attributes["target"] = "_blank";
 		}
 
 		// Qualify url
-		tag.m_attributes["href"] = this.OnQualifyUrl(url);
+		tag.attributes["href"] = this.OnQualifyUrl(url);
     }
     
-    Markdown.prototype.OnPrepareImage=function(tag)
+    Markdown.prototype.OnPrepareImage=function(tag, TitledImage)
     {
 		// Try to determine width and height
-		var size=this.OnGetImageSize(tag.m_attributes["src"]);
+		var size=this.OnGetImageSize(tag.attributes["src"], TitledImage);
 		if (size!=null)
 		{
-			tag.m_attributes["width"] = size.width;
-			tag.m_attributes["height"] = size.height;
+			tag.attributes["width"] = size.width;
+			tag.attributes["height"] = size.height;
 		}
 
 		// Now qualify the url
-		tag.m_attributes["src"] = this.OnQualifyUrl(tag.m_attributes["src"]);
+		tag.attributes["src"] = this.OnQualifyUrl(tag.attributes["src"]);
     }
 
 
@@ -1265,23 +1266,22 @@ var MarkdownDeep = new function(){
 
     function HtmlTag(name)
     {
-        this.m_name=name;
-        this.m_attributes={};
-        this.m_flags=0;
+        this.name=name;
+        this.attributes={};
+        this.flags=0;
+        this.closed=false;
+        this.closing=false;
     }
 
     p=HtmlTag.prototype;
-    p.m_attributes=null;
-    p.closed=false;
-    p.closing=false;
     
     p.attributeCount= function()
     {
-        if (!this.m_attributes)
+        if (!this.attributes)
             return 0;
             
         var count=0;
-        for (var x in this.m_attributes)
+        for (var x in this.attributes)
             count++;
             
         return count;
@@ -1289,20 +1289,20 @@ var MarkdownDeep = new function(){
 
     p.get_Flags = function()
     {
-        if (this.m_flags==0)
+        if (this.flags==0)
         {
-            this.m_flags=tag_flags[this.m_name.toLowerCase()];
-            if (this.m_flags==undefined)
+            this.flags=tag_flags[this.name.toLowerCase()];
+            if (this.flags==undefined)
             {
-                this.m_flags=HtmlTagFlags_Inline;
+                this.flags=HtmlTagFlags_Inline;
             }
         }
-        return this.m_flags;
+        return this.flags;
     }
 
     p.IsSafe = function()
     {
-	    var name_lower=this.m_name.toLowerCase();
+	    var name_lower=this.name.toLowerCase();
     	
 	    // Check if tag is in whitelist
 	    if (!allowed_tags[name_lower])
@@ -1316,26 +1316,26 @@ var MarkdownDeep = new function(){
 	    }
     	    
 	    // No attributes?
-	    if (!this.m_attributes)
+	    if (!this.attributes)
 	        return true;
 
 	    // Check all are allowed
-	    for (var i in this.m_attributes)
+	    for (var i in this.attributes)
 	    {
 	        if (!allowed[i.toLowerCase()])
 			    return false;
 	    }
 
 	    // Check href attribute is ok
-	    if (this.m_attributes["href"])
+	    if (this.attributes["href"])
 	    {
-	        if (!IsSafeUrl(this.m_attributes["href"]))
+	        if (!IsSafeUrl(this.attributes["href"]))
 	            return false;
 	    }
 
-	    if (this.m_attributes["src"])
+	    if (this.attributes["src"])
 	    {
-	        if (!IsSafeUrl(this.m_attributes["src"]))
+	        if (!IsSafeUrl(this.attributes["src"]))
 	            return false;
 	    }
 
@@ -1347,13 +1347,13 @@ var MarkdownDeep = new function(){
 	p.RenderOpening=function(dest)
 	{
 		dest.Append("<");
-		dest.Append(this.m_name);
-		for (var i in this.m_attributes)
+		dest.Append(this.name);
+		for (var i in this.attributes)
 		{
 			dest.Append(" ");
 			dest.Append(i);
 			dest.Append("=\"");
-			dest.Append(this.m_attributes[i]);
+			dest.Append(this.attributes[i]);
 			dest.Append("\"");
 		}
 
@@ -1367,7 +1367,7 @@ var MarkdownDeep = new function(){
 	p.RenderClosing=function(dest)
 	{
 		dest.Append("</");
-		dest.Append(this.m_name);
+		dest.Append(this.name);
 		dest.Append(">");
 	}
 
@@ -1413,7 +1413,7 @@ var MarkdownDeep = new function(){
 		    if (p.Find("-->"))
 		    {
 			    var t = new HtmlTag("!");
-			    t.m_attributes["content"]=p.Extract();
+			    t.attributes["content"]=p.Extract();
 			    t.closed=true;
 			    p.SkipForward(3);
 			    return t;
@@ -1486,7 +1486,7 @@ var MarkdownDeep = new function(){
 				    return null;
 
 			    // Store the value
-			    tag.m_attributes[attributeName]=p.Extract();
+			    tag.attributes[attributeName]=p.Extract();
 
 			    // Skip closing quote
 			    p.SkipForward(1);
@@ -1501,7 +1501,7 @@ var MarkdownDeep = new function(){
 			    if (!p.eof())
 			    {
 				    // Store the value
-				    tag.m_attributes[attributeName]=p.Extract();
+				    tag.attributes[attributeName]=p.Extract();
 			    }
 		    }
 	    }
@@ -1603,14 +1603,14 @@ var MarkdownDeep = new function(){
 			// encode url
 			var sb = m.GetStringBuilder();
 			sb.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
-			tag.m_attributes["href"] = sb.ToString();
+			tag.attributes["href"] = sb.ToString();
 
 			// encode title
 			if (this.title)
 			{
 			    sb.Clear();
 			    sb.SmartHtmlEncodeAmpsAndAngles(this.title, 0, this.title.length);
-				tag.m_attributes["title"] = sb.ToString();
+				tag.attributes["title"] = sb.ToString();
 			}
 
 			// Do user processing
@@ -1631,14 +1631,14 @@ var MarkdownDeep = new function(){
 		// encode url
 		var sb = m.GetStringBuilder();
 		sb.SmartHtmlEncodeAmpsAndAngles(this.url, 0, this.url.length);
-		tag.m_attributes["src"] = sb.ToString();
+		tag.attributes["src"] = sb.ToString();
 
 		// encode alt text
 		if (alt_text)
 		{
 		    sb.Clear();
 			sb.SmartHtmlEncodeAmpsAndAngles(alt_text, 0, alt_text.length);
-			tag.m_attributes["alt"] = sb.ToString();
+			tag.attributes["alt"] = sb.ToString();
 		}
 
 		// encode title
@@ -1646,12 +1646,12 @@ var MarkdownDeep = new function(){
 		{
 			sb.Clear();
 			sb.SmartHtmlEncodeAmpsAndAngles(this.title, 0, this.title.length);
-			tag.m_attributes["title"] = sb.ToString();
+			tag.attributes["title"] = sb.ToString();
 		}
 
 		tag.closed = true;
 
-		m.OnPrepareImage(tag);
+		m.OnPrepareImage(tag, m.RenderingTitledImage);
 
 		tag.RenderOpening(b);
 
@@ -1941,7 +1941,9 @@ var MarkdownDeep = new function(){
 			dest.Append("\">\n");
 
 			// Render the img
+			this.m_Markdown.RenderingTitledImage=true;
 			this.Render(dest, str);
+			this.m_Markdown.RenderingTitledImage=false;
 			dest.Append("\n");
 
 			// Render the title
@@ -3005,14 +3007,14 @@ var MarkdownDeep = new function(){
                 var tag=this.data;
 
 				// Prepare special tags
-				var name=tag.m_name.toLowerCase();
+				var name=tag.name.toLowerCase();
 				if (name == "a")
 				{
 					m.OnPrepareLink(tag);
 				}
 				else if (name == "img")
 				{
-					m.OnPrepareImage(tag);
+					m.OnPrepareImage(tag, m.RenderingTitledImage);
 				}
 
 				tag.RenderOpening(b);
@@ -3983,7 +3985,7 @@ var MarkdownDeep = new function(){
 	p.GetMarkdownMode=function(tag)
 	{
 		// Get the markdown attribute
-		var md=tag.m_attributes["markdown"];
+		var md=tag.attributes["markdown"];
 		if (md==undefined)
 		{
 			if (this.m_bMarkdownInHtml)
@@ -3993,7 +3995,7 @@ var MarkdownDeep = new function(){
 		}
 
 		// Remove it
-		delete tag.m_attributes["markdown"];
+		delete tag.attributes["markdown"];
 
 		// Parse mode
 		if (md == "1")
@@ -4047,7 +4049,7 @@ var MarkdownDeep = new function(){
 				continue;
 
 			// Same tag?
-			if (tag.m_name == openingTag.m_name)
+			if (tag.name == openingTag.name)
 			{
 				if (tag.closing)
 				{
@@ -4242,7 +4244,7 @@ var MarkdownDeep = new function(){
 			}
 
 			// Same tag?
-			if (tag.m_name == openingTag.m_name && !tag.closed)
+			if (tag.name == openingTag.name && !tag.closed)
 			{
 				if (tag.closing)
 				{
@@ -4807,5 +4809,6 @@ var MarkdownDeep = new function(){
 
     // Exposed stuff
     this.Markdown=Markdown;
+    this.HtmlTag=HtmlTag;
 }();
 

@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<title>MarkdownDeep JavaScript Test Page</title>
+<link rel="stylesheet" href="mdd_styles.css" type="text/css" />
+<link rel="stylesheet" href="dingus.css" type="text/css" />
+<script type="text/javascript" src="jquery-1.4.2.js"></script>
+<script type="text/javascript" src="MarkdownDeepLib.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	$(".mdd_editor").MarkdownDeep({
+	});
+});
+</script>
+</head>
+<body>
+
+<textarea cols=20 rows=20 class="mdd_editor">## Welcome to MarkdownDeep
+
+This demo page lets you try the JavaScript version of MarkdownDeep in your browser.
+
+* Type some text in the area at the top
+* See the tranformed HTML below
+* Use the checkboxes to change options, or switch to viewing the generated HTML.
+* Use the syntax cheatsheet on the right for hints on formatting.
+
+MarkdownDeep is an implementation of Markdown for .NET with a 100% compatible
+port for JavaScript for client side use.  MarkdownDeep supports the PHP Markdown Extra
+extensions, is open source and has many other useful integration features.
+
+[Read more here](http://www.toptensoftware.com/markdowndeep).
+
+</textarea>
+
+
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+﻿before
+
+> this is my quote
+> this is the second part
+
+after
+
+before
+
+> first line
+hard wrapped
+
+> second line
+hard wrapped
+
+after
+
+before
+
+> first line
+	hard wrapped indented
+
+> second line
+	hard wrapped indented
+
+after
+
+before
+
+>first line
+hard wrapped
+
+>second line
+hard wrapped
+
+after

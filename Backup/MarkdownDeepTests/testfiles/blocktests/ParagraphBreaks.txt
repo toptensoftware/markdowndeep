@@ -1,0 +1,8 @@
+﻿this is a paragraph  
+with a contained break
+
+# this is a heading  
+followed by a paragraph
+
+* an item  
+with a contained break

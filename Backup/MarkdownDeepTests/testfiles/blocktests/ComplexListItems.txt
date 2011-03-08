@@ -1,0 +1,25 @@
+﻿before
+
+* This is a list item
+
+	it contains some code
+	
+		for (int i=0; i<10; i++)
+		{
+			printf("Hello World\n");
+		}
+		
+	and a block quote:
+	
+	> "I have a dream"
+	
+	and an embedded list
+	
+	* Apples
+	* Pears
+	* Bananas
+	
+	and a hardwrapped
+and left aligned paragraph
+		
+after

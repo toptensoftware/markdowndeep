@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+		<id>MarkdownDeep.Full</id>
+		<title>MarkdownDeep - .NET and JavaScript Editions</title>
+		<version>1.1</version>
+		<authors>Topten Software</authors>
+		<owners>Topten Software</owners>
+		<licenseUrl>http://www.toptensoftware.com/markdowndeep/</licenseUrl>
+		<projectUrl>http://www.toptensoftware.com/markdowndeep/</projectUrl>
+		<iconUrl>http://www.toptensoftware.com/markdowndeep/nuget_icon.png</iconUrl>
+		<requireLicenseAcceptance>true</requireLicenseAcceptance>
+		<description>
+MarkdownDeep is a high performance .NET Markdown engine along with a 100% compatible JavaScript implementation for client side use.  It supports PHPMarkdownExtra extensions, safe mode and more.
+
+Package includes:
+
+* .NET Markdown Translator
+* JavaScript Markdown Translator
+* jQuery editor with real-time preview, toolbar and syntax reference.
+		</description>
+		<tags>Markdown MarkdownExtra MarkdownDeep JavaScript jQuery Plugin</tags>
+	</metadata>
+	<files>
+		<file src="MarkdownDeepLib.min.js" target="Content\Scripts" />
+		<file src="mdd_*" target="Content\Scripts" />
+		<file src="MarkdownDeep Quick Reference.txt" target="Content\Scripts" />
+		<file src="..\MarkdownDeep\bin\Release\MarkdownDeep.dll" target="lib\.NetFramework 3.5" />
+		<file src="..\MarkdownDeep\bin\Release\MarkdownDeep.pdb" target="lib\.NetFramework 3.5" />
+	</files>
+</package>

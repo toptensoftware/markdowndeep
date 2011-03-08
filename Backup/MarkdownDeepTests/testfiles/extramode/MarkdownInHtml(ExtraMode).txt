@@ -1,0 +1,19 @@
+﻿pre
+
+<div>
+this should not be **bold**
+</div>
+
+<div markdown="0">
+this should not be **bold**
+</div>
+
+<div markdown="1">
+this should be **bold**
+</div>
+
+<div markdown="block">
+this should be **bold**
+</div>
+
+post

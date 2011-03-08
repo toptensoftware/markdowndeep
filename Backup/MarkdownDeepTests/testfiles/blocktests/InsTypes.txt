@@ -1,0 +1,7 @@
+﻿<ins>
+<p>Some text</p>
+</ins>
+
+<ins>And here it is inside a paragraph.</ins>
+
+And here it is <ins>in the middle of</ins> a paragraph.

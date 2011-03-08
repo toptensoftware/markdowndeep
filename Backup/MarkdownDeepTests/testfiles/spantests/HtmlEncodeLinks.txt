@@ -1,0 +1,6 @@
+﻿This is a [i<10 && j>10][link].
+
+So is this [link &amp; text][link2].
+
+[link]: url.com?x=1&y=2 (Title & stuff)
+[link2]: blah.com (title &amp; text)
