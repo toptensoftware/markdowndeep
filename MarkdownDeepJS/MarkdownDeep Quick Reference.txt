@@ -3,10 +3,10 @@
 
 <http://www.toptensoftware.com/markdowndeep>
 
-Copyright © 2010-2011 Topten Software.  
-All Rights Reserved.
+Copyright © 2010-2011 Topten Software
 
-MarkdownDeep and its associated files are subject to the license terms as specified at the web address above.
+MarkdownDeep and its associated files are subject to different license terms for commercial vs non-commercial use.
+Please refer to the following - <http://www.toptensoftware.com/markdowndeep/license> - for more information.
 
 Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either 
 express or implied. 
@@ -26,25 +26,27 @@ a client side editor with toolbar, resize bar, real-time preview and syntax refe
 		<script type="text/javascript" src="/Scripts/jQuery-1.4.1.min.js"></script>
 		<script type="text/javascript" src="/Scripts/MarkdownDeepLib.min.js"></script>
 
-2. Where you want the editor to appear, use the following (or similar) markup:
+2. Insert the following markup at the location you want the editor to appear:
 
 		<div class="mdd_toolbar"></div>
 		<%=Html.TextArea("content", new { @class="mdd_editor" }) %>
 		<div class="mdd_resizer"></div>
 		<div class="mdd_preview"></div>
 
-	Note, the mdd_toolbar, mdd_resizer and mdd_preview divs are all optional but will prevent page "jump" when
-	the page loads.
+	Note, the mdd_toolbar, mdd_resizer and mdd_preview divs are all optional. If ommitted, the jQuery plugin will 
+	create them however this may cause the page to appear to "jump" as it loads.  By using the above divs and the
+	associated mdd_styles.css stylesheet, the correct sizing can be in-place immediately, eliminating these jumps.
 
 3. Use the jQuery plugin to convert the textarea into a Markdown editor.  For more options, see below.
 
 		$(function () {
 			$("textarea.mdd_editor").MarkdownDeep({
-				help_location:"/Scripts/mdd_help.htm"
+				help_location:"/Scripts/mdd_help.htm",
+				ExtraMode: true
 			});
 		})
 
-
+See <http://www.toptensoftware.com/markdowndeep/editor> for more information on configuring the editor.
 
 Server Side Translation
 -----------------------
@@ -67,120 +69,5 @@ explains how to perform the equivalent translation of the entered content server
 		// Translate
 		var html=md.Transform(plaintext);
 
-Methods and Properties
-----------------------
 
-MarkdownDeep supports the following methods and properties.  Unless noted these are supported
-in both editions.
-
-`string Transform(string input)`
-: Transforms the input string from Markdown to HTML using the currently set options.
-
-`bool SafeMode`
-: Set to true to only allow whitelisted safe html tags
-
-`bool ExtraMode`
-: Set to true to enable ExtraMode, which enables the same set of features as implemented by PHP Markdown Extra.
-
-`bool MarkdownInHtml`
-: When set, all html block level elements automatically support markdown syntax within them.  (Similar to Pandoc's handling of markdown in html)
-
-`bool AutoHeadingIDs`
-: When set, all headings will have an auto generated ID attribute based on the heading text (uses the same algorithm as Pandoc)
-
-`bool UrlBaseLocation`
-: When set, all non-qualified urls (links and images) will be qualified using this location as the base.(Useful when rendering RSS feeds that require fully qualified urls).
-
-`bool NewWindowForExternalLinks`
-: When true, all fully qualified urls will be give `target="_blank"' attribute causing them to 
-appear in a separate browser window/tab (ie: relative links open in same window, qualified links open externally)
-
-`bool NewWindowForLocalLinks`
-: When true, all urls (qualified or not) will get target="_blank" attribute (useful for preview mode on posts)
-
-`string DocumentRoot`
-:	When set, will try to determine the width/height for local images by searching
-	for an appropriately named file relative to the specified location
-	Local file system location of the document root.  Used to locate image
-	files that start with slash.
-	
-	Typical value: c:\inetpub\www\wwwroot
-
-`string DocumentLocation`
-:	Local file system location of the current document.  Used to locate relative
-	path images for image size.
-
-	Typical value: c:\inetpub\www\wwwroot\subfolder
-
-`int MaxImageWidth`
-: Limit the width of images (0 for no limit).  Only used when image sizes are read from DocumentRoot or
-DocumentLocation
-
-`bool NofollowLinks`
-: When set, all links get `rel="nofollow"` attribute
-		
-`virtual string OnQualifyUrl(string url)`
-: Provides the default implementation to map relative URLs to fully qualified URLs. Override to qualify non-local image and link urls using a different strategy.
-
-`virtual bool OnGetImageSize(string url, out int width, out int height)` (.NET)
-`object OnGetImageSize(string url)` (JavaScript)
-:	Override to supply the size of an image.  Typically used for images stored in a database.
-
-    In JavaScript, return any object with a `width` and `height` property, or `null` if can't get
-    the image dimensions.
-    
-    In .NET, return dimensions through out parameters.  Return false if can't get image dimensions.
-     
-`virtual void OnPrepareLink(HtmlTag tag)`
-:	Applies special attributes to `a` link tags. Default implementation calls `OnQualifyUrl` to 
-	qualify the `href` attributes. Also adds `rel="nofollow"` and `target="_blank"` attributes.  
-
-	Override to apply more customization of anchor tags.
-
-`virtual void OnPrepareImage(HtmlTag tag)`
-:	Applies special attributes to `img` tags.  Default implementation calls `OnGetImageSize` to 
-	apply image size attributes, and `OnQualifyUrl` to qualify the `src` attribute.
-
-	Override to apply more customization of anchor tags.
-
-`string HtmlClassFootnotes`
-:	Sets the class name for the div used to wrap the footnotes section.
-
-`string HtmlClassTitledImages`
-:	Set the classname for titled images
-
-	A titled image is defined as a paragraph that contains an image and nothing else.
-	If not set (the default), this features is disabled, otherwise the output is similar
-	to:
-
-		{{xml}}
-		<div class="<%=this.HtmlClassTitledImags%>">
-			<img src="image.png" />
-			<p>Alt text goes here</p>
-		</div>
-	
-	Use CSS to style the figure and the caption
-	
-`string SectionHeader` (.NET edition only)
-:	Set a format string to be rendered before headings, where `{0}` is a placeholder for the
-	section number about to be rendered.
-	
-	eg: `<a href=/edit/page?section={0}>`
-
-	Useful for rendering links that can lead to a page that edits that section)
-	
-`string SectionHeadingPrefix` (.NET edition only)	
-:	Set a format string to be rendered after each section heading
-
-`string SectionFooter` (.NET edition only)
-:	Set a format string to be rendered after the section content (ie: before
-	the next section heading, or at the end of the document).
-
-`static List<string> SplitSections(string markdown)` (.NET edition only)
-:	Splits a Markdown document into an array of sections.
-
-`static string JoinSections(List<string> sections)` (.NET edition only)
-: Join previously split sections back into one document
-
-
-
+See <http://www.toptensoftware.com/markdowndeep/api> for other methods and properties.

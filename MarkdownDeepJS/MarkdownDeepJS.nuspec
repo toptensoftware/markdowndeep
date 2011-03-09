@@ -6,7 +6,7 @@
 		<version>1.1</version>
 		<authors>Topten Software</authors>
 		<owners>Topten Software</owners>
-		<licenseUrl>http://www.toptensoftware.com/markdowndeep/</licenseUrl>
+		<licenseUrl>http://www.toptensoftware.com/markdowndeep/license</licenseUrl>
 		<projectUrl>http://www.toptensoftware.com/markdowndeep/</projectUrl>
 		<iconUrl>http://www.toptensoftware.com/markdowndeep/nuget_icon.png</iconUrl>
 		<requireLicenseAcceptance>true</requireLicenseAcceptance>

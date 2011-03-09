@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Topten Software")]
 [assembly: AssemblyProduct("MarkdownDeep")]
-[assembly: AssemblyCopyright("Copyright © Topten Software 2010-2011")]
+[assembly: AssemblyCopyright("Copyright © 2010-2011 Topten Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

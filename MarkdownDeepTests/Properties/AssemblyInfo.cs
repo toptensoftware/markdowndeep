@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("MarkdownDeepTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("Topten Software")]
 [assembly: AssemblyProduct("MarkdownDeepTests")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2010")]
+[assembly: AssemblyCopyright("Copyright © 2010-2011 Topten Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
