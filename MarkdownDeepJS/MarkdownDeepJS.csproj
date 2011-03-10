@@ -89,6 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="MarkdownDeepSample.nuspec" />
     <None Include="MarkdownDeepJS.nuspec" />
     <None Include="post_build.bat" />
     <None Include="toolbar.xcf" />

@@ -35,6 +35,7 @@ if "%1"=="Release" (
 	cd MarkdownDeepJS
 
 	NuGet.exe pack ".\MarkdownDeepJS.nuspec" -o "..\Output"
+	NuGet.exe pack ".\MarkdownDeepSample.nuspec" -o "..\Output"
 
 
 )
