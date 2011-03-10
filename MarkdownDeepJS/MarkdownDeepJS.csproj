@@ -61,6 +61,7 @@
     <Reference Include="System.Web.Mobile" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MarkdownDeep License.txt" />
     <Content Include="MarkdownDeep Quick Reference.txt" />
     <Content Include="dingus_min.html" />
     <Content Include="dingus.css" />

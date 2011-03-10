@@ -25,6 +25,7 @@ Package includes:
 		<file src="MarkdownDeepLib.min.js" target="Content\Scripts" />
 		<file src="mdd_*" target="Content\Scripts" />
 		<file src="MarkdownDeep Quick Reference.txt" target="Content\Scripts" />
+		<file src="MarkdownDeep License.txt" target="Content\Scripts" />
 		<file src="..\MarkdownDeep\bin\Release\MarkdownDeep.dll" target="lib\.NetFramework 3.5" />
 		<file src="..\MarkdownDeep\bin\Release\MarkdownDeep.pdb" target="lib\.NetFramework 3.5" />
 	</files>

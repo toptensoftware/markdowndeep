@@ -1,19 +1,6 @@
 ﻿MarkdownDeep Quick Reference
 ============================
 
-<http://www.toptensoftware.com/markdowndeep>
-
-Copyright © 2010-2011 Topten Software
-
-MarkdownDeep and its associated files are subject to different license terms for commercial vs non-commercial use.
-Please refer to the following - <http://www.toptensoftware.com/markdowndeep/license> - for more information.
-
-Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either 
-express or implied. 
-
-Please refer to the web site for latest versions, usage instructions, license terms, to report a bug, etc...
-
-
 Setting up the Client Side Editor
 ---------------------------------
 
