@@ -125,6 +125,7 @@ namespace MarkdownDeep
 			{ "address", HtmlTagFlags.ContentAsSpan}, 
 			{ "hr", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
 			{ "!", HtmlTagFlags.Block | HtmlTagFlags.NoClosing}, 
+			{ "head", HtmlTagFlags.Block }, 
 		};
 
 		// Check if this tag is safe

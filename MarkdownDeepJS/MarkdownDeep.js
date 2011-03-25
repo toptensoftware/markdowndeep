@@ -56,7 +56,9 @@ var MarkdownDeep = new function () {
         HtmlClassTitledImages: null,
         RenderingTitledImage: false,
         FormatCodeBlockAttributes: null,
-        FormatCodeBlock: null
+        FormatCodeBlock: null,
+        ExtractHeadBlocks: false,
+        HeadBlockContent: ""
     };
 
     var p = Markdown.prototype;
@@ -136,6 +138,7 @@ var MarkdownDeep = new function () {
             input = input.replace(/\r/g, "\n");
         }
 
+        this.HeadBlockContent = "";
 
         var blocks = this.ProcessBlocks(input);
 
@@ -1384,7 +1387,8 @@ var MarkdownDeep = new function () {
         "legend": s,
         "address": s,
         "hr": b | n,
-        "!": b | n
+        "!": b | n,
+        "head": b
     };
     delete b;
     delete i;
@@ -3774,6 +3778,10 @@ var MarkdownDeep = new function () {
 
         var childBlocks = null;
 
+        // Head block extraction?
+        var bHeadBlock = this.m_Markdown.ExtractHeadBlocks && openingTag.name.toLowerCase() == "head";
+        var headStart = p.m_position;
+
         // Now capture everything up to the closing tag and put it all in a single HTML block
         var depth = 1;
 
@@ -3800,7 +3808,7 @@ var MarkdownDeep = new function () {
                 continue;
 
             // Markdown enabled content?
-            if (!tag.closing && this.m_Markdown.ExtraMode && !bHasUnsafeContent) {
+            if (!bHeadBlock && !tag.closing && this.m_Markdown.ExtraMode && !bHasUnsafeContent) {
                 var MarkdownMode = this.GetMarkdownMode(tag);
                 if (MarkdownMode != MarkdownInHtmlMode_NA) {
                     var markdownBlock = this.CreateBlock(posStartPiece);
@@ -3867,6 +3875,17 @@ var MarkdownDeep = new function () {
                             b.blockType = BlockType_Composite;
                             b.set_contentEnd(p.m_position);
                             b.children = childBlocks;
+                            return true;
+                        }
+
+                        // Extract the head block content
+                        if (bHeadBlock) {
+                            var content = p.buf.substr(headStart, posStartCurrentTag - headStart);
+                            this.m_Markdown.HeadBlockContent = this.m_Markdown.HeadBlockContent + Trim(content) + "\n";
+                            b.blockType = BlockType_html;
+                            b.contentStart = p.position;
+                            b.contentEnd = p.position;
+                            b.lineStart = p.position;
                             return true;
                         }
 

@@ -39,12 +39,14 @@ namespace MarkdownDevBed
 
 				return " class=\"prettyprint lang-"+language.ToLowerInvariant()+"\"";
 			};
+			m.ExtractHeadBlocks = true;
 
 
 			string markdown=FileContents("input.txt");
 			string str = m.Transform(markdown);
 			Console.Write(str);
 
+			/*
 			var sections = MarkdownDeep.Markdown.SplitSections(markdown);
 			for (int i = 0; i < sections.Count; i++)
 			{
@@ -53,7 +55,11 @@ namespace MarkdownDevBed
 				Console.WriteLine("\n");
 			}
 			Console.WriteLine("------------------");
+			 */
 
+			Console.WriteLine("------start head block-------");
+			Console.WriteLine(m.HeadBlockContent);
+			Console.WriteLine("------end head block-------");
 		}
 
 

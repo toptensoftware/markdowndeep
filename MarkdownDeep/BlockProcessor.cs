@@ -1079,6 +1079,10 @@ namespace MarkdownDeep
 
 			List<Block> childBlocks = null;
 
+			// Head block extraction?
+			bool bHeadBlock = m_markdown.ExtractHeadBlocks && string.Compare(openingTag.name, "head", true) == 0;
+			int headStart = this.position;
+
 			// Now capture everything up to the closing tag and put it all in a single HTML block
 			int depth = 1;
 
@@ -1109,7 +1113,7 @@ namespace MarkdownDeep
 					continue;
 
 				// Markdown enabled content?
-				if (!tag.closing && m_markdown.ExtraMode && !bHasUnsafeContent)
+				if (!bHeadBlock && !tag.closing && m_markdown.ExtraMode && !bHasUnsafeContent)
 				{
 					MarkdownInHtmlMode MarkdownMode = this.GetMarkdownMode(tag);
 					if (MarkdownMode != MarkdownInHtmlMode.NA)
@@ -1188,6 +1192,18 @@ namespace MarkdownDeep
 								b.blockType = BlockType.Composite;
 								b.contentEnd = position;
 								b.children = childBlocks;
+								return true;
+							}
+
+							// Extract the head block content
+							if (bHeadBlock)
+							{
+								var content = this.Substring(headStart, posStartCurrentTag - headStart);
+								m_markdown.HeadBlockContent = (m_markdown.HeadBlockContent ?? "") + content.Trim() + "\n";
+								b.blockType = BlockType.html;
+								b.contentStart = position;
+								b.contentEnd = position;
+								b.lineStart = position;
 								return true;
 							}
 

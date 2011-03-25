@@ -511,6 +511,21 @@ namespace MarkdownDeep
 		// Return the formatted code.
 		public Func<string, string, string> FormatCodeBlock;
 
+		// when set to true, will remove head blocks and make content available
+		// as HeadBlockContent
+		public bool ExtractHeadBlocks
+		{
+			get;
+			set;
+		}
+
+		// Retrieve extracted head block content
+		public string HeadBlockContent
+		{
+			get;
+			internal set;
+		}
+
 		// Set the classname for titled images
 		// A titled image is defined as a paragraph that contains an image and nothing else.
 		// If not set (the default), this features is disabled, otherwise the output is:
