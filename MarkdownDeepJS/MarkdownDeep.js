@@ -3768,8 +3768,12 @@ var MarkdownDeep = new function () {
                 return false;
         }
 
+        // Head block extraction?
+        var bHeadBlock = this.m_Markdown.ExtractHeadBlocks && openingTag.name.toLowerCase() == "head";
+        var headStart = p.m_position;
+
         // Work out the markdown mode for this element
-        if (this.m_Markdown.ExtraMode) {
+        if (!bHeadBlock && this.m_Markdown.ExtraMode) {
             var MarkdownMode = this.GetMarkdownMode(openingTag);
             if (MarkdownMode != MarkdownInHtmlMode_NA) {
                 return this.ProcessMarkdownEnabledHtml(p, b, openingTag, MarkdownMode);
@@ -3777,10 +3781,6 @@ var MarkdownDeep = new function () {
         }
 
         var childBlocks = null;
-
-        // Head block extraction?
-        var bHeadBlock = this.m_Markdown.ExtractHeadBlocks && openingTag.name.toLowerCase() == "head";
-        var headStart = p.m_position;
 
         // Now capture everything up to the closing tag and put it all in a single HTML block
         var depth = 1;

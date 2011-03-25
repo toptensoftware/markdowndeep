@@ -1067,8 +1067,12 @@ namespace MarkdownDeep
 					return false;
 			}
 
+			// Head block extraction?
+			bool bHeadBlock = m_markdown.ExtractHeadBlocks && string.Compare(openingTag.name, "head", true) == 0;
+			int headStart = this.position;
+
 			// Work out the markdown mode for this element
-			if (m_markdown.ExtraMode)
+			if (!bHeadBlock && m_markdown.ExtraMode)
 			{
 				MarkdownInHtmlMode MarkdownMode = this.GetMarkdownMode(openingTag);
 				if (MarkdownMode != MarkdownInHtmlMode.NA)
@@ -1078,10 +1082,6 @@ namespace MarkdownDeep
 			}
 
 			List<Block> childBlocks = null;
-
-			// Head block extraction?
-			bool bHeadBlock = m_markdown.ExtractHeadBlocks && string.Compare(openingTag.name, "head", true) == 0;
-			int headStart = this.position;
 
 			// Now capture everything up to the closing tag and put it all in a single HTML block
 			int depth = 1;
