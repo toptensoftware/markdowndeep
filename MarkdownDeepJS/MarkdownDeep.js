@@ -55,7 +55,8 @@ var MarkdownDeep = new function () {
         HtmlClassFootnotes: "footnotes",
         HtmlClassTitledImages: null,
         RenderingTitledImage: false,
-        FormatCodeBlockAttributes: null
+        FormatCodeBlockAttributes: null,
+        FormatCodeBlock: null
     };
 
     var p = Markdown.prototype;
@@ -2672,13 +2673,25 @@ var MarkdownDeep = new function () {
             case BlockType_codeblock:
                 b.Append("<pre");
                 if (m.FormatCodeBlockAttributes != null) {
-                    b.Append(m.FormatCodeBlockAttributes(this.data))
+                    b.Append(m.FormatCodeBlockAttributes(this.data));
                 }
                 b.Append("><code>");
+
+                var btemp = b;
+                if (m.FormatCodeBlock) {
+                    btemp = b;
+                    b = new StringBuilder();
+                }
+
                 for (var i = 0; i < this.children.length; i++) {
                     var line = this.children[i];
                     b.HtmlEncodeAndConvertTabsToSpaces(line.buf, line.contentStart, line.contentLen);
                     b.Append("\n");
+                }
+
+                if (m.FormatCodeBlock) {
+                    btemp.Append(m.FormatCodeBlock(b.ToString(), this.data));
+                    b = btemp;
                 }
                 b.Append("</code></pre>\n\n");
                 return;
@@ -3252,7 +3265,7 @@ var MarkdownDeep = new function () {
                 var firstline = lines[0].get_Content();
                 if (firstline.substr(0, 2) == "{{" && firstline.substr(firstline.length - 2, 2) == "}}") {
                     codeblock.data = firstline.substr(2, firstline.length - 4);
-                    lines.splice(0, 1)
+                    lines.splice(0, 1);
                 }
                 for (var i = 0; i < lines.length; i++) {
                     codeblock.children.push(lines[i]);

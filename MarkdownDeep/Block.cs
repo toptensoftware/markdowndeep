@@ -240,10 +240,23 @@ namespace MarkdownDeep
 						b.Append(m.FormatCodeBlockAttributes(data as string));
 					}
 					b.Append("><code>");
-					foreach (var line in children)
+					if (m.FormatCodeBlock != null)
 					{
-						m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
-						b.Append("\n");
+						var sb = new StringBuilder();
+						foreach (var line in children)
+						{
+							m.HtmlEncodeAndConvertTabsToSpaces(sb, line.buf, line.contentStart, line.contentLen);
+							sb.Append("\n");
+						}
+						b.Append(m.FormatCodeBlock(sb.ToString(), data as string));
+					}
+					else
+					{
+						foreach (var line in children)
+						{
+							m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
+							b.Append("\n");
+						}
 					}
 					b.Append("</code></pre>\n\n");
 					return;

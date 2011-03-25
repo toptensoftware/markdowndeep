@@ -11,10 +11,8 @@
 <script type="text/javascript">
 	$(function () {
 		$(".mdd_editor").MarkdownDeep({
-			FormatCodeBlockAttributes: function (language) 
-			{
-				if (!language)
-				{
+			FormatCodeBlockAttributes: function (language) {
+				if (!language) {
 					var d = this.GetLinkDefinition("default_syntax");
 					if (!d)
 						return "";
@@ -25,7 +23,10 @@
 				if (language == "C++")
 					language = "cpp";
 
-				return " class=\"prettyprint lang-"+language+"\"";
+				return " class=\"prettyprint lang-" + language + "\"";
+			},
+			FormatCodeBlock: function (code, lang) {
+				return "-- " + lang + " -- " + code + "--";
 			}
 		});
 	});

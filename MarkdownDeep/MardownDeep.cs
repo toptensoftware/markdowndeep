@@ -504,6 +504,12 @@ namespace MarkdownDeep
 		// eg: x=>" class=\"prettyprint lang-" + x + "\"
 		public Func<string, string> FormatCodeBlockAttributes;
 
+		// Callback to format a code block (ie: apply syntax highlighting)
+		// string FormatCodeBlock(code, language)
+		// Code=code block content (ie: the code to format)
+		// language = language if specified in markdown with {{C#}} on first line
+		// Return the formatted code.
+		public Func<string, string, string> FormatCodeBlock;
 
 		// Set the classname for titled images
 		// A titled image is defined as a paragraph that contains an image and nothing else.
