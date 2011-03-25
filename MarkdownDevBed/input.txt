@@ -1,2 +1,20 @@
 ﻿This is a simple test bed for use during development
 Type markdown here, run and see output in console window
+
+This is C#:
+
+	{{C#}}
+	for (int i=0; i<10; i++)
+	{
+		Console.WriteLine("{0}", i);
+	}
+
+That is C++
+
+	for (int i=0; i<10; i++)
+	{
+		printf("%i\n", i);
+	}
+
+
+[default_syntax]:. "C++"

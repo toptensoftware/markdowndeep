@@ -234,7 +234,12 @@ namespace MarkdownDeep
 					return;
 
 				case BlockType.codeblock:
-					b.Append("<pre><code>");
+					b.Append("<pre");
+					if (m.FormatCodeBlockAttributes != null)
+					{
+						b.Append(m.FormatCodeBlockAttributes(data as string));
+					}
+					b.Append("><code>");
 					foreach (var line in children)
 					{
 						m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);

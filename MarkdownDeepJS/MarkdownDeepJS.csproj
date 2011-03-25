@@ -90,7 +90,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MarkdownDeepSample.nuspec" />
-    <None Include="MarkdownDeepJS.nuspec" />
+    <None Include="MarkdownDeepJS.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="post_build.bat" />
     <None Include="toolbar.xcf" />
   </ItemGroup>

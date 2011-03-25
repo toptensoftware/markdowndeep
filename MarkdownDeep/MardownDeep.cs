@@ -498,6 +498,13 @@ namespace MarkdownDeep
 			set;
 		}
 
+		// Specify extra attributes on a code block's "pre" block
+		// Param = string language as specified in markdown
+		// Return = attributes
+		// eg: x=>" class=\"prettyprint lang-" + x + "\"
+		public Func<string, string> FormatCodeBlockAttributes;
+
+
 		// Set the classname for titled images
 		// A titled image is defined as a paragraph that contains an image and nothing else.
 		// If not set (the default), this features is disabled, otherwise the output is:
@@ -659,7 +666,7 @@ namespace MarkdownDeep
 		}
 
 		// Get a link definition
-		internal LinkDefinition GetLinkDefinition(string id)
+		public LinkDefinition GetLinkDefinition(string id)
 		{
 			LinkDefinition link;
 			if (m_LinkDefinitions.TryGetValue(id, out link))

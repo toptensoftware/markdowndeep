@@ -23,6 +23,22 @@ namespace MarkdownDevBed
 //			m.DocumentRoot = "C:\\users\\bradr\\desktop";
 //			m.DocumentLocation = "C:\\users\\bradr\\desktop\\100D5000";
 //			m.MaxImageWidth = 500;
+			m.FormatCodeBlockAttributes = delegate(string language)
+			{
+				if (language == null)
+				{
+					var d = m.GetLinkDefinition("default_syntax");
+					if (d==null)
+						return "";
+					language = d.title;
+				}
+				if (language == "C#")
+					language = "csharp";
+				if (language == "C++")
+					language = "cpp";
+
+				return " class=\"prettyprint lang-"+language.ToLowerInvariant()+"\"";
+			};
 
 
 			string markdown=FileContents("input.txt");

@@ -491,6 +491,16 @@ namespace MarkdownDeep
 				case BlockType.indent:
 				{
 					var codeblock = new Block(BlockType.codeblock);
+					if (m_markdown.FormatCodeBlockAttributes != null)
+					{
+						// Does the line first line look like a syntax specifier
+						var firstline = lines[0].Content;
+						if (firstline.StartsWith("{{") && firstline.EndsWith("}}"))
+						{
+							codeblock.data = firstline.Substring(2, firstline.Length - 4);
+							lines.RemoveAt(0);
+						}
+					}
 					codeblock.children = new List<Block>();
 					codeblock.children.AddRange(lines);
 					blocks.Add(codeblock);

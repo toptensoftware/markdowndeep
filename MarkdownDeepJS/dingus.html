@@ -9,10 +9,26 @@
 <script type="text/javascript" src="MarkdownDeepEditor.js"></script>
 <script type="text/javascript" src="MarkdownDeepEditorUI.js"></script>
 <script type="text/javascript">
-$(function(){
-	$(".mdd_editor").MarkdownDeep({
+	$(function () {
+		$(".mdd_editor").MarkdownDeep({
+			FormatCodeBlockAttributes: function (language) 
+			{
+				if (!language)
+				{
+					var d = this.GetLinkDefinition("default_syntax");
+					if (!d)
+						return "";
+					language = d.title;
+				}
+				if (language == "C#")
+					language = "csharp";
+				if (language == "C++")
+					language = "cpp";
+
+				return " class=\"prettyprint lang-"+language+"\"";
+			}
+		});
 	});
-});
 </script>
 
 </head>
