@@ -4,11 +4,47 @@ using System.Linq;
 using System.Text;
 using MarkdownDeep;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace MarkdownDevBed
 {
 	class Program
 	{
+		public static Regex rxExtractLanguage = new Regex("^({{(.+)}}[\r\n])", RegexOptions.Compiled);
+		public static string FormatCodePrettyPrint(Markdown m, string code)
+		{
+			var match = rxExtractLanguage.Match(code);
+			string language = null;
+
+			if (match.Success)
+			{
+				// Save the language
+				var g=(Group)match.Groups[2];
+				language = g.ToString();
+
+				// Remove the first line
+				code = code.Substring(match.Groups[1].Length);
+			}
+
+
+			if (language == null)
+			{
+				var d = m.GetLinkDefinition("default_syntax");
+				if (d!=null)
+					language = d.title;
+			}
+			if (language == "C#")
+				language = "csharp";
+			if (language == "C++")
+				language = "cpp";
+
+			if (string.IsNullOrEmpty(language))
+				return string.Format("<pre><code>{0}</code></pre>\n", code);
+			else
+				return string.Format("<pre class=\"prettyprint lang-{0}\"><code>{1}</code></pre>\n", language.ToLowerInvariant(), code);
+		}
+
+	
 		static void Main(string[] args)
 		{
 			Markdown m = new Markdown();
@@ -23,39 +59,27 @@ namespace MarkdownDevBed
 //			m.DocumentRoot = "C:\\users\\bradr\\desktop";
 //			m.DocumentLocation = "C:\\users\\bradr\\desktop\\100D5000";
 //			m.MaxImageWidth = 500;
-			m.FormatCodeBlockAttributes = delegate(string language)
-			{
-				if (language == null)
-				{
-					var d = m.GetLinkDefinition("default_syntax");
-					if (d==null)
-						return "";
-					language = d.title;
-				}
-				if (language == "C#")
-					language = "csharp";
-				if (language == "C++")
-					language = "cpp";
-
-				return " class=\"prettyprint lang-"+language.ToLowerInvariant()+"\"";
-			};
+			m.FormatCodeBlock = FormatCodePrettyPrint;
 			m.ExtractHeadBlocks = true;
+			m.UserBreaks = true;
 
 
 			string markdown=FileContents("input.txt");
 			string str = m.Transform(markdown);
 			Console.Write(str);
 
-			/*
-			var sections = MarkdownDeep.Markdown.SplitSections(markdown);
+			var sections = MarkdownDeep.Markdown.SplitUserSections(markdown);
 			for (int i = 0; i < sections.Count; i++)
 			{
 				Console.WriteLine("---- Section {0} ----", i);
 				Console.Write(sections[i]);
-				Console.WriteLine("\n");
+				Console.Write("\n");
 			}
 			Console.WriteLine("------------------");
-			 */
+
+			Console.WriteLine("------Joined-------");
+			Console.WriteLine(MarkdownDeep.Markdown.JoinUserSections(sections));
+			Console.WriteLine("------Joined-------");
 
 			Console.WriteLine("------start head block-------");
 			Console.WriteLine(m.HeadBlockContent);

@@ -491,6 +491,7 @@ namespace MarkdownDeep
 				case BlockType.indent:
 				{
 					var codeblock = new Block(BlockType.codeblock);
+					/*
 					if (m_markdown.FormatCodeBlockAttributes != null)
 					{
 						// Does the line first line look like a syntax specifier
@@ -501,6 +502,7 @@ namespace MarkdownDeep
 							lines.RemoveAt(0);
 						}
 					}
+					 */
 					codeblock.children = new List<Block>();
 					codeblock.children.AddRange(lines);
 					blocks.Add(codeblock);
@@ -757,7 +759,10 @@ namespace MarkdownDeep
 
 				if (eol && count >= 3)
 				{
-					return BlockType.hr;
+					if (m_markdown.UserBreaks)
+						return BlockType.user_break;
+					else 
+						return BlockType.hr;
 				}
 
 				// Rewind

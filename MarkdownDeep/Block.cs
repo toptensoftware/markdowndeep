@@ -38,6 +38,7 @@ namespace MarkdownDeep
 		p,				// paragraph (or plain line during parse)
 		indent,			// an indented line (parse only)
 		hr,				// horizontal rule (render and parse)
+		user_break,		// user break
 		html,			// html content (render and parse)
 		unsafe_html,	// unsafe html that should be encoded
 		span,			// an undecorated span of text (used for simple list items 
@@ -89,6 +90,14 @@ namespace MarkdownDeep
 					return null;
 				else
 					return contentStart == -1 ? buf : buf.Substring(contentStart, contentLen);
+			}
+		}
+
+		public int LineStart
+		{
+			get
+			{
+				return lineStart == 0 ? contentStart : lineStart;
 			}
 		}
 
@@ -180,6 +189,9 @@ namespace MarkdownDeep
 					b.Append("<hr />\n");
 					return;
 
+				case BlockType.user_break:
+					return;
+
 				case BlockType.ol_li:
 				case BlockType.ul_li:
 					b.Append("<li>");
@@ -234,12 +246,6 @@ namespace MarkdownDeep
 					return;
 
 				case BlockType.codeblock:
-					b.Append("<pre");
-					if (m.FormatCodeBlockAttributes != null)
-					{
-						b.Append(m.FormatCodeBlockAttributes(data as string));
-					}
-					b.Append("><code>");
 					if (m.FormatCodeBlock != null)
 					{
 						var sb = new StringBuilder();
@@ -248,17 +254,18 @@ namespace MarkdownDeep
 							m.HtmlEncodeAndConvertTabsToSpaces(sb, line.buf, line.contentStart, line.contentLen);
 							sb.Append("\n");
 						}
-						b.Append(m.FormatCodeBlock(sb.ToString(), data as string));
+						b.Append(m.FormatCodeBlock(m, sb.ToString()));
 					}
 					else
 					{
+						b.Append("<pre><code>");
 						foreach (var line in children)
 						{
 							m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
 							b.Append("\n");
 						}
+						b.Append("</code></pre>\n\n");
 					}
-					b.Append("</code></pre>\n\n");
 					return;
 
 				case BlockType.quote:

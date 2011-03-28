@@ -498,18 +498,11 @@ namespace MarkdownDeep
 			set;
 		}
 
-		// Specify extra attributes on a code block's "pre" block
-		// Param = string language as specified in markdown
-		// Return = attributes
-		// eg: x=>" class=\"prettyprint lang-" + x + "\"
-		public Func<string, string> FormatCodeBlockAttributes;
-
 		// Callback to format a code block (ie: apply syntax highlighting)
-		// string FormatCodeBlock(code, language)
-		// Code=code block content (ie: the code to format)
-		// language = language if specified in markdown with {{C#}} on first line
-		// Return the formatted code.
-		public Func<string, string, string> FormatCodeBlock;
+		// string FormatCodeBlock(code)
+		// Code = code block content (ie: the code to format)
+		// Return the formatted code, including <pre> and <code> tags
+		public Func<Markdown, string, string> FormatCodeBlock;
 
 		// when set to true, will remove head blocks and make content available
 		// as HeadBlockContent
@@ -524,6 +517,13 @@ namespace MarkdownDeep
 		{
 			get;
 			internal set;
+		}
+
+		// Treats "===" as a user section break
+		public bool UserBreaks
+		{
+			get;
+			set;
 		}
 
 		// Set the classname for titled images
@@ -601,6 +601,75 @@ namespace MarkdownDeep
 
 		// Split the markdown into sections, one section for each
 		// top level heading
+		public static List<string> SplitUserSections(string markdown)
+		{
+			// Build blocks
+			var md = new MarkdownDeep.Markdown();
+			md.UserBreaks = true;
+
+			// Process blocks
+			var blocks = md.ProcessBlocks(markdown);
+
+			// Create sections
+			var Sections = new List<string>();
+			int iPrevSectionOffset = 0;
+			for (int i = 0; i < blocks.Count; i++)
+			{
+				var b = blocks[i];
+				if (b.blockType==BlockType.user_break)
+				{
+					// Get the offset of the section
+					int iSectionOffset = b.lineStart;
+
+					// Add section
+					Sections.Add(markdown.Substring(iPrevSectionOffset, iSectionOffset - iPrevSectionOffset).Trim());
+
+					// Next section starts on next line
+					if (i + 1 < blocks.Count)
+					{
+						iPrevSectionOffset = blocks[i + 1].lineStart;
+						if (iPrevSectionOffset==0)
+							iPrevSectionOffset = blocks[i + 1].contentStart;
+					}
+					else
+						iPrevSectionOffset = markdown.Length;
+				}
+			}
+
+			// Add the last section
+			if (markdown.Length > iPrevSectionOffset)
+			{
+				Sections.Add(markdown.Substring(iPrevSectionOffset).Trim());
+			}
+
+			return Sections;
+		}
+
+		// Join previously split sections back into one document
+		public static string JoinUserSections(List<string> sections)
+		{
+			var sb = new StringBuilder();
+			for (int i = 0; i < sections.Count; i++)
+			{
+				if (i > 0)
+				{
+					// For subsequent sections, need to make sure we
+					// have a line break after the previous section.
+					string strPrev = sections[sections.Count - 1];
+					if (strPrev.Length > 0 && !strPrev.EndsWith("\n") && !strPrev.EndsWith("\r"))
+						sb.Append("\n");
+
+					sb.Append("\n===\n\n");
+				}
+
+				sb.Append(sections[i]);
+			}
+
+			return sb.ToString();
+		}
+
+		// Split the markdown into sections, one section for each
+		// top level heading
 		public static List<string> SplitSections(string markdown)
 		{
 			// Build blocks
@@ -654,7 +723,7 @@ namespace MarkdownDeep
 				sb.Append(sections[i]);
 			}
 
-			return null;
+			return sb.ToString();
 		}
 
 		// Add a link definition
@@ -900,6 +969,7 @@ namespace MarkdownDeep
 		Dictionary<string, bool> m_UsedHeaderIDs;
 		Dictionary<string, Abbreviation> m_AbbreviationMap;
 		List<Abbreviation> m_AbbreviationList;
+
 	
 	}
 
