@@ -304,44 +304,45 @@ namespace MarkdownDeep
 				// Skip whitespace
 				p.SkipWhitespace();
 
-				// Skip equal sign 
-                if (!p.SkipChar('=')) {
+                // <tag     attr    =    "foo"   />
 
+				// Skip equal sign 
+                if (p.SkipChar('=')) {
                     // @kamranayub: Allow blank attributes per HTML spec
-                    if (p.current != ' ' && p.current != '>')
-                        return null;
+
+                    // Skip whitespace
+                    p.SkipWhitespace();
+
+                    // Optional quotes
+                    if (p.SkipChar('\"')) {
+                        // Scan the value
+                        p.Mark();
+                        if (!p.Find('\"'))
+                            return null;
+
+                        // Store the value
+                        tag.m_attributes.Add(attributeName, p.Extract());
+
+                        // Skip closing quote
+                        p.SkipForward(1);
+                    }
+                    else {
+                        // Scan the value
+                        p.Mark();
+                        while (!p.eof && !char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
+                            p.SkipForward(1);
+
+                        if (!p.eof) {
+                            // Store the value
+                            tag.m_attributes.Add(attributeName, p.Extract());
+                        }
+                    }
+                }
+                else {
+                    tag.m_attributes.Add(attributeName, string.Empty);
                 }
 
-				// Skip whitespace
-				p.SkipWhitespace();
-
-				// Optional quotes
-				if (p.SkipChar('\"'))
-				{
-					// Scan the value
-					p.Mark();
-					if (!p.Find('\"'))
-						return null;
-
-					// Store the value
-					tag.m_attributes.Add(attributeName, p.Extract());
-
-					// Skip closing quote
-					p.SkipForward(1);
-				}
-				else
-				{
-					// Scan the value
-					p.Mark();
-					while (!p.eof && !char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
-						p.SkipForward(1);
-
-					if (!p.eof)
-					{
-						// Store the value
-						tag.m_attributes.Add(attributeName, p.Extract());
-					}
-				}
+				
 			}
 
 			return null;
