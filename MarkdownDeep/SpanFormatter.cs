@@ -1000,6 +1000,15 @@ namespace MarkdownDeep
 			// Get the link text and unescape it
 			string link_text = Utils.UnescapeString(Extract(), ExtraMode);
 
+            // @kamranayub: Nested images
+            SpanFormatter nestedFormatter = new SpanFormatter(this.m_Markdown);
+
+            if (link_text.Length > 2 && 
+                link_text.IndexOf('!') == 0 &&
+                link_text.IndexOf('[') == 1) {
+                link_text = nestedFormatter.Format(link_text);
+            }
+
 			// The closing ']'
 			SkipForward(1);
 

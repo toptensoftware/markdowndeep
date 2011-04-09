@@ -304,9 +304,13 @@ namespace MarkdownDeep
 				// Skip whitespace
 				p.SkipWhitespace();
 
-				// Skip equal sign
-				if (!p.SkipChar('='))
-					return null;
+				// Skip equal sign 
+                if (!p.SkipChar('=')) {
+
+                    // @kamranayub: Allow blank attributes per HTML spec
+                    if (p.current != ' ' && p.current != '>')
+                        return null;
+                }
 
 				// Skip whitespace
 				p.SkipWhitespace();

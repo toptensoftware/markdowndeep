@@ -32,6 +32,20 @@ namespace MarkdownDeepTests
 
 		}
 
+        [Test]
+        public void NonValuedAttribute() {
+            string str = @"<iframe allowfullscreen>";
+            HtmlTag tag = HtmlTag.Parse(str, ref m_pos);
+
+            Assert.AreEqual(tag.name, "iframe");
+            Assert.AreEqual(tag.closing, false);
+            Assert.AreEqual(tag.closed, false);
+            Assert.AreEqual(tag.attributes.Count, 1);
+            Assert.AreEqual(tag.attributes["allowfullscreen"], "");
+            Assert.AreEqual(m_pos, str.Length);
+
+        }
+
 		[Test]
 		public void Quoted()
 		{
