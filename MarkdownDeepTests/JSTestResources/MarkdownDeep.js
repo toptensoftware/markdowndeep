@@ -2332,7 +2332,7 @@ var MarkdownDeep = new function () {
             this.m_position = savepos;
         }
 
-        if (this.m_DisableLinks)
+        if (this.m_DisableLinks && token_type==TokenType_link)
             return null;
 
         var ExtraMode = this.m_Markdown.ExtraMode;

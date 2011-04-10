@@ -967,7 +967,7 @@ namespace MarkdownDeep
 				position = savepos;
 			}
 
-			if (DisableLinks)
+			if (DisableLinks && token_type==TokenType.link)
 				return null;
 
 			bool ExtraMode = m_Markdown.ExtraMode;

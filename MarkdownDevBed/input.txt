@@ -1,17 +1,1 @@
-﻿paragraph 1
-
-	// Code
-	for (int i=0; i<10; i++)
-	{
-		Console.WriteLine("blah");
-	}
-
-***
-
-paragraph 2
-
-***
-
-paragraph 3
-
-[default_syntax]:. "C#"
+﻿[![img.png]()](blah)
