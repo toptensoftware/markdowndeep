@@ -305,38 +305,42 @@ namespace MarkdownDeep
 				p.SkipWhitespace();
 
 				// Skip equal sign
-				if (!p.SkipChar('='))
-					return null;
-
-				// Skip whitespace
-				p.SkipWhitespace();
-
-				// Optional quotes
-				if (p.SkipChar('\"'))
+				if (p.SkipChar('='))
 				{
-					// Scan the value
-					p.Mark();
-					if (!p.Find('\"'))
-						return null;
+					// Skip whitespace
+					p.SkipWhitespace();
 
-					// Store the value
-					tag.m_attributes.Add(attributeName, p.Extract());
+					// Optional quotes
+					if (p.SkipChar('\"'))
+					{
+						// Scan the value
+						p.Mark();
+						if (!p.Find('\"'))
+							return null;
 
-					// Skip closing quote
-					p.SkipForward(1);
+						// Store the value
+						tag.m_attributes.Add(attributeName, p.Extract());
+
+						// Skip closing quote
+						p.SkipForward(1);
+					}
+					else
+					{
+						// Scan the value
+						p.Mark();
+						while (!p.eof && !char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
+							p.SkipForward(1);
+
+						if (!p.eof)
+						{
+							// Store the value
+							tag.m_attributes.Add(attributeName, p.Extract());
+						}
+					}
 				}
 				else
 				{
-					// Scan the value
-					p.Mark();
-					while (!p.eof && !char.IsWhiteSpace(p.current) && p.current != '>' && p.current != '/')
-						p.SkipForward(1);
-
-					if (!p.eof)
-					{
-						// Store the value
-						tag.m_attributes.Add(attributeName, p.Extract());
-					}
+					tag.m_attributes.Add(attributeName, "");
 				}
 			}
 

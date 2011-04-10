@@ -402,6 +402,8 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="testfiles\blocktests\HtmlAttributeWithoutValue.txt" />
+    <EmbeddedResource Include="testfiles\blocktests\HtmlAttributeWithoutValue.html" />
     <EmbeddedResource Include="testfiles\spantests\LinkedImage.txt" />
     <EmbeddedResource Include="testfiles\spantests\LinkedImage.html" />
     <EmbeddedResource Include="testfiles\spantests\BackslashEscapes.txt" />

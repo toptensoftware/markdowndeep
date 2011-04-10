@@ -1304,35 +1304,38 @@ var MarkdownDeep = new function () {
             p.SkipWhitespace();
 
             // Skip equal sign
-            if (!p.SkipChar('='))
-                return null;
+            if (p.SkipChar('=')) {
 
-            // Skip whitespace
-            p.SkipWhitespace();
+                // Skip whitespace
+                p.SkipWhitespace();
 
-            // Optional quotes
-            if (p.SkipChar('\"')) {
-                // Scan the value
-                p.Mark();
-                if (!p.Find('\"'))
-                    return null;
+                // Optional quotes
+                if (p.SkipChar('\"')) {
+                    // Scan the value
+                    p.Mark();
+                    if (!p.Find('\"'))
+                        return null;
 
-                // Store the value
-                tag.attributes[attributeName] = p.Extract();
-
-                // Skip closing quote
-                p.SkipForward(1);
-            }
-            else {
-                // Scan the value
-                p.Mark();
-                while (!p.eof() && !is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
-                    p.SkipForward(1);
-
-                if (!p.eof()) {
                     // Store the value
                     tag.attributes[attributeName] = p.Extract();
+
+                    // Skip closing quote
+                    p.SkipForward(1);
                 }
+                else {
+                    // Scan the value
+                    p.Mark();
+                    while (!p.eof() && !is_whitespace(p.current()) && p.current() != '>' && p.current() != '/')
+                        p.SkipForward(1);
+
+                    if (!p.eof()) {
+                        // Store the value
+                        tag.attributes[attributeName] = p.Extract();
+                    }
+                }
+            }
+            else {
+                tag.attributes[attributeName] = "";
             }
         }
 
@@ -2332,7 +2335,7 @@ var MarkdownDeep = new function () {
             this.m_position = savepos;
         }
 
-        if (this.m_DisableLinks && token_type==TokenType_link)
+        if (this.m_DisableLinks && token_type == TokenType_link)
             return null;
 
         var ExtraMode = this.m_Markdown.ExtraMode;
