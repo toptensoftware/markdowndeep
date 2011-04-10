@@ -330,6 +330,13 @@ namespace MarkdownDeep
 
 							case BlockType.ol_li:
 							case BlockType.ul_li:
+								if (b.blockType!=BlockType.ol_li && b.blockType!=BlockType.ul_li)
+								{
+									CollapseLines(blocks, lines);
+								}
+								lines.Add(b);
+								break;
+
 							case BlockType.dd:
 							case BlockType.footnote:
 								if (b.blockType != currentBlockType)
@@ -1255,7 +1262,7 @@ namespace MarkdownDeep
 			{
 				// Join plain paragraphs
 				if ((lines[i].blockType == BlockType.p) &&
-					(lines[i - 1].blockType == BlockType.p || lines[i - 1].blockType == listType))
+					(lines[i - 1].blockType == BlockType.p || lines[i - 1].blockType == BlockType.ul_li || lines[i - 1].blockType==BlockType.ol_li))
 				{
 					lines[i - 1].contentEnd = lines[i].contentEnd;
 					FreeBlock(lines[i]);
@@ -1287,7 +1294,7 @@ namespace MarkdownDeep
 			// Process all lines in the range		
 			for (int i = 0; i < lines.Count; i++)
 			{
-				System.Diagnostics.Debug.Assert(lines[i].blockType == listType);
+				System.Diagnostics.Debug.Assert(lines[i].blockType == BlockType.ul_li || lines[i].blockType==BlockType.ol_li);
 
 				// Find start of item, including leading blanks
 				int start_of_li = i;
@@ -1296,7 +1303,7 @@ namespace MarkdownDeep
 
 				// Find end of the item, including trailing blanks
 				int end_of_li = i;
-				while (end_of_li < lines.Count - 1 && lines[end_of_li + 1].blockType != listType)
+				while (end_of_li < lines.Count - 1 && lines[end_of_li + 1].blockType != BlockType.ul_li && lines[end_of_li + 1].blockType != BlockType.ol_li)
 					end_of_li++;
 
 				// Is this a simple or complex list item?

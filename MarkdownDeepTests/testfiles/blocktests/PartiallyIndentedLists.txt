@@ -1,0 +1,29 @@
+﻿pre
+
+1. Outer 1
+ - Inner 1
+ - Inner 2
+2. Outer 2
+
+between
+
+* Outer 1
+ 1. Inner 1
+ 2. Inner 2
+* Outer 2
+
+between
+
+* Outer 1
+ * Inner 1
+ * Inner 2
+* Outer 2
+
+between
+
+1. Outer 1
+ 1. Inner 1
+ 2. Inner 2
+2. Outer 2
+
+post

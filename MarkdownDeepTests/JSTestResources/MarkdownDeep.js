@@ -3107,6 +3107,11 @@ var MarkdownDeep = new function () {
 
                         case BlockType_ol_li:
                         case BlockType_ul_li:
+                            if (b.blockType != BlockType_ol_li && b.blockType != BlockType_ul_li) {
+                                this.CollapseLines(blocks, lines);
+                            }
+                            lines.push(b);
+                            break;
                         case BlockType_dd:
                         case BlockType_footnote:
                             if (b.blockType != currentBlockType) {
@@ -3924,7 +3929,7 @@ var MarkdownDeep = new function () {
         for (var i = 1; i < lines.length; i++) {
             // Join plain paragraphs
             if ((lines[i].blockType == BlockType_p) &&
-				(lines[i - 1].blockType == BlockType_p || lines[i - 1].blockType == listType)) {
+				(lines[i - 1].blockType == BlockType_p || lines[i - 1].blockType == BlockType_ul_li || lines[i - 1].blockType == BlockType_ol_li)) {
                 lines[i - 1].set_contentEnd(lines[i].get_contentEnd());
                 this.FreeBlock(lines[i]);
                 lines.splice(i, 1);
@@ -3960,7 +3965,7 @@ var MarkdownDeep = new function () {
 
             // Find end of the item, including trailing blanks
             var end_of_li = i;
-            while (end_of_li < lines.length - 1 && lines[end_of_li + 1].blockType != listType)
+            while (end_of_li < lines.length - 1 && lines[end_of_li + 1].blockType != BlockType_ul_li && lines[end_of_li + 1].blockType != BlockType_ol_li)
                 end_of_li++;
 
             // Is this a simple or complex list item?
