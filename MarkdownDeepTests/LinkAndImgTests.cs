@@ -146,9 +146,13 @@ namespace MarkdownDeepTests
 		}
 
 
-
-
-
+		[Test]
+		public void ImageLink() 
+		{
+			Assert.AreEqual("pre <a href=\"url.com\"><img src=\"url.com/image.png\" alt=\"alt text\" /></a> post",
+					s.Format("pre [![alt text](url.com/image.png)](url.com) post"));
+		}
+ 
 		Markdown m;
 		SpanFormatter s;
 	}
