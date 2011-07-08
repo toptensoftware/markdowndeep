@@ -78,8 +78,9 @@ var MarkdownDeepEditorUI=new function(){
     this.onResizerMouseDown=function(e)
     {
         // Initialize state
-        var textarea=$(e.srcElement).prevAll("textarea")[0];
-		var iOriginalMouse = e.clientY;
+	var srcElement = (window.event) ? e.srcElement : e.target;
+        var textarea=$(srcElement).prevAll("textarea")[0];
+        var iOriginalMouse = e.clientY;
         var iOriginalHeight = $(textarea).height();
             
         // Bind to required events
