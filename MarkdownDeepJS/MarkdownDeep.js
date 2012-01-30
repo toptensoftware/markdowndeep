@@ -175,7 +175,7 @@ var MarkdownDeep = new function () {
             for (var i = 0; i < this.m_UsedFootnotes.length; i++) {
                 var fn = this.m_UsedFootnotes[i];
 
-                sb.Append("<li id=\"#fn:");
+                sb.Append("<li id=\"fn:");
                 sb.Append(fn.data); // footnote id
                 sb.Append("\">\n");
 
