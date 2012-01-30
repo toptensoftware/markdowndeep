@@ -191,7 +191,7 @@ namespace MarkdownDeep
 
 						sb.Append("</li>\n");
 					}
-					sb.Append("</ol\n");
+					sb.Append("</ol>\n");
 					sb.Append("</div>\n");
 				}
 			}
