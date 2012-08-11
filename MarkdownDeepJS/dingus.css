@@ -14,17 +14,6 @@ textarea.mdd_editor
 	font-weight:normal;
 	font-size: 10pt;
 	color:#202020;
-	width:700px;
-}
-
-div.mdd_resizer
-{
-	width:700px;
-}
-
-div.mdd_toolbar
-{
-	width:700px;
 }
 
 #options
