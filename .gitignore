@@ -12,3 +12,5 @@ Debug
 *.minime-options
 *.zip
 *.nupkg
+
+_ReSharper.*

@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MarkdownDeep
 {
@@ -67,6 +68,11 @@ namespace MarkdownDeep
 		// Transform a string
 		public string Transform(string str, out Dictionary<string, LinkDefinition> definitions)
 		{
+            if (EasyLineBreaks)
+            {
+                str = Regex.Replace(str, @"^([\w\*\>\<\[][^\r\n]*)(?=\r?\n[\w\*\>\<\[].*$)", "$1  ", RegexOptions.Multiline);
+            }
+
 			// Build blocks
 			var blocks = ProcessBlocks(str);
 
@@ -201,6 +207,10 @@ namespace MarkdownDeep
 			// Done
 			return sb.ToString();
 		}
+
+        ///<summary>Set to true to automatically have line breaks entered by the user converted into br tags without 
+        /// needing double spaces</summary>  
+        public bool EasyLineBreaks { get; set; }
 
 		public int SummaryLength
 		{
