@@ -58,7 +58,8 @@ var MarkdownDeep = new function () {
         FormatCodeBlockAttributes: null,
         FormatCodeBlock: null,
         ExtractHeadBlocks: false,
-        HeadBlockContent: ""
+        HeadBlockContent: "",
+        EasyLineBreaks: false
     };
 
     var p = Markdown.prototype;
@@ -122,6 +123,12 @@ var MarkdownDeep = new function () {
 
     // Main entry point    
     Markdown.prototype.Transform = function (input) {
+
+        // Don't require double space at line end to create line break
+        if (this.EasyLineBreaks) {
+            input = input.replace(/^([\w\*\>\<\[][^\r\n]*)(?=\r?\n[\w\*\>\<\[].*$)/gm, "$1  ");
+        }
+        
         // Normalize line ends
         var rpos = input.indexOf("\r");
         if (rpos >= 0) {
