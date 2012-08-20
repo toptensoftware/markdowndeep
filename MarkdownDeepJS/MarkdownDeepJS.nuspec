@@ -3,21 +3,24 @@
 	<metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
 		<id>MarkdownDeep.Full</id>
 		<title>MarkdownDeep - .NET and JavaScript Editions</title>
-		<version>1.4</version>
+		<version>1.5</version>
 		<authors>Topten Software</authors>
 		<owners>Topten Software</owners>
 		<licenseUrl>http://www.toptensoftware.com/markdowndeep/license</licenseUrl>
 		<projectUrl>http://www.toptensoftware.com/markdowndeep/</projectUrl>
 		<iconUrl>http://www.toptensoftware.com/markdowndeep/nuget_icon.png</iconUrl>
 		<requireLicenseAcceptance>true</requireLicenseAcceptance>
+		<summary>
+			MarkdownDeep is a high performance .NET Markdown engine along with a 100% compatible JavaScript implementation for client side use.  It supports PHPMarkdownExtra extensions, safe mode and more.
+
+			Package includes:
+
+			* .NET Markdown Translator
+			* JavaScript Markdown Translator
+			* jQuery editor with real-time preview, toolbar and syntax reference.
+		</summary>
 		<description>
-MarkdownDeep is a high performance .NET Markdown engine along with a 100% compatible JavaScript implementation for client side use.  It supports PHPMarkdownExtra extensions, safe mode and more.
-
-Package includes:
-
-* .NET Markdown Translator
-* JavaScript Markdown Translator
-* jQuery editor with real-time preview, toolbar and syntax reference.
+			MarkdownDeep is a high performance .NET Markdown engine along with a 100% compatible JavaScript implementation for client side use.
 		</description>
 		<tags>Markdown MarkdownExtra MarkdownDeep JavaScript jQuery Plugin</tags>
 	</metadata>

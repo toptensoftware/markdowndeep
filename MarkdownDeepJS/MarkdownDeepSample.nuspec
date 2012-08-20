@@ -3,7 +3,7 @@
 	<metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
 		<id>MarkdownDeep.Full.Sample</id>
 		<title>MarkdownDeep - Samples</title>
-		<version>1.4</version>
+		<version>1.5</version>
 		<authors>Topten Software</authors>
 		<owners>Topten Software</owners>
 		<licenseUrl>http://www.toptensoftware.com/markdowndeep/license</licenseUrl>
@@ -11,13 +11,16 @@
 		<iconUrl>http://www.toptensoftware.com/markdowndeep/nuget_icon.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>
-This is a sample package for MarkdownDeep that demonstrates both the server side .NET component and the client side JavaScript editor.
-
-Add this package to an ASP.NET MVC project and navigate to the http://[yourserveraddress]/MarkdownDeep
+			MarkdownDeep ASP.NET MVC Sample
 		</description>
+		<summary>
+			This is a sample package for MarkdownDeep that demonstrates both the server side .NET component and the client side JavaScript editor.
+
+			Add this package to an ASP.NET MVC project and navigate to the http://[yourserveraddress]/MarkdownDeep
+		</summary>
 		<tags>Markdown MarkdownExtra MarkdownDeep JavaScript jQuery Plugin</tags>
 		<dependencies>
-			<dependency id="MarkdownDeep.Full" version="1.1" />
+			<dependency id="MarkdownDeep.Full" version="1.5" />
 		</dependencies>
 	</metadata>
 	<files>
