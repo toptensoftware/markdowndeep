@@ -161,7 +161,7 @@ namespace MarkdownDeep
 					{
 						var fn = m_UsedFootnotes[i];
 
-						sb.Append("<li id=\"#fn:");
+						sb.Append("<li id=\"fn:");
 						sb.Append((string)fn.data);	// footnote id
 						sb.Append("\">\n");
 
@@ -191,7 +191,7 @@ namespace MarkdownDeep
 
 						sb.Append("</li>\n");
 					}
-					sb.Append("</ol\n");
+					sb.Append("</ol>\n");
 					sb.Append("</div>\n");
 				}
 			}
