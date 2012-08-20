@@ -96,11 +96,13 @@ div.mdd_syntax pre
 	background-color:#f8f8f8;
 }
 
+div.mdd_toolbar_wrap 
+{
+    width:100%;
+}
 div.mdd_toolbar
 {
-	float:left;
 	padding:5px;
-	width:100%;
 	height:20px;
 }
 
@@ -178,20 +180,27 @@ div.mdd_links a:hover
 	color:black;
 }
 
+div.mdd_editor_wrap
+{
+    padding-right: 8px;
+}
 textarea.mdd_editor
 {
 	width:100%;
 	resize:none;
-	margin:0;
+	margin:0;padding: 3px;
 }
 
+div.mdd_resizer_wrap
+{
+	width:100%;
+}
 div.mdd_resizer
 {
 	background:#f8f8f8; 
 	background-image:url("mdd_gripper.png");
 	background-position:center center;
 	background-repeat:no-repeat;
-	width:100%;
 	padding-left:2px;
 	padding-right:2px;
 	height:9px;

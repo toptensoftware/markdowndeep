@@ -78,10 +78,11 @@ var MarkdownDeepEditorUI=new function(){
     this.onResizerMouseDown=function(e)
     {
         // Initialize state
-        var textarea=$(e.srcElement).prevAll("textarea")[0];
-		var iOriginalMouse = e.clientY;
-        var iOriginalHeight = $(textarea).height();
-            
+        var srcElement = (window.event) ? e.srcElement : e.target,
+            textarea = $(srcElement).closest('.mdd_resizer_wrap').prev('.mdd_editor_wrap').children("textarea")[0],
+            iOriginalMouse = e.clientY,
+            iOriginalHeight = $(textarea).height();
+
         // Bind to required events
         $(document).bind("mousemove.mdd", DoDrag);
         $(document).bind("mouseup.mdd", EndDrag);
@@ -163,10 +164,9 @@ var MarkdownDeepEditorUI=new function(){
 	}
 	
 	// Toolbar click handler
-	this.onToolbarButton=function(e)
-	{
+	this.onToolbarButton=function(e) {
 	    // Find the editor, grab the MarkdownEditor.Editor class from it's data
-	    var editor=$(e.target).closest("div.mdd_toolbar").nextAll("textarea.mdd_editor").data("mdd");
+	    var editor = $(e.target).closest("div.mdd_toolbar_wrap").next('.mdd_editor_wrap').children("textarea").data("mdd");
 	    
 	    // Invoke the command
         editor.InvokeCommand($(e.target).attr("id").substr(4));
@@ -275,20 +275,39 @@ How the associated UI components are located:
 
     // Create each markdown editor
     return this.each(function() {        
-    
+        // Check if our textarea is encased in a wrapper div
+        var editorwrap = $(this).parent(".mdd_editor_wrap");
+        if (editorwrap.length==0) {
+            editorwrap = $(this).wrap('<div class=\"mdd_editor_wrap\" />').parent();
+        }
+        
         // Create the toolbar
         if (settings.toolbar)
         {
-            var toolbar=$(this).prev(".mdd_toolbar");
-            if (toolbar.length==0)
-            {
-                toolbar=$("<div class=\"mdd_toolbar\">" + MarkdownDeepEditorUI.ToolbarHtml() + "</div>");
-                toolbar.insertBefore(this);
+            // Possible cases: 1) wrapper and toolbar exists, 2) only toolbar exists (no wrapper), 3) nothing exists
+            var toolbarwrap=editorwrap.prev(".mdd_toolbar_wrap"),
+                toolbar = editorwrap.prev(".mdd_toolbar");
+            if (toolbarwrap.length==0) {
+                // Does the toolbar exist?
+                if (toolbar.length==0)
+                {
+                    toolbar=$("<div class=\"mdd_toolbar\" />");
+                    toolbar.insertBefore(editorwrap);
+                }
+                // Add our wrapper div (whether or not we created the toolbar or found it)
+                toolbarwrap = toolbar.wrap('<div class=\"mdd_toolbar_wrap\" />').parent();
+            } else {
+                // wrapper was there, how about the toolbar?
+                if (toolbar.length==0) {
+                    // No toolbar div
+                    toolbar=$("<div class=\"mdd_toolbar\" />");
+                    // Put the toolbar inside the provided wrapper div
+                    toolbarwrap.html(toolbar);
+                }
             }
-            else
-            {
-                toolbar.append($(MarkdownDeepEditorUI.ToolbarHtml()));
-            }
+            // Stuff the toolbar with buttons!
+            toolbar.append($(MarkdownDeepEditorUI.ToolbarHtml()));
+
        	    $("a.mdd_button", toolbar).click(MarkdownDeepEditorUI.onToolbarButton);
     	    $("a.mdd_help", toolbar).click(MarkdownDeepEditorUI.onShowHelpPopup);
     	    
@@ -300,18 +319,28 @@ How the associated UI components are located:
     	        MarkdownDeepEditorUI.HelpHtmlWritten=true;
     	    }
         }
-        
+
         // Create the resize bar
-        var resizer;
+        var resizer, resizerwrap;
         if (settings.resizebar)
         {
-            resizer=$(this).next(".mdd_resizer");
-            if (resizer.length==0)
-            {
-                resizer=$("<div class=\"mdd_resizer\"></div>");
-                resizer.insertAfter(this);
+            resizerwrap=editorwrap.next(".mdd_resizer_wrap"),
+            resizer=(resizerwrap.length==0)?editorwrap.next(".mdd_resizer"):resizerwrap.children('.mdd_resizer');
+            if (resizerwrap.length==0) {
+                if (resizer.length==0)
+                {
+                    resizer=$("<div class=\"mdd_resizer\" />");
+                    resizer.insertAfter(editorwrap);
+                }
+                // Add our wrapper div (whether or not we created the toolbar or found it)
+                resizerwrap = resizer.wrap('<div class=\"mdd_resizer_wrap\" />').parent();
+            } else {
+                if (resizer.length==0) {
+                    resizer=$("<div class=\"mdd_resizer\" />");
+                    resizerwrap.html(resizer);
+                }
             }
-            resizer.bind("mousedown", MarkdownDeepEditorUI.onResizerMouseDown);
+            resizerwrap.bind("mousedown", MarkdownDeepEditorUI.onResizerMouseDown);
         }
 
         // Work out the preview div, by:
