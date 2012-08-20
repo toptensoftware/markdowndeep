@@ -12,3 +12,4 @@ Debug
 *.minime-options
 *.zip
 *.nupkg
+/packages/*
