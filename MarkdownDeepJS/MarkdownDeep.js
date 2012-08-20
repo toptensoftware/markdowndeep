@@ -1350,8 +1350,8 @@ var MarkdownDeep = new function () {
     };
 
     var allowed_attributes = {
-        "a": { "href": 1, "title": 1 },
-        "img": { "src": 1, "width": 1, "height": 1, "alt": 1, "title": 1 }
+        "a": { "href": 1, "title": 1, "class": 1 },
+        "img": { "src": 1, "width": 1, "height": 1, "alt": 1, "title": 1, "class": 1 }
     };
 
     var b = HtmlTagFlags_Block;

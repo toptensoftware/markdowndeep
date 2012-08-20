@@ -88,8 +88,8 @@ namespace MarkdownDeep
 		};
 
 		static Dictionary<string, string[]> m_allowed_attributes = new Dictionary<string, string[]>() {
-			{ "a", new string[] { "href", "title"} },
-			{ "img", new string[] { "src", "width", "height", "alt", "title" } },
+			{ "a", new string[] { "href", "title", "class" } },
+			{ "img", new string[] { "src", "width", "height", "alt", "title", "class" } },
 		};
 
 		static Dictionary<string, HtmlTagFlags> m_tag_flags = new Dictionary<string, HtmlTagFlags>() {
