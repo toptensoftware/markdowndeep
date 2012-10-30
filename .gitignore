@@ -13,3 +13,4 @@ Debug
 *.zip
 *.nupkg
 /packages/*
+*[Rr]esharper*

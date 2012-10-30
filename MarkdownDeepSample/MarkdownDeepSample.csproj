@@ -89,6 +89,8 @@
     <Content Include="Scripts\mdd_styles.css" />
     <Content Include="Scripts\mdd_toolbar.png" />
     <Content Include="Views\MarkdownDeep\Edit.aspx" />
+    <Content Include="Views\MarkdownDeep\Multiple.aspx" />
+    <Content Include="Views\MarkdownDeep\MultipleEdit.aspx" />
     <Content Include="Views\MarkdownDeep\QuickRef.aspx" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
