@@ -16,7 +16,22 @@
 /////////////////////////////////////////////////////////////////////////////
 // Markdown
 
-var MarkdownDeep = new function () {
+var MarkdownDeep;
+
+(function (exports) {
+    // CommonJS
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = exports;
+    }
+    // AMD
+    else if (typeof define === "function") {
+        define(exports);
+    }
+    // <script>
+    else {
+        MarkdownDeep = exports;
+    }
+} (new function () {
 
 
     function array_indexOf(array, obj) {
@@ -4377,5 +4392,4 @@ var MarkdownDeep = new function () {
     // Exposed stuff
     this.Markdown = Markdown;
     this.HtmlTag = HtmlTag;
-} ();
-
+} ()));
