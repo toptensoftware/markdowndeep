@@ -350,7 +350,7 @@ namespace MarkdownDeep
 					case '_':
 
 						// Create emphasis mark
-						token = CreateEmphasisMark();
+						token = CreateEmphasisMark(emphasis_marks == null ? null : emphasis_marks.Last());
 
 						if (token != null)
 						{
@@ -556,7 +556,7 @@ namespace MarkdownDeep
 		 */
 
 		// Create emphasis mark for sequences of '*' and '_' (part 1)
-		public Token CreateEmphasisMark()
+		public Token CreateEmphasisMark(Token previous)
 		{
 			// Capture current state
 			char ch = current;
@@ -600,12 +600,12 @@ namespace MarkdownDeep
 			// This should have been stopped by check above
 			System.Diagnostics.Debug.Assert(!bSpaceBefore || !bSpaceAfter);
 
-			if (bSpaceBefore)
+			if (bSpaceBefore || previous.type == TokenType.closing_mark)
 			{
 				return CreateToken(TokenType.opening_mark, savepos, position - savepos);
 			}
 
-			if (bSpaceAfter)
+			if (bSpaceAfter || previous.type == TokenType.opening_mark)
 			{
 				return CreateToken(TokenType.closing_mark, savepos, position - savepos);
 			}
@@ -695,181 +695,6 @@ namespace MarkdownDeep
 				}
 			}
 		}
-
-		// Resolve emphasis marks (part 2)
-		public void ResolveEmphasisMarks_classic(List<Token> tokens, List<Token> marks)
-		{
-			// First pass, do <strong>
-			for (int i = 0; i < marks.Count; i++)
-			{ 
-				// Get the next opening or internal mark
-				Token opening_mark=marks[i];
-				if (opening_mark.type!=TokenType.opening_mark && opening_mark.type!=TokenType.internal_mark)
-					continue;
-				if (opening_mark.length < 2)
-					continue;
-
-				// Look for a matching closing mark
-				for (int j = i + 1; j < marks.Count; j++)
-				{
-					// Get the next closing or internal mark
-					Token closing_mark = marks[j];
-					if (closing_mark.type != TokenType.closing_mark && closing_mark.type!=TokenType.internal_mark)
-						continue;
-
-					// Ignore if different type (ie: `*` vs `_`)
-					if (input[opening_mark.startOffset] != input[closing_mark.startOffset])
-						continue;
-
-					// Must be at least two
-					if (closing_mark.length < 2)
-						continue;
-
-					// Split the opening mark, keeping the LHS
-					if (opening_mark.length > 2)
-					{
-						SplitMarkToken(tokens, marks, opening_mark, 2);
-					}
-
-					// Split the closing mark, keeping the RHS
-					if (closing_mark.length > 2)
-					{
-						closing_mark=SplitMarkToken(tokens, marks, closing_mark, closing_mark.length-2);
-					}
-
-					// Connect them
-					opening_mark.type = TokenType.open_strong;
-					closing_mark.type = TokenType.close_strong;
-
-					// Continue after the closing mark
-					i = marks.IndexOf(closing_mark);
-					break;
-				}
-			}
-
-			// Second pass, do <em>
-			for (int i = 0; i < marks.Count; i++)
-			{
-				// Get the next opening or internal mark
-				Token opening_mark = marks[i];
-				if (opening_mark.type != TokenType.opening_mark && opening_mark.type != TokenType.internal_mark)
-					continue;
-
-				// Look for a matching closing mark
-				for (int j = i + 1; j < marks.Count; j++)
-				{
-					// Get the next closing or internal mark
-					Token closing_mark = marks[j];
-					if (closing_mark.type != TokenType.closing_mark && closing_mark.type != TokenType.internal_mark)
-						continue;
-
-					// Ignore if different type (ie: `*` vs `_`)
-					if (input[opening_mark.startOffset] != input[closing_mark.startOffset])
-						continue;
-
-					// Split the opening mark, keeping the LHS
-					if (opening_mark.length > 1)
-					{
-						SplitMarkToken(tokens, marks, opening_mark, 1);
-					}
-
-					// Split the closing mark, keeping the RHS
-					if (closing_mark.length > 1)
-					{
-						closing_mark = SplitMarkToken(tokens, marks, closing_mark, closing_mark.length - 1);
-					}
-
-					// Connect them
-					opening_mark.type = TokenType.open_em;
-					closing_mark.type = TokenType.close_em;
-
-					// Continue after the closing mark
-					i = marks.IndexOf(closing_mark);
-					break;
-				}
-			}
-		}
-
-		// Process '*', '**' or '_', '__'
-		// This is horrible and probably much better done through regex, but I'm stubborn.
-		// For normal cases this routine works as expected.  For unusual cases (eg: overlapped
-		// strong and emphasis blocks), the behaviour is probably not the same as the original
-		// markdown scanner.
-		/*
-		public Token ProcessEmphasisOld(ref Token prev_single, ref Token prev_double)
-		{
-			// Check whitespace before/after
-			bool bSpaceBefore = !bof && IsLineSpace(CharAtOffset(-1));
-			bool bSpaceAfter = IsLineSpace(CharAtOffset(1));
-
-			// Ignore if surrounded by whitespace
-			if (bSpaceBefore && bSpaceAfter)
-			{
-				return null;
-			}
-
-			// Save the current character and skip it
-			char ch = current;
-			Skip(1);
-
-			// Do we have a previous matching single star?
-			if (!bSpaceBefore && prev_single != null)
-			{
-				// Yes, match them...
-				prev_single.type = TokenType.open_em;
-				prev_single = null;
-				return CreateToken(TokenType.close_em, position - 1, 1);
-			}
-
-			// Is this a double star/under
-			if (current == ch)
-			{
-				// Skip second character
-				Skip(1);
-
-				// Space after?
-				bSpaceAfter = IsLineSpace(current);
-
-				// Space both sides?
-				if (bSpaceBefore && bSpaceAfter)
-				{
-					// Ignore it
-					return CreateToken(TokenType.Text, position - 2, 2);
-				}
-
-				// Do we have a previous matching double
-				if (!bSpaceBefore && prev_double != null)
-				{
-					// Yes, match them
-					prev_double.type = TokenType.open_strong;
-					prev_double = null;
-					return CreateToken(TokenType.close_strong, position - 2, 2);
-				}
-
-				if (!bSpaceAfter)
-				{
-					// Opening double star
-					prev_double = CreateToken(TokenType.Text, position - 2, 2);
-					return prev_double;
-				}
-
-				// Ignore it
-				return CreateToken(TokenType.Text, position - 2, 2);
-			}
-
-			// If there's a space before, we can open em
-			if (!bSpaceAfter)
-			{
-				// Opening single star
-				prev_single = CreateToken(TokenType.Text, position - 1, 1);
-				return prev_single;
-			}
-
-			// Ignore
-			Skip(-1);
-			return null;
-		}
-		 */
 
 		// Process auto links eg: <google.com>
 		Token ProcessAutoLink()
