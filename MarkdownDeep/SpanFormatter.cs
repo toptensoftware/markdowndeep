@@ -14,8 +14,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MarkdownDeep
 {
@@ -610,7 +612,12 @@ namespace MarkdownDeep
 				return CreateToken(TokenType.closing_mark, savepos, position - savepos);
 			}
 
-			if (m_Markdown.ExtraMode && ch == '_')
+			// Handle inline underscores, only convert to emphasis if followed by punctuation
+		    var nextChar = CharAtOffset(0).ToString(CultureInfo.InvariantCulture);
+		    const string punctuationPattern = @"[^\w\s]";
+		    var isNextCharacterPunctuation = Regex.Match(nextChar, punctuationPattern).Groups[0].Success;
+			
+			if (m_Markdown.ExtraMode && ch == '_' && !isNextCharacterPunctuation)
 				return null;
 
 			return CreateToken(TokenType.internal_mark, savepos, position - savepos);
