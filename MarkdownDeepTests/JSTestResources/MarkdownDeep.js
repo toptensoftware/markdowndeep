@@ -2164,10 +2164,13 @@ var MarkdownDeep = new function () {
         if (bSpaceAfter) {
             return this.CreateToken(TokenType_closing_mark, savepos, p.m_position - savepos);
         }
+        
+        // Handle inline underscores, only convert to emphasis if followed by punctuation
+        var nextChar = p.CharAtOffset(0);
+        var isNextCharacterPunctuation = /[^\w\s]/.test(nextChar);
 
-        if (this.m_Markdown.ExtraMode && ch == '_')
+        if (this.m_Markdown.ExtraMode && ch == '_' && !isNextCharacterPunctuation)
             return null;
-
 
         return this.CreateToken(TokenType_internal_mark, savepos, p.m_position - savepos);
     }
