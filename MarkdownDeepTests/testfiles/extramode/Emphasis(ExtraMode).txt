@@ -3,6 +3,7 @@ pre __strong__ post
 pre in_tern_al post
 pre in_ternal_ post
 pre _in_ternal post
+pre _internal_, post
 
 
 pre *em* post
