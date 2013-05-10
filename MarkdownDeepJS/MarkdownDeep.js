@@ -213,6 +213,10 @@ var MarkdownDeep = new function () {
     }
 
     Markdown.prototype.OnQualifyUrl = function (url) {
+        // Is the url a fragment?
+        if (starts_with(url, "#"))
+            return url;
+
         // Is the url already fully qualified?
         if (IsUrlFullyQualified(url))
             return url;
