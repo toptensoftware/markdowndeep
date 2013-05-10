@@ -1,6 +1,6 @@
 ﻿// 
 //   MarkdownDeep - http://www.toptensoftware.com/markdowndeep
-//	 Copyright (C) 2010-2011 Topten Software
+//   Copyright (C) 2010-2011 Topten Software
 // 
 //   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this product except in 
 //   compliance with the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MarkdownDeep
@@ -94,7 +95,7 @@ namespace MarkdownDeep
                     var b = blocks[i];
                     b.RenderPlain(this, sb);
 
-                    if (SummaryLength > 0 && sb.Length > SummaryLength)
+                    if (SummaryLength>0 && sb.Length > SummaryLength)
                         break;
                 }
 
@@ -161,7 +162,7 @@ namespace MarkdownDeep
                         var fn = m_UsedFootnotes[i];
 
                         sb.Append("<li id=\"fn:");
-                        sb.Append((string)fn.data);	// footnote id
+                        sb.Append((string)fn.data); // footnote id
                         sb.Append("\">\n");
 
 
@@ -357,7 +358,7 @@ namespace MarkdownDeep
                 pos = UrlBaseLocation.IndexOf('/', pos);
 
                 // Get the domain name
-                string strDomain = pos < 0 ? UrlBaseLocation : UrlBaseLocation.Substring(0, pos);
+                string strDomain=pos<0 ? UrlBaseLocation : UrlBaseLocation.Substring(0, pos);
 
                 // Join em
                 return strDomain + url;
@@ -378,7 +379,7 @@ namespace MarkdownDeep
         {
             if (GetImageSize != null)
             {
-                var info = new ImageInfo() { url = url, titled_image = TitledImage };
+                var info = new ImageInfo() { url = url, titled_image=TitledImage };
                 if (GetImageSize(info))
                 {
                     width = info.width;
@@ -401,15 +402,15 @@ namespace MarkdownDeep
             // Work out file location
             if (str.EndsWith("/") || str.EndsWith("\\"))
             {
-                str = str.Substring(0, str.Length - 1);
+                str=str.Substring(0, str.Length-1);
             }
 
             if (url.StartsWith("/"))
             {
-                url = url.Substring(1);
+                url=url.Substring(1);
             }
 
-            str = str + "\\" + url.Replace("/", "\\");
+            str=str + "\\" + url.Replace("/", "\\");
 
 
             // 
@@ -418,13 +419,13 @@ namespace MarkdownDeep
             try
             {
                 var img = System.Drawing.Image.FromFile(str);
-                width = img.Width;
-                height = img.Height;
+                width=img.Width;
+                height=img.Height;
 
-                if (MaxImageWidth != 0 && width > MaxImageWidth)
+                if (MaxImageWidth != 0 && width>MaxImageWidth)
                 {
-                    height = (int)((double)height * (double)MaxImageWidth / (double)width);
-                    width = MaxImageWidth;
+                    height=(int)((double)height * (double)MaxImageWidth / (double)width);
+                    width=MaxImageWidth;
                 }
 
                 return true;
@@ -437,7 +438,7 @@ namespace MarkdownDeep
 
 
         public Func<HtmlTag, bool> PrepareLink;
-
+        
         // Override to modify the attributes of a link
         public virtual void OnPrepareLink(HtmlTag tag)
         {
@@ -456,8 +457,8 @@ namespace MarkdownDeep
             }
 
             // New window?
-            if ((NewWindowForExternalLinks && Utils.IsUrlFullyQualified(url)) ||
-                 (NewWindowForLocalLinks && !Utils.IsUrlFullyQualified(url)))
+            if ( (NewWindowForExternalLinks && Utils.IsUrlFullyQualified(url)) ||
+                 (NewWindowForLocalLinks && !Utils.IsUrlFullyQualified(url)) )
             {
                 tag.attributes["target"] = "_blank";
             }
@@ -534,8 +535,8 @@ namespace MarkdownDeep
         // If not set (the default), this features is disabled, otherwise the output is:
         // 
         // <div class="<%=this.HtmlClassTitledImags%>">
-        //	<img src="image.png" />
-        //	<p>Alt text goes here</p>
+        //  <img src="image.png" />
+        //  <p>Alt text goes here</p>
         // </div>
         //
         // Use CSS to style the figure and the caption
@@ -589,7 +590,7 @@ namespace MarkdownDeep
 
         public virtual void OnSectionFooter(StringBuilder dest, int Index)
         {
-            if (SectionFooter != null)
+            if (SectionFooter!=null)
             {
                 dest.AppendFormat(SectionFooter, Index);
             }
@@ -619,7 +620,7 @@ namespace MarkdownDeep
             for (int i = 0; i < blocks.Count; i++)
             {
                 var b = blocks[i];
-                if (b.blockType == BlockType.user_break)
+                if (b.blockType==BlockType.user_break)
                 {
                     // Get the offset of the section
                     int iSectionOffset = b.lineStart;
@@ -631,7 +632,7 @@ namespace MarkdownDeep
                     if (i + 1 < blocks.Count)
                     {
                         iPrevSectionOffset = blocks[i + 1].lineStart;
-                        if (iPrevSectionOffset == 0)
+                        if (iPrevSectionOffset==0)
                             iPrevSectionOffset = blocks[i + 1].contentStart;
                     }
                     else
@@ -719,7 +720,7 @@ namespace MarkdownDeep
                     // For subsequent sections, need to make sure we
                     // have a line break after the previous section.
                     string strPrev = sections[sections.Count - 1];
-                    if (strPrev.Length > 0 && !strPrev.EndsWith("\n") && !strPrev.EndsWith("\r"))
+                    if (strPrev.Length>0 && !strPrev.EndsWith("\n") && !strPrev.EndsWith("\r"))
                         sb.Append("\n");
                 }
 
@@ -733,7 +734,7 @@ namespace MarkdownDeep
         internal void AddLinkDefinition(LinkDefinition link)
         {
             // Store it
-            m_LinkDefinitions[link.id] = link;
+            m_LinkDefinitions[link.id]=link;
         }
 
         internal void AddFootnote(Block footnote)
@@ -752,7 +753,7 @@ namespace MarkdownDeep
                 m_Footnotes.Remove(id);
 
                 // Return it's display index
-                return m_UsedFootnotes.Count - 1;
+                return m_UsedFootnotes.Count-1;
             }
             else
                 return -1;
@@ -845,7 +846,7 @@ namespace MarkdownDeep
                             dest.Append(' ');
                             pos++;
                         }
-                        pos--;		// Compensate for the pos++ below
+                        pos--;      // Compensate for the pos++ below
                         break;
 
                     case '\r':
@@ -892,15 +893,15 @@ namespace MarkdownDeep
                 return null;
 
             // Extract a pandoc style cleaned header id from the header text
-            string strBase = m_SpanFormatter.MakeID(strHeaderText, startOffset, length);
+            string strBase=m_SpanFormatter.MakeID(strHeaderText, startOffset, length);
 
             // If nothing left, use "section"
             if (String.IsNullOrEmpty(strBase))
                 strBase = "section";
 
             // Make sure it's unique by append -n counter
-            string strWithSuffix = strBase;
-            int counter = 1;
+            string strWithSuffix=strBase;
+            int counter=1;
             while (m_UsedHeaderIDs.ContainsKey(strWithSuffix))
             {
                 strWithSuffix = strBase + "-" + counter.ToString();
@@ -944,11 +945,11 @@ namespace MarkdownDeep
 
         // We cache and re-use blocks for performance
 
-        Stack<Block> m_SpareBlocks = new Stack<Block>();
+        Stack<Block> m_SpareBlocks=new Stack<Block>();
 
         internal Block CreateBlock()
         {
-            if (m_SpareBlocks.Count != 0)
+            if (m_SpareBlocks.Count!=0)
                 return m_SpareBlocks.Pop();
             else
                 return new Block();
@@ -973,7 +974,8 @@ namespace MarkdownDeep
         Dictionary<string, Abbreviation> m_AbbreviationMap;
         List<Abbreviation> m_AbbreviationList;
 
-
+    
     }
 
 }
+
