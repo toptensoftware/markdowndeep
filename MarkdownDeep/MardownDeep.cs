@@ -332,6 +332,10 @@ namespace MarkdownDeep
 			if (String.IsNullOrEmpty(UrlBaseLocation))
 				return url;
 
+            // Is the url a fragment?
+            if (url.StartsWith("#"))
+                return url;
+
 			// Is the url already fully qualified?
 			if (Utils.IsUrlFullyQualified(url))
 				return url;
