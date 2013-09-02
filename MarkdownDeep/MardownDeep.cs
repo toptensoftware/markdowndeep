@@ -316,15 +316,6 @@ namespace MarkdownDeep
 			set;
 		}
 
-        /// <summary>
-        /// Add the NoFollow attribute to all external links.
-        /// </summary>
-        public bool NoFollowExternalLinks
-        {
-            get;
-            set;
-        }
-
 		public Func<string, string> QualifyUrl;
 
 		// Override to qualify non-local image and link urls
@@ -458,15 +449,9 @@ namespace MarkdownDeep
 			// No follow?
 			if (NoFollowLinks)
 			{
-				tag.attributes["rel"] = "nofollow";
-			}
-
-            // No follow external links only
-            if (NoFollowExternalLinks)
-            {
                 if (url.StartsWith("http"))
                     tag.attributes["rel"] = "nofollow";
-            }
+			}
 
 			// New window?
 			if ( (NewWindowForExternalLinks && Utils.IsUrlFullyQualified(url)) ||
