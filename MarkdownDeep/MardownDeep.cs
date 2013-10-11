@@ -316,6 +316,13 @@ namespace MarkdownDeep
 			set;
 		}
 
+		// Set class attribute for all tables
+		public string TableClass
+		{
+			get;
+			set;
+		}
+
 		public Func<string, string> QualifyUrl;
 
 		// Override to qualify non-local image and link urls

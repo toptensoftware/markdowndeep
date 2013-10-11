@@ -117,7 +117,10 @@ namespace MarkdownDeep
 	
 		public void Render(Markdown m, StringBuilder b)
 		{
-			b.Append("<table>\n");
+			b.Append("<table");
+			if (!string.IsNullOrWhiteSpace(m.TableClass) b.Append(string.Format(" class=\"{0}\"", m.TableClass);
+			b.Append(">\n");
+			
 			if (Headers != null)
 			{
 				b.Append("<thead>\n<tr>\n");
