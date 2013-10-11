@@ -58,7 +58,8 @@ var MarkdownDeep = new function () {
         FormatCodeBlockAttributes: null,
         FormatCodeBlock: null,
         ExtractHeadBlocks: false,
-        HeadBlockContent: ""
+        HeadBlockContent: "",
+        TableClass: null
     };
 
     var p = Markdown.prototype;
@@ -4281,7 +4282,14 @@ var MarkdownDeep = new function () {
     }
 
     p.Render = function (m, b) {
-        b.Append("<table>\n");
+        b.Append("<table");
+        if (m.TableClass) {
+            b.Append(" class=\"");
+            b.Append(m.TableClass);
+            b.Append("\"");
+        }
+        b.Append(">\n");
+
         if (this.m_Headers != null) {
             b.Append("<thead>\n<tr>\n");
             this.RenderRow(m, b, this.m_Headers, "th");
