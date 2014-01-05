@@ -39,7 +39,7 @@ var MarkdownDeepEditorUI=new function(){
         str+='</div>\n';
         str+='</div>\n';
         return str;
-    }
+    };
 
     // Helper function that returns the HTML content of the toolbar
     this.ToolbarHtml=function()
@@ -72,7 +72,7 @@ var MarkdownDeepEditorUI=new function(){
         str+='</ul>\n';
         str+='<div style="clear:both"></div>\n';
         return str;
-    }
+    };
     
     // Handle click on resize bar
     this.onResizerMouseDown=function(e)
@@ -108,7 +108,7 @@ var MarkdownDeepEditorUI=new function(){
             return false;
         }
         
-    }
+    };
     
 	// Used to store the scroll position of the help
 	var scrollPos=0;
@@ -145,7 +145,7 @@ var MarkdownDeepEditorUI=new function(){
         }
         
         return false;
-    }
+    };
 
     // Close the popup help
 	this.onCloseHelpPopup=function()
@@ -161,7 +161,7 @@ var MarkdownDeepEditorUI=new function(){
 	    $(document).unbind("scroll.mdd"); 
 	    
 	    return false;
-	}
+	};
 	
 	// Toolbar click handler
 	this.onToolbarButton=function(e) {
@@ -173,7 +173,7 @@ var MarkdownDeepEditorUI=new function(){
         
         // Supress default
         return false;
-	}
+	};
 }();
 
 /*
@@ -264,6 +264,7 @@ How the associated UI components are located:
     {
         resizebar: true,
         toolbar: true,
+        preview: true,
         help_location: 'mdd_help.html'
     };
     
@@ -343,20 +344,22 @@ How the associated UI components are located:
             resizerwrap.bind("mousedown", MarkdownDeepEditorUI.onResizerMouseDown);
         }
 
-        // Work out the preview div, by:
-        //      1. Look for a selector as a data attribute on the textarea
-        //      2. If not present, assume <div class="mdd_preview">
-        //      3. If not found, append a div with that class
-        var preview_selector=$(this).attr("data-mdd-preview");
-        if (!preview_selector)
-             preview_selector=".mdd_preview";
-        var preview=$(preview_selector)[0];
-        if (!preview)
-        {
-            $("<div class=\"mdd_preview\"></div>").insertAfter(resizer ? resizer : this);
-            preview=$(".mdd_preview")[0];
+        var preview = null;
+        if (settings.preview === true) {
+            // Work out the preview div, by:
+            //      1. Look for a selector as a data attribute on the textarea
+            //      2. If not present, assume <div class="mdd_preview">
+            //      3. If not found, append a div with that class
+            var preview_selector = $(this).attr("data-mdd-preview");
+            if (!preview_selector)
+                preview_selector = ".mdd_preview";
+            preview = $(preview_selector)[0];
+            if (!preview) {
+                $("<div class=\"mdd_preview\"></div>").insertAfter(resizer ? resizer : this);
+                preview = $(".mdd_preview")[0];
+            }
         }
-        
+
         // Create the editor helper
         var editor=new MarkdownDeepEditor.Editor(this, preview);
         
