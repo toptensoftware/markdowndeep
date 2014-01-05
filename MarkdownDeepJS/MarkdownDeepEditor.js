@@ -223,7 +223,7 @@ var MarkdownDeepEditor=new function(){
             this.m_selectionEnd = textarea.selectionEnd;
             this.m_text=textarea.value;
         }
-    }
+    };
     
     priv.Duplicate=function()
     {
@@ -233,7 +233,7 @@ var MarkdownDeepEditor=new function(){
         other.m_selectionStart=this.m_selectionStart;
         other.m_text=this.m_text;
         return other;
-    }
+    };
     
     priv.Apply=function()
     {
@@ -256,13 +256,13 @@ var MarkdownDeepEditor=new function(){
             this.m_textarea.setSelectionRange(this.m_selectionStart, this.m_selectionEnd);
             this.m_textarea.scrollTop=scrollTop;
         }
-    }
+    };
     
     priv.ReplaceSelection=function(str)
     {
         this.m_text=this.m_text.substr(0, this.m_selectionStart) + str + this.m_text.substr(this.m_selectionEnd);
         this.m_selectionEnd=this.m_selectionStart + str.length;
-    }
+    };
 
     function adjust_pos(pos2, editpos, del, ins)
     {
@@ -276,28 +276,28 @@ var MarkdownDeepEditor=new function(){
         this.m_text=this.m_text.substr(0, pos) + str + this.m_text.substr(pos+len);
         this.m_selectionStart=adjust_pos(this.m_selectionStart, pos, len, str.length);
         this.m_selectionEnd=adjust_pos(this.m_selectionEnd, pos, len, str.length);
-    }
+    };
     
     priv.getSelectedText=function()
     {
         return this.m_text.substr(this.m_selectionStart, this.m_selectionEnd-this.m_selectionStart);
-    }
+    };
     
     priv.InflateSelection=function(ds, de)
     {
         this.m_selectionEnd+=de;
         this.m_selectionStart-=ds;
-    }
+    };
     
     priv.PreceededBy=function(str)
     {
         return this.m_selectionStart >= str.length && this.m_text.substr(this.m_selectionStart-str.length, str.length)==str;
-    }
+    };
     
     priv.FollowedBy=function(str)
     {
         return this.m_text.substr(this.m_selectionEnd, str.length)==str;
-    }
+    };
     
     priv.TrimSelection=function()
     {
@@ -305,12 +305,12 @@ var MarkdownDeepEditor=new function(){
             this.m_selectionStart++;
         while (this.m_selectionEnd>this.m_selectionStart && is_whitespace(this.m_text.charAt(this.m_selectionEnd-1)))
             this.m_selectionEnd--;
-    }
+    };
     
     priv.IsStartOfLine=function(pos)
     {
         return pos==0 || is_crlf(this.m_text.charAt(pos-1));
-    }
+    };
     
     priv.FindStartOfLine=function(pos)
     {
@@ -320,7 +320,7 @@ var MarkdownDeepEditor=new function(){
             pos--;
         }
         return pos;
-    }    
+    };
     
     priv.FindEndOfLine=function(pos)
     {
@@ -329,19 +329,19 @@ var MarkdownDeepEditor=new function(){
             pos++;
         }
         return pos;
-    }
+    };
     
     priv.FindNextLine=function(pos)
     {
         return this.SkipEol(this.FindEndOfLine(pos));
-    }
+    };
     
     priv.SkipWhiteSpace=function(pos)
     {
         while (pos<this.m_text.length && is_whitespace(this.m_text.charAt(pos)))
             pos++;
         return pos;
-    }
+    };
     
     priv.SkipEol=function(pos)
     {
@@ -350,7 +350,7 @@ var MarkdownDeepEditor=new function(){
         if (is_crlf(this.m_text.charAt(pos)))
             return pos+1;
         return pos;
-    }
+    };
     
     priv.SkipPreceedingEol=function(pos)
     {
@@ -359,7 +359,7 @@ var MarkdownDeepEditor=new function(){
         if (pos>1 && is_crlf(this.m_text.charAt(pos-1)))
             return pos-1;
         return pos;
-    }
+    };
     
     priv.SelectWholeLines=function()
     {
@@ -371,7 +371,7 @@ var MarkdownDeepEditor=new function(){
         {
             this.m_selectionEnd=this.SkipEol(this.FindEndOfLine(this.m_selectionEnd));
         }
-    }
+    };
     
     priv.SkipPreceedingWhiteSpace=function(pos)
     {
@@ -380,7 +380,7 @@ var MarkdownDeepEditor=new function(){
             pos--;
         }
         return pos;
-    }
+    };
     
     priv.SkipFollowingWhiteSpace=function(pos)
     {
@@ -389,12 +389,13 @@ var MarkdownDeepEditor=new function(){
             pos++;
         }
         return pos;
-    }
+    };
+
     priv.SelectSurroundingWhiteSpace=function()
     {
         this.m_selectionStart=this.SkipPreceedingWhiteSpace(this.m_selectionStart);
         this.m_selectionEnd=this.SkipFollowingWhiteSpace(this.m_selectionEnd);
-    }
+    };
     
     priv.CheckSimpleSelection=function()
     {
@@ -408,7 +409,7 @@ var MarkdownDeepEditor=new function(){
         }
         
         return true;
-    }
+    };
 
     // Check if line is completely blank    
     priv.IsBlankLine=function(p)
@@ -424,7 +425,7 @@ var MarkdownDeepEditor=new function(){
         }
         
         return true;
-    }
+    };
     
     priv.FindStartOfParagraph=function(pos)
     {
@@ -465,7 +466,7 @@ var MarkdownDeepEditor=new function(){
         }
         
         return pos;
-    }
+    };
     
     priv.FindEndOfParagraph=function(pos)
     {
@@ -479,14 +480,14 @@ var MarkdownDeepEditor=new function(){
         }
         
         return pos;
-    }
+    };
     
     // Select the paragraph
     priv.SelectParagraph=function()
     {
         this.m_selectionStart=this.FindStartOfParagraph(this.m_selectionStart);
         this.m_selectionEnd=this.FindEndOfParagraph(this.m_selectionStart);        
-    }
+    };
     
     // Starting at position pos, return the list type
     // returns { m_listType, m_prefixLen } 
@@ -501,11 +502,8 @@ var MarkdownDeepEditor=new function(){
             return {m_listType:"*", m_prefixLen:m[0].length};
         else
             return {m_listType:"1", m_prefixLen:m[0].length};
-    }
+    };
     
-    
-    
-
     // Editor
     function Editor(textarea, div_html)
     {
