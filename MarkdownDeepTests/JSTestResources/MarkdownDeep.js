@@ -2164,7 +2164,7 @@ var MarkdownDeep = new function () {
             return this.CreateToken(TokenType_closing_mark, savepos, p.m_position - savepos);
         }
 
-        if (this.m_Markdown.ExtraMode && ch == '_')
+        if (this.m_Markdown.ExtraMode && ch == '_' && /[\w\s]/.test(p.current()))
             return null;
 
 
