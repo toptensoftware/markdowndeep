@@ -4245,7 +4245,7 @@ var MarkdownDeep = new function () {
             // Find the next vertical bar
             p.Mark();
             while (!p.eol() && p.current() != '|')
-                p.SkipForward(1);
+                p.SkipEscapableChar(true);
 
             row.push(Trim(p.Extract()));
 

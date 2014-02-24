@@ -1,0 +1,9 @@
+﻿pre
+
+Fruit|Color
+--|--
+App\|les|Red
+Pe\|ars|Green
+Ban\|anas|Yellow
+
+post
