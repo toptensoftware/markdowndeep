@@ -2599,7 +2599,7 @@ var MarkdownDeep = new function () {
 
     p.ResolveHeaderID = function (m) {
         // Already resolved?
-        if (this.data != null)
+        if (typeof(this.data)=='string')
             return this.data;
 
         // Approach 1 - PHP Markdown Extra style header id
