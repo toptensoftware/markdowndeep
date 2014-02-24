@@ -120,7 +120,7 @@ namespace MarkdownDeep
 		internal string ResolveHeaderID(Markdown m)
 		{
 			// Already resolved?
-			if (this.data!=null)
+			if (this.data!=null && this.data is string)
 				return (string)this.data;
 
 			// Approach 1 - PHP Markdown Extra style header id
