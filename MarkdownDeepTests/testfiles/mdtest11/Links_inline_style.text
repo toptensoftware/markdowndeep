@@ -22,3 +22,6 @@ Just a [URL](/url/).
 [With parens in the URL](/foo\(bar\) "and a title")
 
 (With outer parens and [parens in url](/foo\(bar\) "and a title"))
+
+[concat] something to test bug #8
+

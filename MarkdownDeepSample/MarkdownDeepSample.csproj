@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MarkdownDeep">
-      <HintPath>..\packages\MarkdownDeep.Full.1.1\lib\.NetFramework 3.5\MarkdownDeep.dll</HintPath>
+      <HintPath>..\MarkdownDeep\bin\Debug\MarkdownDeep.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -152,6 +152,6 @@
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PreBuildEvent>nuget.exe install $(ProjectDir)packages.config -o $(ProjectDir)..\Packages</PreBuildEvent>
+    <PreBuildEvent>rem nuget.exe install $(ProjectDir)packages.config -o $(ProjectDir)..\Packages</PreBuildEvent>
   </PropertyGroup>
 </Project>

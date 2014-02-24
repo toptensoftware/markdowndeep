@@ -324,7 +324,7 @@ How the associated UI components are located:
         var resizer, resizerwrap;
         if (settings.resizebar)
         {
-            resizerwrap=editorwrap.next(".mdd_resizer_wrap"),
+            resizerwrap=editorwrap.next(".mdd_resizer_wrap");
             resizer=(resizerwrap.length==0)?editorwrap.next(".mdd_resizer"):resizerwrap.children('.mdd_resizer');
             if (resizerwrap.length==0) {
                 if (resizer.length==0)

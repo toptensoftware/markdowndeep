@@ -291,11 +291,10 @@ var MarkdownDeep = new function () {
 
     // Get a link definition
     Markdown.prototype.GetLinkDefinition = function (id) {
-        var x = this.m_LinkDefinitions[id];
-        if (x == undefined)
-            return null;
+        if (this.m_LinkDefinitions.hasOwnProperty(id))
+            return this.m_LinkDefinitions[id];
         else
-            return x;
+            return null;
     }
 
 

@@ -464,6 +464,6 @@
     <PostBuildEvent>xcopy /D /Y "$(SolutionDir)MarkdownDeepJS\*.js" "$(ProjectDir)JSTestResources"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>nuget.exe install $(ProjectDir)packages.config -o $(ProjectDir)..\Packages</PreBuildEvent>
+    <PreBuildEvent>rem nuget.exe install $(ProjectDir)packages.config -o $(ProjectDir)..\Packages</PreBuildEvent>
   </PropertyGroup>
 </Project>
