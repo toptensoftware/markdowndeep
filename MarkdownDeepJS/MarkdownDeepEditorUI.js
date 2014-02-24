@@ -274,7 +274,7 @@ How the associated UI components are located:
     }
 
     // Create each markdown editor
-    return this.each(function() {        
+    return this.each(function(index) {        
         // Check if our textarea is encased in a wrapper div
         var editorwrap = $(this).parent(".mdd_editor_wrap");
         if (editorwrap.length==0) {
@@ -350,11 +350,11 @@ How the associated UI components are located:
         var preview_selector=$(this).attr("data-mdd-preview");
         if (!preview_selector)
              preview_selector=".mdd_preview";
-        var preview=$(preview_selector)[0];
+        var preview=$(preview_selector)[index];
         if (!preview)
         {
             $("<div class=\"mdd_preview\"></div>").insertAfter(resizer ? resizer : this);
-            preview=$(".mdd_preview")[0];
+            preview=$(".mdd_preview")[index];
         }
         
         // Create the editor helper

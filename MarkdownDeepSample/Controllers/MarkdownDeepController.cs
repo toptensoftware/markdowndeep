@@ -28,6 +28,18 @@ MarkdownDeep is written by [Topten Software](http://www.toptensoftware.com).  Th
 
 ";
 
+        static string m_Content2 =
+@"# Edit this second field with MarkdownDeep
+
+This demo project shows how to use MarkdownDeep in a typical ASP.NET MVC application.
+
+* Click the *Edit this Page* link below to make changes to this page with MarkdownDeep's editor
+* Use the links in the top right for more info.
+* Look at the file `MarkdownDeepController.cs` for implementation details.
+
+MarkdownDeep is written by [Topten Software](http://www.toptensoftware.com).  The project home for MarkdownDeep is [here](http://www.toptensoftware.com/markdowndeep).
+
+";
 		public ActionResult Index()
 		{
 			// View the user editable content
@@ -58,7 +70,41 @@ MarkdownDeep is written by [Topten Software](http://www.toptensoftware.com).  Th
 			return RedirectToAction("Index");
 		}
 
-		public ActionResult About()
+
+        public ActionResult Multiple()
+        {
+            // View the user editable content
+
+            // Create and setup Markdown translator
+            var md = new MarkdownDeep.Markdown();
+            md.SafeMode = true;
+            md.ExtraMode = true;
+
+            // Transform the content and pass to the view
+            ViewData["Content"] = md.Transform(m_Content);
+            ViewData["Content2"] = md.Transform(m_Content2);
+            return View();
+        }
+
+        [AcceptVerbs(HttpVerbs.Get)]
+        public ActionResult MultipleEdit()
+        {
+            // For editing the content, just pass the raw Markdown to the view
+            ViewData["content"] = m_Content;
+            ViewData["content2"] = m_Content2;
+            return View();
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult MultipleEdit(string content, string content2)
+        {
+            // Save the content and switch back to the main view
+            m_Content = content;
+            m_Content2 = content2;
+            return RedirectToAction("Multiple");
+        }
+
+        public ActionResult About()
 		{
 			// Nothing special here
 			return View();
