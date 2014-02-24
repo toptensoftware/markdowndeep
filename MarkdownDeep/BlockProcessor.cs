@@ -654,7 +654,7 @@ namespace MarkdownDeep
 			}
 
 			// Fenced code blocks?
-			if (m_markdown.ExtraMode && ch == '~')
+			if (m_markdown.ExtraMode && (ch == '~' || ch=='`'))
 			{
 				if (ProcessFencedCodeBlock(b))
 					return b.blockType;
@@ -1482,9 +1482,11 @@ namespace MarkdownDeep
 
 		bool ProcessFencedCodeBlock(Block b)
 		{
+            char delim = current;
+
 			// Extract the fence
 			Mark();
-			while (current == '~')
+			while (current == delim)
 				SkipForward(1);
 			string strFence = Extract();
 

@@ -2599,7 +2599,7 @@ var MarkdownDeep = new function () {
 
     p.ResolveHeaderID = function (m) {
         // Already resolved?
-        if (typeof(this.data)=='string')
+        if (typeof (this.data) == 'string')
             return this.data;
 
         // Approach 1 - PHP Markdown Extra style header id
@@ -3406,7 +3406,7 @@ var MarkdownDeep = new function () {
 
 
             // Fenced code blocks?
-            if (ch == '~') {
+            if (ch == '~' || ch == '`') {
                 if (this.ProcessFencedCodeBlock(p, b))
                     return b.blockType;
 
@@ -4137,9 +4137,11 @@ var MarkdownDeep = new function () {
     p.ProcessFencedCodeBlock = function (p, b) {
         var fenceStart = p.m_position;
 
+        var delim = p.current();
+
         // Extract the fence
         p.Mark();
-        while (p.current() == '~')
+        while (p.current() == delim)
             p.SkipForward(1);
         var strFence = p.Extract();
 
