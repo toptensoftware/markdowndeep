@@ -1,0 +1,24 @@
+{
+  "name": "markdowndeep",
+  "version": "1.6.4",
+  "author": "Topten Software <contact@toptensoftware.com>",
+  "description": "High performance Markdown and Markdown Extra engine",
+  "homepage": "http://www.toptensoftware.com/markdowndeep",
+  "contributors": [
+    {
+      "name": "Brad Robinson",
+      "email": "contact@toptensoftware.com"
+    }
+  ],
+  "main": "MarkdownDeep.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toptensoftware/markdowndeep-node"
+  },
+  "keywords": [
+    "markdown",
+    "markdowndeep"
+  ],
+  "dependencies": {},
+  "license": "Apache"
+}
