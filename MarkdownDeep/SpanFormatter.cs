@@ -610,7 +610,7 @@ namespace MarkdownDeep
 				return CreateToken(TokenType.closing_mark, savepos, position - savepos);
 			}
 
-			if (m_Markdown.ExtraMode && ch == '_' && (Char.IsLetterOrDigit(current) || Char.IsWhiteSpace(current)))
+			if (m_Markdown.ExtraMode && ch == '_' && (Char.IsLetterOrDigit(current)))
 				return null;
 
 			return CreateToken(TokenType.internal_mark, savepos, position - savepos);

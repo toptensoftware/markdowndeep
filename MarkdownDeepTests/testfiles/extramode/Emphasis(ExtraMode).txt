@@ -11,4 +11,7 @@ pre in*tern*al post
 pre in*ternal* post
 pre *in*ternal post
 
+__bold__ _italic_
+__bold__, _italic_
+
 

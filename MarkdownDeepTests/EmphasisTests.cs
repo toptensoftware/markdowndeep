@@ -13,7 +13,7 @@ namespace MarkdownDeepTests
 		[SetUp]
 		public void SetUp()
 		{
-			f = new SpanFormatter(new Markdown());
+            f = new SpanFormatter(new Markdown());
 		}
 
 		SpanFormatter f;
@@ -211,12 +211,28 @@ namespace MarkdownDeepTests
 		}
 
 
-		[Test]
-		public void combined_16()
-		{
-			Assert.AreEqual("<em>test <strong>test</strong></em>",
-					f.Format("_test __test___"));
-		}
+        [Test]
+        public void combined_16()
+        {
+            Assert.AreEqual("<em>test <strong>test</strong></em>",
+                    f.Format("_test __test___"));
+        }
+
+        [Test]
+        public void combined_17()
+        {
+            var fExtra = new SpanFormatter(new Markdown() { ExtraMode = true });
+            Assert.AreEqual("<strong>Bold</strong> <em>Italic</em>",
+                    fExtra.Format("__Bold__ _Italic_"));
+        }
+
+        [Test]
+        public void combined_18()
+        {
+            var fExtra = new SpanFormatter(new Markdown() { ExtraMode = true });
+            Assert.AreEqual("<em>Emphasis</em>, trailing",
+                    fExtra.Format("_Emphasis_, trailing"));
+        }
 
 
 

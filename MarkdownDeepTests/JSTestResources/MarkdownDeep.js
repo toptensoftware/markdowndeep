@@ -2175,7 +2175,7 @@ var MarkdownDeep = new function () {
             return this.CreateToken(TokenType_closing_mark, savepos, p.m_position - savepos);
         }
 
-        if (this.m_Markdown.ExtraMode && ch == '_' && /[\w\s]/.test(p.current()))
+        if (this.m_Markdown.ExtraMode && ch == '_' && is_alphadigit(p.current()))
             return null;
 
 
@@ -4390,4 +4390,8 @@ var MarkdownDeep = new function () {
     this.Markdown = Markdown;
     this.HtmlTag = HtmlTag;
 } ();
+
+// Export to nodejs
+if (typeof exports !== 'undefined')
+    exports.Markdown = MarkdownDeep.Markdown;
 
