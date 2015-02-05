@@ -45,7 +45,7 @@ var MarkdownDeep = new function () {
     {
         SafeMode: false,
         ExtraMode: false,
-        EasyLineBreaks: true,
+        EasyLineBreaks: false,
         MarkdownInHtml: false,
         AutoHeadingIDs: false,
         UrlBaseLocation: null,
