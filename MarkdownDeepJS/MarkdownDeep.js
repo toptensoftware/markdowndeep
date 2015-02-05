@@ -45,6 +45,7 @@ var MarkdownDeep = new function () {
     {
         SafeMode: false,
         ExtraMode: false,
+        EasyLineBreaks: true,
         MarkdownInHtml: false,
         AutoHeadingIDs: false,
         UrlBaseLocation: null,
@@ -1962,11 +1963,12 @@ var MarkdownDeep = new function () {
         var re = Abbreviations == null ? /[\*\_\`\[\!\<\&\ \\]/g : null;
 
         var ExtraMode = this.m_Markdown.ExtraMode;
+        var EasyLineBreaks = this.m_Markdown.EasyLineBreaks;
 
         // Scan string
         var start_text_token = p.m_position;
         while (!p.eof()) {
-            if (re != null && !p.FindRE(re))
+            if (!EasyLineBreaks && re != null && !p.FindRE(re))
                 break;
 
             var end_text_token = p.m_position;
@@ -2048,7 +2050,7 @@ var MarkdownDeep = new function () {
 
                 case ' ':
                     // Check for double space at end of a line
-                    if (p.CharAtOffset(1) == ' ' && is_lineend(p.CharAtOffset(2))) {
+                    if (!EasyLineBreaks && p.CharAtOffset(1) == ' ' && is_lineend(p.CharAtOffset(2))) {
                         // Yes, skip it
                         p.SkipForward(2);
 
@@ -2057,6 +2059,13 @@ var MarkdownDeep = new function () {
                             p.SkipEol();
                             token = this.CreateToken(TokenType_br, end_text_token, 0);
                         }
+                    }
+                    break;
+
+                case '\n':
+                    if (EasyLineBreaks) {
+                        p.SkipEol();
+                        token = this.CreateToken(TokenType_br, end_text_token, 0);
                     }
                     break;
 
