@@ -1050,7 +1050,7 @@ namespace MarkdownDeep
 
 			// Safe mode?
 			bool bHasUnsafeContent = false;
-			if (m_markdown.SafeMode && !openingTag.IsSafe())
+			if ((m_markdown.SafeMode && !openingTag.IsSafe()) || !m_markdown.AllowUserHtml)
 				bHasUnsafeContent = true;
 
 			HtmlTagFlags flags = openingTag.Flags;
