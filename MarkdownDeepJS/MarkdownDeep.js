@@ -59,7 +59,8 @@ var MarkdownDeep = new function () {
         FormatCodeBlockAttributes: null,
         FormatCodeBlock: null,
         ExtractHeadBlocks: false,
-        HeadBlockContent: ""
+        HeadBlockContent: "",
+        AllowUserHtml: true
     };
 
     var p = Markdown.prototype;
@@ -2017,7 +2018,7 @@ var MarkdownDeep = new function () {
                     var tag = ParseHtmlTag(p);
                     if (tag != null) {
                         // Yes, create a token for it
-                        if (!this.m_Markdown.SafeMode || tag.IsSafe()) {
+                        if ((!this.m_Markdown.SafeMode || tag.IsSafe()) && this.m_Markdown.AllowUserHtml) {
                             // Yes, create a token for it
                             token = this.CreateToken(TokenType_HtmlTag, save, p.m_position - save);
                         }
@@ -3760,7 +3761,7 @@ var MarkdownDeep = new function () {
 
         // Safe mode?
         var bHasUnsafeContent = false;
-        if (this.m_Markdown.SafeMode && !openingTag.IsSafe())
+        if ((this.m_Markdown.SafeMode && !openingTag.IsSafe()) || !this.m_Markdown.AllowUserHtml)
             bHasUnsafeContent = true;
 
         var flags = openingTag.get_Flags();

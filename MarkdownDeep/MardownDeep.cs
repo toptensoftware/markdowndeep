@@ -43,6 +43,7 @@ namespace MarkdownDeep
 			m_Footnotes = new Dictionary<string, Block>();
 			m_UsedFootnotes = new List<Block>();
 			m_UsedHeaderIDs = new Dictionary<string, bool>();
+			AllowUserHtml = true;
 		}
 
 		internal List<Block> ProcessBlocks(string str)
@@ -234,6 +235,16 @@ namespace MarkdownDeep
 		// markdown syntax within them.  
 		// (Similar to Pandoc's handling of markdown in html)
 		public bool MarkdownInHtml
+		{
+			get;
+			set;
+		}
+
+		/// <summary>
+		/// Gets or sets whether the user can use html tags (like <u>) or whether all tags will be
+		/// quoted.
+		/// </summary>
+		public bool AllowUserHtml
 		{
 			get;
 			set;
