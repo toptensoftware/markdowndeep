@@ -36,6 +36,7 @@
 			this.txtSource = new System.Windows.Forms.TextBox();
 			this.checkSafeMode = new System.Windows.Forms.CheckBox();
 			this.checkExtraMode = new System.Windows.Forms.CheckBox();
+			this.checkGitHubMode = new System.Windows.Forms.CheckBox();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
 			this.tabPage2.SuspendLayout();
@@ -43,8 +44,8 @@
 			// 
 			// txtMarkdown
 			// 
-			this.txtMarkdown.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.txtMarkdown.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtMarkdown.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.txtMarkdown.Location = new System.Drawing.Point(12, 12);
 			this.txtMarkdown.Multiline = true;
@@ -55,9 +56,9 @@
 			// 
 			// tabControl1
 			// 
-			this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl1.Controls.Add(this.tabPage1);
 			this.tabControl1.Controls.Add(this.tabPage2);
 			this.tabControl1.Location = new System.Drawing.Point(12, 199);
@@ -79,9 +80,9 @@
 			// 
 			// webPreview
 			// 
-			this.webPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.webPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.webPreview.Location = new System.Drawing.Point(0, 0);
 			this.webPreview.MinimumSize = new System.Drawing.Size(20, 20);
 			this.webPreview.Name = "webPreview";
@@ -101,9 +102,9 @@
 			// 
 			// txtSource
 			// 
-			this.txtSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.txtSource.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtSource.BackColor = System.Drawing.SystemColors.Window;
 			this.txtSource.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.txtSource.Location = new System.Drawing.Point(0, 0);
@@ -140,11 +141,26 @@
 			this.checkExtraMode.UseVisualStyleBackColor = true;
 			this.checkExtraMode.CheckedChanged += new System.EventHandler(this.checkExtraMode_CheckedChanged);
 			// 
+			// checkGitHubMode
+			// 
+			this.checkGitHubMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkGitHubMode.AutoSize = true;
+			this.checkGitHubMode.Checked = true;
+			this.checkGitHubMode.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkGitHubMode.Location = new System.Drawing.Point(182, 389);
+			this.checkGitHubMode.Name = "checkGitHubMode";
+			this.checkGitHubMode.Size = new System.Drawing.Size(89, 17);
+			this.checkGitHubMode.TabIndex = 3;
+			this.checkGitHubMode.Text = "GitHub Mode";
+			this.checkGitHubMode.UseVisualStyleBackColor = true;
+			this.checkGitHubMode.CheckedChanged += new System.EventHandler(this.checkGitHubMode_CheckedChanged);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(497, 414);
+			this.Controls.Add(this.checkGitHubMode);
 			this.Controls.Add(this.checkExtraMode);
 			this.Controls.Add(this.checkSafeMode);
 			this.Controls.Add(this.tabControl1);
@@ -170,6 +186,7 @@
 		private System.Windows.Forms.TextBox txtSource;
 		private System.Windows.Forms.CheckBox checkSafeMode;
 		private System.Windows.Forms.CheckBox checkExtraMode;
+		private System.Windows.Forms.CheckBox checkGitHubMode;
 	}
 }
 
