@@ -1,0 +1,34 @@
+﻿pre
+
+```cs
+This is a fenced c# code block
+line 2
+line 3
+```
+
+```
+This is a fenced nohighlight code block
+line 2
+line 3
+```
+
+```cs
+
+This is a fenced c# code block with blank lines around it
+
+```
+
+* Apples
+* Pears
+* Bananas
+
+
+```cs
+This is a c# code block after a list
+```
+
+``
+This is inline code
+``
+
+post

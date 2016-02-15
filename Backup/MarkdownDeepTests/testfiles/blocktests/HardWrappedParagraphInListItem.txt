@@ -1,8 +1,0 @@
-﻿before
-
-* This is a list item
-	
-	with a hardwrapped
-and left aligned paragraph
-		
-after

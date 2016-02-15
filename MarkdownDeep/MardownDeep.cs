@@ -208,6 +208,16 @@ namespace MarkdownDeep
 			set;
 		}
 
+
+		/// <summary>
+		/// Set to true to enable GitHub mode, which enables GitHub style codeblocks:
+		/// ```cs
+		/// code
+		/// ```
+		/// will result in specifying the specified name after the first ``` as the class in the code element. Which can then be used with highlight.js.
+		/// </summary>
+		public bool GitHubMode { get; set; }
+
 		// Set to true to only allow whitelisted safe html tags
 		public bool SafeMode
 		{

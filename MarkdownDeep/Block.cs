@@ -43,7 +43,7 @@ namespace MarkdownDeep
 		unsafe_html,	// unsafe html that should be encoded
 		span,			// an undecorated span of text (used for simple list items 
 						//			where content is not wrapped in paragraph tags
-		codeblock,		// a code block (render only)
+		codeblock,		// a code block (render only). If in github mode, `Data` contains the language name specified after the leading ```. 
 		li,				// a list item (render only)
 		ol,				// ordered list (render only)
 		ul,				// unordered list (render only)
@@ -246,25 +246,33 @@ namespace MarkdownDeep
 					return;
 
 				case BlockType.codeblock:
-					if (m.FormatCodeBlock != null)
+					if(m.FormatCodeBlock == null)
 					{
-						var sb = new StringBuilder();
-						foreach (var line in children)
+						var dataArgument = this.data as string ?? string.Empty;
+						if(m.GitHubMode && !string.IsNullOrWhiteSpace(dataArgument))
 						{
-							m.HtmlEncodeAndConvertTabsToSpaces(sb, line.buf, line.contentStart, line.contentLen);
-							sb.Append("\n");
+							b.AppendFormat("<pre><code class=\"{0}\">", dataArgument);
 						}
-						b.Append(m.FormatCodeBlock(m, sb.ToString()));
-					}
-					else
-					{
-						b.Append("<pre><code>");
-						foreach (var line in children)
+						else
+						{
+							b.Append("<pre><code>");
+						}
+						foreach(var line in children)
 						{
 							m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
 							b.Append("\n");
 						}
 						b.Append("</code></pre>\n\n");
+					}
+					else
+					{
+						var sb = new StringBuilder();
+						foreach(var line in children)
+						{
+							m.HtmlEncodeAndConvertTabsToSpaces(sb, line.buf, line.contentStart, line.contentLen);
+							sb.Append("\n");
+						}
+						b.Append(m.FormatCodeBlock(m, sb.ToString()));
 					}
 					return;
 
