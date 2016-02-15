@@ -346,16 +346,12 @@ namespace MarkdownDeep
 			{
 				var q = QualifyUrl(url);
 				if (q != null)
-					return url;
+					return q;
 			}
 
-			// Quit if we don't have a base location
-			if (String.IsNullOrEmpty(UrlBaseLocation))
+			// Is the url a fragment?
+			if (url.StartsWith("#"))
 				return url;
-
-            // Is the url a fragment?
-            if (url.StartsWith("#"))
-                return url;
 
 			// Is the url already fully qualified?
 			if (Utils.IsUrlFullyQualified(url))
@@ -367,6 +363,10 @@ namespace MarkdownDeep
 				{
 					return UrlRootLocation + url;
 				}
+
+				// Quit if we don't have a base location
+				if (String.IsNullOrEmpty(UrlBaseLocation))
+					return url;
 
 				// Need to find domain root
 				int pos = UrlBaseLocation.IndexOf("://");
@@ -386,6 +386,10 @@ namespace MarkdownDeep
 			}
 			else
 			{
+				// Quit if we don't have a base location
+				if (String.IsNullOrEmpty(UrlBaseLocation))
+					return url;
+
 				if (!UrlBaseLocation.EndsWith("/"))
 					return UrlBaseLocation + "/" + url;
 				else
