@@ -122,8 +122,9 @@ namespace MarkdownDeepTests
 			string expected = Utils.LoadTextResource(System.IO.Path.ChangeExtension(resourceName, "html"));
 
 			var md = new MarkdownDeep.Markdown();
-			md.SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;;
-			md.ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;;
+			md.SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;
+			md.ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;
+			md.GitHubCodeBlocks = resourceName.IndexOf("(GitHubMode)") >= 0;
 			md.MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
 			md.AutoHeadingIDs = resourceName.IndexOf("(AutoHeadingIDs)") >= 0;
 

@@ -208,6 +208,16 @@ namespace MarkdownDeep
 			set;
 		}
 
+
+		/// <summary>
+		/// Set to true to enable GitHub style codeblocks, which enables GitHub style codeblocks:
+		/// ```cs
+		/// code
+		/// ```
+		/// will result in specifying the specified name after the first ``` as the class in the code element. Which can then be used with highlight.js.
+		/// </summary>
+		public bool GitHubCodeBlocks { get; set; }
+
 		// Set to true to only allow whitelisted safe html tags
 		public bool SafeMode
 		{
@@ -336,16 +346,12 @@ namespace MarkdownDeep
 			{
 				var q = QualifyUrl(url);
 				if (q != null)
-					return url;
+					return q;
 			}
 
-			// Quit if we don't have a base location
-			if (String.IsNullOrEmpty(UrlBaseLocation))
+			// Is the url a fragment?
+			if (url.StartsWith("#"))
 				return url;
-
-            // Is the url a fragment?
-            if (url.StartsWith("#"))
-                return url;
 
 			// Is the url already fully qualified?
 			if (Utils.IsUrlFullyQualified(url))
@@ -357,6 +363,10 @@ namespace MarkdownDeep
 				{
 					return UrlRootLocation + url;
 				}
+
+				// Quit if we don't have a base location
+				if (String.IsNullOrEmpty(UrlBaseLocation))
+					return url;
 
 				// Need to find domain root
 				int pos = UrlBaseLocation.IndexOf("://");
@@ -376,6 +386,10 @@ namespace MarkdownDeep
 			}
 			else
 			{
+				// Quit if we don't have a base location
+				if (String.IsNullOrEmpty(UrlBaseLocation))
+					return url;
+
 				if (!UrlBaseLocation.EndsWith("/"))
 					return UrlBaseLocation + "/" + url;
 				else

@@ -654,7 +654,7 @@ namespace MarkdownDeep
 			}
 
 			// Fenced code blocks?
-			if (m_markdown.ExtraMode && (ch == '~' || ch=='`'))
+			if((m_markdown.ExtraMode && (ch == '~' || ch=='`')) || (m_markdown.GitHubCodeBlocks && (ch=='`')))
 			{
 				if (ProcessFencedCodeBlock(b))
 					return b.blockType;
@@ -1494,10 +1494,24 @@ namespace MarkdownDeep
 			if (strFence.Length < 3)
 				return false;
 
-			// Rest of line must be blank
-			SkipLinespace();
-			if (!eol)
-				return false;
+			if(m_markdown.GitHubCodeBlocks)
+			{
+				// check whether a name has been specified after the start ```. If so we'll store that into 'Data'.
+				var languageName = string.Empty;
+				// allow space between first fence and name
+				SkipLinespace();
+				SkipIdentifier(ref languageName);
+				b.data = string.IsNullOrWhiteSpace(languageName) ? "nohighlight" : languageName;
+				// skip linespace to EOL
+				SkipLinespace();
+			}
+			else
+			{
+				// Rest of line must be blank
+				SkipLinespace();
+				if(!eol)
+					return false;
+			}
 
 			// Skip the eol and remember start of code
 			SkipEol();

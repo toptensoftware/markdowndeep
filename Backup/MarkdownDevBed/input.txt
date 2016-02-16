@@ -1,2 +1,0 @@
-﻿This is a simple test bed for use during development
-Type markdown here, run and see output in console window

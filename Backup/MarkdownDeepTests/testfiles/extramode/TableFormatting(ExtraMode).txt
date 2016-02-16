@@ -1,9 +1,0 @@
-﻿pre
-
-| Fruit  | Color |
-| -----  | ----- |
-| Apples | *Red* |
-| Pears  | **Yellow** |
-| Oranges | [Orange](orange.com) |
-
-post

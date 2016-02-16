@@ -4,6 +4,7 @@
 This is a fenced code block
 line 2
 line 3
+
 ```
 
 ```
@@ -25,4 +26,12 @@ This is a code block after a list
 This is inline code
 ``
 
+```
+test: {
+
+}
+```
+
 post
+
+

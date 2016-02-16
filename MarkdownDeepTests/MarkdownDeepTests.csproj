@@ -10,13 +10,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MarkdownDeepTests</RootNamespace>
     <AssemblyName>MarkdownDeepTests</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +28,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +38,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
@@ -67,6 +70,7 @@
     <Compile Include="CodeSpanTests.cs" />
     <Compile Include="AutoLinkTests.cs" />
     <Compile Include="AutoHeaderIDTests.cs" />
+    <Compile Include="GithubMode.cs" />
     <Compile Include="TableSpecTests.cs" />
     <Compile Include="ExtraMode.cs" />
     <Compile Include="SafeModeTests.cs" />
@@ -411,6 +415,8 @@
     <Content Include="JSTestResources\MarkdownDeep.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="testfiles\githubmode\FencedCodeBlocksAlt%28GitHubMode%29.html" />
+    <EmbeddedResource Include="testfiles\githubmode\FencedCodeBlocksAlt%28GitHubMode%29.txt" />
     <EmbeddedResource Include="testfiles\extramode\Issue26%28ExtraMode%29.txt" />
     <EmbeddedResource Include="testfiles\extramode\Issue26%28ExtraMode%29.html" />
     <EmbeddedResource Include="testfiles\extramode\Issue30%28ExtraMode%29.txt" />
