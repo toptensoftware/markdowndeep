@@ -124,7 +124,7 @@ namespace MarkdownDeepTests
 			var md = new MarkdownDeep.Markdown();
 			md.SafeMode = resourceName.IndexOf("(SafeMode)") >= 0;
 			md.ExtraMode = resourceName.IndexOf("(ExtraMode)") >= 0;
-			md.GitHubMode = resourceName.IndexOf("(GitHubMode)") >= 0;
+			md.GitHubCodeBlocks = resourceName.IndexOf("(GitHubMode)") >= 0;
 			md.MarkdownInHtml = resourceName.IndexOf("(MarkdownInHtml)") >= 0;
 			md.AutoHeadingIDs = resourceName.IndexOf("(AutoHeadingIDs)") >= 0;
 

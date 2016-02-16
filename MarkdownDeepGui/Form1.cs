@@ -17,7 +17,7 @@ namespace MarkdownDeepGui
 			this.txtMarkdown.Text = "# Welcome to MarkdownDeep #\r\n\r\nType markdown text above, see formatted text below!";
 			this.txtMarkdown.SelectionStart = this.txtMarkdown.Text.Length;
 			m_Markdown.ExtraMode = true;
-			m_Markdown.GitHubMode = true;
+			m_Markdown.GitHubCodeBlocks = true;
 		}
 
 		private void doUpdate()
@@ -49,7 +49,7 @@ namespace MarkdownDeepGui
 
 		private void checkGitHubMode_CheckedChanged(object sender, EventArgs e)
 		{
-			m_Markdown.GitHubMode = this.checkGitHubMode.Checked;
+			m_Markdown.GitHubCodeBlocks = this.checkGitHubCodeBlocks.Checked;
 			doUpdate();
 		}
 	}

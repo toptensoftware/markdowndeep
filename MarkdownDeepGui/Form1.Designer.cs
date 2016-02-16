@@ -36,7 +36,7 @@
 			this.txtSource = new System.Windows.Forms.TextBox();
 			this.checkSafeMode = new System.Windows.Forms.CheckBox();
 			this.checkExtraMode = new System.Windows.Forms.CheckBox();
-			this.checkGitHubMode = new System.Windows.Forms.CheckBox();
+			this.checkGitHubCodeBlocks = new System.Windows.Forms.CheckBox();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
 			this.tabPage2.SuspendLayout();
@@ -141,26 +141,26 @@
 			this.checkExtraMode.UseVisualStyleBackColor = true;
 			this.checkExtraMode.CheckedChanged += new System.EventHandler(this.checkExtraMode_CheckedChanged);
 			// 
-			// checkGitHubMode
+			// checkGitHubCodeBlocks
 			// 
-			this.checkGitHubMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.checkGitHubMode.AutoSize = true;
-			this.checkGitHubMode.Checked = true;
-			this.checkGitHubMode.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkGitHubMode.Location = new System.Drawing.Point(182, 389);
-			this.checkGitHubMode.Name = "checkGitHubMode";
-			this.checkGitHubMode.Size = new System.Drawing.Size(89, 17);
-			this.checkGitHubMode.TabIndex = 3;
-			this.checkGitHubMode.Text = "GitHub Mode";
-			this.checkGitHubMode.UseVisualStyleBackColor = true;
-			this.checkGitHubMode.CheckedChanged += new System.EventHandler(this.checkGitHubMode_CheckedChanged);
+			this.checkGitHubCodeBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.checkGitHubCodeBlocks.AutoSize = true;
+			this.checkGitHubCodeBlocks.Checked = true;
+			this.checkGitHubCodeBlocks.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkGitHubCodeBlocks.Location = new System.Drawing.Point(182, 389);
+			this.checkGitHubCodeBlocks.Name = "checkGitHubCodeBlocks";
+			this.checkGitHubCodeBlocks.Size = new System.Drawing.Size(122, 17);
+			this.checkGitHubCodeBlocks.TabIndex = 3;
+			this.checkGitHubCodeBlocks.Text = "GitHub Code Blocks";
+			this.checkGitHubCodeBlocks.UseVisualStyleBackColor = true;
+			this.checkGitHubCodeBlocks.CheckedChanged += new System.EventHandler(this.checkGitHubMode_CheckedChanged);
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(497, 414);
-			this.Controls.Add(this.checkGitHubMode);
+			this.Controls.Add(this.checkGitHubCodeBlocks);
 			this.Controls.Add(this.checkExtraMode);
 			this.Controls.Add(this.checkSafeMode);
 			this.Controls.Add(this.tabControl1);
@@ -186,7 +186,7 @@
 		private System.Windows.Forms.TextBox txtSource;
 		private System.Windows.Forms.CheckBox checkSafeMode;
 		private System.Windows.Forms.CheckBox checkExtraMode;
-		private System.Windows.Forms.CheckBox checkGitHubMode;
+		private System.Windows.Forms.CheckBox checkGitHubCodeBlocks;
 	}
 }
 

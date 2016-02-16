@@ -249,7 +249,7 @@ namespace MarkdownDeep
 					if(m.FormatCodeBlock == null)
 					{
 						var dataArgument = this.data as string ?? string.Empty;
-						if(m.GitHubMode && !string.IsNullOrWhiteSpace(dataArgument))
+						if(m.GitHubCodeBlocks && !string.IsNullOrWhiteSpace(dataArgument))
 						{
 							b.AppendFormat("<pre><code class=\"{0}\">", dataArgument);
 						}
