@@ -249,9 +249,19 @@ namespace MarkdownDeep
 					if(m.FormatCodeBlock == null)
 					{
 						var dataArgument = this.data as string ?? string.Empty;
+						string tagSuffix = "</code></pre>\n\n";
+
 						if(m.GitHubCodeBlocks && !string.IsNullOrWhiteSpace(dataArgument))
 						{
-							b.AppendFormat("<pre><code class=\"{0}\">", dataArgument);
+							if(dataArgument == "nohighlight")
+							{
+								b.Append("<pre class=\"nocode\">");
+								tagSuffix = "</pre>";
+							}
+							else
+							{
+								b.AppendFormat("<pre><code class=\"{0}\">", dataArgument);
+							}
 						}
 						else
 						{
@@ -262,7 +272,7 @@ namespace MarkdownDeep
 							m.HtmlEncodeAndConvertTabsToSpaces(b, line.buf, line.contentStart, line.contentLen);
 							b.Append("\n");
 						}
-						b.Append("</code></pre>\n\n");
+						b.Append(tagSuffix);
 					}
 					else
 					{
