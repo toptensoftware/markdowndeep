@@ -19,7 +19,7 @@
     },
 
     "dependencies": {
-        "NETStandard.Library": "1.0.0-rc2-23811"
+        "Microsoft.NETCore.App": "1.0.0-rc2-*"
     },
 
     "frameworks": {
