@@ -384,7 +384,12 @@ namespace MarkdownDeep
 			if (pos >= end)
 				return false;
 
+#if DOTNET_CORE
+			int index = str.IndexOf(find, pos, StringComparison.OrdinalIgnoreCase);
+#else
 			int index = str.IndexOf(find, pos, StringComparison.InvariantCultureIgnoreCase);
+#endif
+			
 			if (index < 0 || index >= end - find.Length)
 				return false;
 
