@@ -4,6 +4,21 @@
         "emitEntryPoint": false
     },
     
+<<<<<<< HEAD
+    "frameworks": {
+        "netstandard1.1": {
+            "compilationOptions": {
+                "define": [ "DOTNET_CORE" ]
+            },
+            "dependencies": {
+                "System.Diagnostics.Debug": "4.0.11-rc3-*",
+                "System.Linq": "4.1.0-rc3-*",
+                "System.Runtime.Extensions": "4.1.0-rc3-*",
+                "System.Runtime.InteropServices": "4.1.0-rc3-*",
+                "System.Text.RegularExpressions": "4.1.0-rc3-*"
+            }
+        }
+=======
     "configurations": {
         "Debug": {
             "compilationOptions": {
@@ -24,5 +39,6 @@
 
     "frameworks": {
         "dnxcore50": { }
+>>>>>>> 76577d2de1402a7a3d3e311846395607ee9b0d3a
     }
 }
