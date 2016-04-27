@@ -230,6 +230,13 @@ namespace MarkdownDeep
 			set;
 		}
 
+        // Set to true to automatically have line breaks entered by the user converted into br tags without needing double spaces
+        public bool EasyLineBreaks
+        {
+            get;
+            set;
+        }
+
 		// When set, all html block level elements automatically support
 		// markdown syntax within them.  
 		// (Similar to Pandoc's handling of markdown in html)
