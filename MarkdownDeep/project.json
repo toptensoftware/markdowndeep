@@ -1,20 +1,21 @@
 {
+    "name": "MarkdownDeep",
     "version": "1.0.0-*",
-    "compilationOptions": {
+    "buildOptions": {
         "emitEntryPoint": false
     },
     
     "frameworks": {
         "netstandard1.1": {
-            "compilationOptions": {
+            "buildOptions": {
                 "define": [ "DOTNET_CORE" ]
             },
             "dependencies": {
-                "System.Diagnostics.Debug": "4.0.11-rc3-*",
-                "System.Linq": "4.1.0-rc3-*",
-                "System.Runtime.Extensions": "4.1.0-rc3-*",
-                "System.Runtime.InteropServices": "4.1.0-rc3-*",
-                "System.Text.RegularExpressions": "4.1.0-rc3-*"
+                "System.Diagnostics.Debug": "4.0.11-rc2-*",
+                "System.Linq": "4.1.0-rc2-*",
+                "System.Runtime.Extensions": "4.1.0-rc2-*",
+                "System.Runtime.InteropServices": "4.1.0-rc2-*",
+                "System.Text.RegularExpressions": "4.0.12-rc2-*"
             }
         }
     }
