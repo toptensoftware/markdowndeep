@@ -1080,7 +1080,14 @@ namespace MarkdownDeep
 			}
 
 			// Head block extraction?
-			bool bHeadBlock = m_markdown.ExtractHeadBlocks && string.Compare(openingTag.name, "head", true) == 0;
+			
+#if DOTNET_CORE
+			var isOpenTagHead = string.Compare(openingTag.name, "head", StringComparison.OrdinalIgnoreCase) == 0;
+#else
+			var isOpenTagHead = string.Compare(openingTag.name, "head", true) == 0;
+#endif
+			
+			bool bHeadBlock = m_markdown.ExtractHeadBlocks && isOpenTagHead;
 			int headStart = this.position;
 
 			// Work out the markdown mode for this element
