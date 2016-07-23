@@ -174,7 +174,7 @@ namespace MarkdownDeep
 				return null;
 
 			// Parse the url and title
-			var link=ParseLinkTarget(p, id, ExtraMode);
+			var link=ParseLinkTarget(p, id, ExtraMode, false);
 
 			// and trailing whitespace
 			p.SkipLinespace();
@@ -189,7 +189,7 @@ namespace MarkdownDeep
 		// Parse just the link target
 		// For reference link definition, this is the bit after "[id]: thisbit"
 		// For inline link, this is the bit in the parens: [link text](thisbit)
-		internal static LinkDefinition ParseLinkTarget(StringScanner p, string id, bool ExtraMode)
+		internal static LinkDefinition ParseLinkTarget(StringScanner p, string id, bool ExtraMode, bool tolerateLinkWhitespace)
 		{
 			// Skip whitespace
 			p.SkipWhitespace();
@@ -233,7 +233,7 @@ namespace MarkdownDeep
 				while (!p.eol)
 				{
 					char ch=p.current;
-					if (char.IsWhiteSpace(ch))
+					if (char.IsWhiteSpace(ch) && !tolerateLinkWhitespace)
 						break;
 					if (id == null)
 					{
