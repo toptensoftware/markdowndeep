@@ -441,7 +441,7 @@ namespace MarkdownDeep
 							SkipForward(2);
 
 							// Don't put br's at the end of a paragraph
-							if (!eof)
+							if (!m_Markdown.EasyLineBreaks && !eof)
 							{
 								SkipEol();
 								token = CreateToken(TokenType.br, end_text_token, 0);
@@ -449,6 +449,16 @@ namespace MarkdownDeep
 						}
 						break;
 					}
+
+                    case '\n':
+				    {
+				        if (m_Markdown.EasyLineBreaks)
+				        {
+                            SkipEol();
+                            token = CreateToken(TokenType.br, end_text_token, 0);
+				        }
+				        break;
+				    }
 
 					case '\\':
 					{
