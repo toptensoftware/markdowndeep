@@ -78,7 +78,8 @@ var MarkdownDeepEditorUI=new function(){
     this.onResizerMouseDown=function(e)
     {
         // Initialize state
-        var srcElement = (window.event) ? e.srcElement : e.target,
+	    //e.srcElement is null in Jquery 3. This fixes issue.
+            var srcElement = (e.srcElement) ? e.srcElement : e.target,
             textarea = $(srcElement).closest('.mdd_resizer_wrap').prev('.mdd_editor_wrap').children("textarea")[0],
             iOriginalMouse = e.clientY,
             iOriginalHeight = $(textarea).height();
