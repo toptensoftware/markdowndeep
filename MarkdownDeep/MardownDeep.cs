@@ -469,7 +469,8 @@ namespace MarkdownDeep
 			// No follow?
 			if (NoFollowLinks)
 			{
-				tag.attributes["rel"] = "nofollow";
+                if (url.StartsWith("http"))
+                    tag.attributes["rel"] = "nofollow";
 			}
 
             // No follow external links only
