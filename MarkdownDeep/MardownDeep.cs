@@ -336,7 +336,7 @@ namespace MarkdownDeep
 			{
 				var q = QualifyUrl(url);
 				if (q != null)
-					return url;
+					return q;
 			}
 
 			// Quit if we don't have a base location
