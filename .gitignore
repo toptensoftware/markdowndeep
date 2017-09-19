@@ -12,4 +12,5 @@ Debug
 *.minime-options
 *.zip
 *.nupkg
+*.lock.json
 /packages/*

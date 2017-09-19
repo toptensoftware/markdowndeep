@@ -2738,17 +2738,9 @@ var MarkdownDeep = new function () {
                 return;
 
             case BlockType_codeblock:
-                b.Append("<pre");
-                if (m.FormatCodeBlockAttributes != null) {
-                    b.Append(m.FormatCodeBlockAttributes(this.data));
-                }
-                b.Append("><code>");
-
+                // Build the code section
                 var btemp = b;
-                if (m.FormatCodeBlock) {
-                    btemp = b;
-                    b = new StringBuilder();
-                }
+                b = new StringBuilder();
 
                 for (var i = 0; i < this.children.length; i++) {
                     var line = this.children[i];
@@ -2756,10 +2748,27 @@ var MarkdownDeep = new function () {
                     b.Append("\n");
                 }
 
-                if (m.FormatCodeBlock) {
-                    btemp.Append(m.FormatCodeBlock(b.ToString(), this.data));
-                    b = btemp;
+                var code = b.ToString();
+                b = btemp;
+
+
+                b.Append("<pre");
+                if (m.FormatCodeBlockAttributes != null) {
+                    b.Append(m.FormatCodeBlockAttributes({
+                        code: code, 
+                        language: this.language
+                    }));
                 }
+                b.Append("><code>");
+
+
+                if (m.FormatCodeBlock) {
+                    b.Append(m.FormatCodeBlock(code, this.data, language));
+                }
+                else { 
+                    b.Append(code);
+                }
+
                 b.Append("</code></pre>\n\n");
                 return;
 
@@ -4213,6 +4222,12 @@ var MarkdownDeep = new function () {
         if (strFence.length < 3)
             return false;
 
+        // Optional language specifier after the fend
+        p.Mark();
+        while (!p.eol())
+            p.SkipForward(1);
+        var strLanguage = p.Extract().trim();
+
         // Rest of line must be blank
         p.SkipLinespace();
         if (!p.eol())
@@ -4242,6 +4257,7 @@ var MarkdownDeep = new function () {
 
         // Create the code block
         b.blockType = BlockType_codeblock;
+        b.language = strLanguage;
         b.children = [];
 
         // Remove the trailing line end
@@ -4259,7 +4275,6 @@ var MarkdownDeep = new function () {
         // Done
         return true;
     }
-
 
     var ColumnAlignment_NA = 0;
     var ColumnAlignment_Left = 1;
