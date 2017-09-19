@@ -59,6 +59,7 @@ var MarkdownDeep = new function () {
         FormatCodeBlockAttributes: null,
         FormatCodeBlock: null,
         ExtractHeadBlocks: false,
+        UserBreaks: false,
         HeadBlockContent: ""
     };
 
@@ -308,6 +309,51 @@ var MarkdownDeep = new function () {
             return null;
     }
 
+    // Split the markdown into sections, one section for each
+ 	// top level heading
+    var SplitUserSections = function(markdown) {
+
+		// Build blocks
+		var md = new Markdown();
+		md.UserBreaks = true;
+
+		// Process blocks
+		var blocks = md.ProcessBlocks(markdown);
+
+		// Create sections
+		var Sections = [];
+		var iPrevSectionOffset = 0;
+		for (var i = 0; i < blocks.length; i++)
+		{
+			var b = blocks[i];
+			if (b.blockType==BlockType_user_break)
+			{
+			    // Get the offset of the section
+			    var iSectionOffset = b.lineStart;
+
+				// Add section
+				Sections.push(markdown.substr(iPrevSectionOffset, iSectionOffset - iPrevSectionOffset).trim());
+
+				// Next section starts on next line
+				if (i + 1 < blocks.length)
+				{
+					iPrevSectionOffset = blocks[i + 1].lineStart;
+					if (iPrevSectionOffset==0)
+						iPrevSectionOffset = blocks[i + 1].contentStart;
+				}
+				else
+					iPrevSectionOffset = markdown.length;
+			}
+		}
+
+		// Add the last section
+		if (markdown.length > iPrevSectionOffset)
+		{
+			Sections.push(markdown.substring(iPrevSectionOffset).trim());
+		}
+
+		return Sections;
+	}
 
 
     p.ProcessBlocks = function (str) {
@@ -2551,21 +2597,22 @@ var MarkdownDeep = new function () {
     var BlockType_p = 12;
     var BlockType_indent = 13;
     var BlockType_hr = 14;
-    var BlockType_html = 15;
-    var BlockType_unsafe_html = 16;
-    var BlockType_span = 17;
-    var BlockType_codeblock = 18;
-    var BlockType_li = 19;
-    var BlockType_ol = 20;
-    var BlockType_ul = 21;
-    var BlockType_HtmlTag = 22;
-    var BlockType_Composite = 23;
-    var BlockType_table_spec = 24;
-    var BlockType_dd = 25;
-    var BlockType_dt = 26;
-    var BlockType_dl = 27;
-    var BlockType_footnote = 28;
-    var BlockType_p_footnote = 29;
+    var BlockType_user_break = 15;
+    var BlockType_html = 16;
+    var BlockType_unsafe_html = 17;
+    var BlockType_span = 18;
+    var BlockType_codeblock = 19;
+    var BlockType_li = 20;
+    var BlockType_ol = 21;
+    var BlockType_ul = 22;
+    var BlockType_HtmlTag = 23;
+    var BlockType_Composite = 24;
+    var BlockType_table_spec = 25;
+    var BlockType_dd = 26;
+    var BlockType_dt = 27;
+    var BlockType_dl = 28;
+    var BlockType_footnote = 29;
+    var BlockType_p_footnote = 30;
 
 
     function Block() {
@@ -2672,6 +2719,9 @@ var MarkdownDeep = new function () {
                 b.Append("<hr />\n");
                 return;
 
+            case BlockType_user_break:
+                return;
+
             case BlockType_ol_li:
             case BlockType_ul_li:
                 b.Append("<li>");
@@ -2688,17 +2738,9 @@ var MarkdownDeep = new function () {
                 return;
 
             case BlockType_codeblock:
-                b.Append("<pre");
-                if (m.FormatCodeBlockAttributes != null) {
-                    b.Append(m.FormatCodeBlockAttributes(this.data));
-                }
-                b.Append("><code>");
-
+                // Build the code section
                 var btemp = b;
-                if (m.FormatCodeBlock) {
-                    btemp = b;
-                    b = new StringBuilder();
-                }
+                b = new StringBuilder();
 
                 for (var i = 0; i < this.children.length; i++) {
                     var line = this.children[i];
@@ -2706,10 +2748,27 @@ var MarkdownDeep = new function () {
                     b.Append("\n");
                 }
 
-                if (m.FormatCodeBlock) {
-                    btemp.Append(m.FormatCodeBlock(b.ToString(), this.data));
-                    b = btemp;
+                var code = b.ToString();
+                b = btemp;
+
+
+                b.Append("<pre");
+                if (m.FormatCodeBlockAttributes != null) {
+                    b.Append(m.FormatCodeBlockAttributes({
+                        code: code, 
+                        language: this.language
+                    }));
                 }
+                b.Append("><code>");
+
+
+                if (m.FormatCodeBlock) {
+                    b.Append(m.FormatCodeBlock(code, this.data, language));
+                }
+                else { 
+                    b.Append(code);
+                }
+
                 b.Append("</code></pre>\n\n");
                 return;
 
@@ -3513,7 +3572,10 @@ var MarkdownDeep = new function () {
             }
 
             if (p.eol() && count >= 3) {
-                return BlockType_hr;
+                if (this.m_Markdown.UserBreaks)
+                    return BlockType_user_break;
+                else
+                    return BlockType_hr;
             }
 
             // Rewind
@@ -4160,6 +4222,12 @@ var MarkdownDeep = new function () {
         if (strFence.length < 3)
             return false;
 
+        // Optional language specifier after the fend
+        p.Mark();
+        while (!p.eol())
+            p.SkipForward(1);
+        var strLanguage = p.Extract().trim();
+
         // Rest of line must be blank
         p.SkipLinespace();
         if (!p.eol())
@@ -4189,6 +4257,7 @@ var MarkdownDeep = new function () {
 
         // Create the code block
         b.blockType = BlockType_codeblock;
+        b.language = strLanguage;
         b.children = [];
 
         // Remove the trailing line end
@@ -4206,7 +4275,6 @@ var MarkdownDeep = new function () {
         // Done
         return true;
     }
-
 
     var ColumnAlignment_NA = 0;
     var ColumnAlignment_Left = 1;
@@ -4389,9 +4457,13 @@ var MarkdownDeep = new function () {
     // Exposed stuff
     this.Markdown = Markdown;
     this.HtmlTag = HtmlTag;
+    this.SplitUserSections = SplitUserSections;
 } ();
 
 // Export to nodejs
 if (typeof exports !== 'undefined')
+{
     exports.Markdown = MarkdownDeep.Markdown;
+    exports.SplitUserSections = MarkdownDeep.SplitUserSections;
+}
 

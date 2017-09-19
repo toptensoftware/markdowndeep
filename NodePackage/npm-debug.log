@@ -1,0 +1,83 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'publish' ]
+2 info using npm@2.15.11
+3 info using node@v4.8.4
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: 'C:\\Users\\brad\\Projects\\markdowndeep\\NodePackage',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package.tgz not in flight; packing
+9 verbose correctMkdir C:\Users\brad\AppData\Roaming\npm-cache correctMkdir not in flight; initializing
+10 verbose tar pack [ 'C:\\Users\\brad\\AppData\\Roaming\\npm-cache\\markdowndeep\\1.6.7\\package.tgz',
+10 verbose tar pack   'C:\\Users\\brad\\Projects\\markdowndeep\\NodePackage' ]
+11 verbose tarball C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package.tgz
+12 verbose folder C:\Users\brad\Projects\markdowndeep\NodePackage
+13 info prepublish markdowndeep@1.6.7
+14 verbose addLocalTarball adding from inside cache C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package.tgz
+15 verbose correctMkdir C:\Users\brad\AppData\Roaming\npm-cache correctMkdir not in flight; initializing
+16 silly cache afterAdd markdowndeep@1.6.7
+17 verbose afterAdd C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package\package.json not in flight; writing
+18 verbose correctMkdir C:\Users\brad\AppData\Roaming\npm-cache correctMkdir not in flight; initializing
+19 verbose afterAdd C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package\package.json written
+20 silly publish { name: 'markdowndeep',
+20 silly publish   version: '1.6.7',
+20 silly publish   author: { name: 'Topten Software', email: 'contact@toptensoftware.com' },
+20 silly publish   description: 'High performance Markdown and Markdown Extra engine',
+20 silly publish   homepage: 'http://www.toptensoftware.com/markdowndeep',
+20 silly publish   contributors: [ { name: 'Brad Robinson', email: 'contact@toptensoftware.com' } ],
+20 silly publish   main: 'MarkdownDeep.js',
+20 silly publish   repository:
+20 silly publish    { type: 'git',
+20 silly publish      url: 'git+https://github.com/toptensoftware/markdowndeep-node.git' },
+20 silly publish   keywords: [ 'markdown', 'markdowndeep' ],
+20 silly publish   dependencies: {},
+20 silly publish   license: 'Apache',
+20 silly publish   readme: '# MarkdownDeep\r\n\r\n## Open-source implementation of Markdown for C# and Javascript\r\n\r\nThis is the Node.JS package of MarkdownDeep - an open-source ([read license](license)) implementation of the increasingly popular web publishing syntax [Markdown][]. MarkdownDeep provides a high performance implementation of Markdown and MarkdownExtra in C# and JavaScript.\r\n\r\n## At a Glance\r\n\r\n* Supports all [Markdown][] syntax features.\r\n* Optional support for all [PHP Markdown Extra][] features.\r\n* Optional safe mode can sanitize HTML output (great for user entered content).\r\n* Client Side Editor - toolbar, realtime preview, shortcut keys, help, etc... [Try It](http://www.toptensoftware.com/markdowndeep/dingus)\r\n* Supports for the special requirements of content management, blog and comment systems.\r\n* Over 400 unit test cases ensure correct results.\r\n\r\n[Markdown]: http://daringfireball.net/projects/markdown/\r\n[PHP Markdown Extra]: http://michelf.com/projects/php-markdown/\r\n\r\n## Getting started with MarkdownDeep for Node.JS\r\n\r\nFirst install MarkdownDeep, from command line\r\n\r\n\t> npm install markdowndeep\r\n\r\nor via package.json eg:\r\n\r\n\t...\r\n\t  "dependencies": {\r\n\t    "markdowndeep": "*"\r\n\t  }\r\n\t...\r\n\r\nNext, bring it into your project:\r\n\r\n\tvar MarkdownDeep = require(\'markdowndeep\');\r\n\r\nNow, create an instance of the MarkdownDeep engine and set options:\r\n\r\n\tvar mdd = new MarkdownDeep.Markdown();\r\n\tmdd.ExtraMode = true;\r\n\tmdd.SafeMode = true;\r\n\r\nAnd finally, tranform your Markdown to HTML:\r\n\r\n\tvar html = mdd.Transform("# Welcome to MarkdownDeep\\nHello World\\n\\n");\r\n\r\nFor more details on the API, see <http://www.toptensoftware.com/markdowndeep>\r\n\r\nReport faults and suggestions at <http://github.com/toptensoftware/markdowndeep>\r\n\r\nEnjoy!\r\n\r\n',
+20 silly publish   readmeFilename: 'readme.md',
+20 silly publish   bugs: { url: 'https://github.com/toptensoftware/markdowndeep-node/issues' },
+20 silly publish   _id: 'markdowndeep@1.6.7',
+20 silly publish   scripts: {},
+20 silly publish   _shasum: '437a9bc47893358dc9757af5a7d81e0dcfbf19df',
+20 silly publish   _from: '.' }
+21 verbose getPublishConfig undefined
+22 silly mapToRegistry name markdowndeep
+23 silly mapToRegistry using default registry
+24 silly mapToRegistry registry https://registry.npmjs.org/
+25 silly mapToRegistry data Result {
+25 silly mapToRegistry   raw: 'markdowndeep',
+25 silly mapToRegistry   scope: null,
+25 silly mapToRegistry   name: 'markdowndeep',
+25 silly mapToRegistry   rawSpec: '',
+25 silly mapToRegistry   spec: 'latest',
+25 silly mapToRegistry   type: 'tag' }
+26 silly mapToRegistry uri https://registry.npmjs.org/markdowndeep
+27 verbose publish registryBase https://registry.npmjs.org/
+28 silly publish uploading C:\Users\brad\AppData\Roaming\npm-cache\markdowndeep\1.6.7\package.tgz
+29 verbose stack Error: auth required for publishing
+29 verbose stack     at CachingRegistryClient.publish (C:\Program Files\nodejs\node_modules\npm\node_modules\npm-registry-client\lib\publish.js:30:14)
+29 verbose stack     at C:\Program Files\nodejs\node_modules\npm\lib\publish.js:134:14
+29 verbose stack     at mapToRegistry (C:\Program Files\nodejs\node_modules\npm\lib\utils\map-to-registry.js:62:3)
+29 verbose stack     at publish_ (C:\Program Files\nodejs\node_modules\npm\lib\publish.js:104:3)
+29 verbose stack     at Array.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\slide\lib\bind-actor.js:15:8)
+29 verbose stack     at LOOP (C:\Program Files\nodejs\node_modules\npm\node_modules\slide\lib\chain.js:15:14)
+29 verbose stack     at LOOP (C:\Program Files\nodejs\node_modules\npm\node_modules\slide\lib\chain.js:14:28)
+29 verbose stack     at chain (C:\Program Files\nodejs\node_modules\npm\node_modules\slide\lib\chain.js:20:5)
+29 verbose stack     at C:\Program Files\nodejs\node_modules\npm\lib\publish.js:73:5
+29 verbose stack     at RES (C:\Program Files\nodejs\node_modules\npm\node_modules\inflight\inflight.js:23:14)
+30 verbose cwd C:\Users\brad\Projects\markdowndeep\NodePackage
+31 error Windows_NT 10.0.14393
+32 error argv "C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "publish"
+33 error node v4.8.4
+34 error npm  v2.15.11
+35 error code ENEEDAUTH
+36 error need auth auth required for publishing
+36 error need auth You need to authorize this machine using `npm adduser`
+37 verbose exit [ 1, true ]
