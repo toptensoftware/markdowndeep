@@ -2744,7 +2744,10 @@ var MarkdownDeep = new function () {
 
                 for (var i = 0; i < this.children.length; i++) {
                     var line = this.children[i];
-                    b.HtmlEncodeAndConvertTabsToSpaces(line.buf, line.contentStart, line.contentLen);
+                    if (m.DontEncodeCodeBlocks)
+                        b.Append(line.buf.substr(line.contentStart, line.contentLen));
+                    else
+                        b.HtmlEncodeAndConvertTabsToSpaces(line.buf, line.contentStart, line.contentLen);
                     b.Append("\n");
                 }
 
