@@ -2763,7 +2763,7 @@ var MarkdownDeep = new function () {
 
 
                 if (m.FormatCodeBlock) {
-                    b.Append(m.FormatCodeBlock(code, this.data, language));
+                    b.Append(m.FormatCodeBlock(code, this.data, this.language));
                 }
                 else { 
                     b.Append(code);
