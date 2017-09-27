@@ -940,6 +940,12 @@ namespace MarkdownDeep
 			// Link or image?
 			TokenType token_type = SkipChar('!') ? TokenType.img : TokenType.link;
 
+            var tolerateLinkWhitespace = false;
+            if (token_type == TokenType.img)
+            {
+                tolerateLinkWhitespace = true;
+            }
+
 			// Opening '['
 			if (!SkipChar('['))
 				return null;
@@ -1010,7 +1016,7 @@ namespace MarkdownDeep
 			if (SkipChar('('))
 			{
 				// Extract the url and title
-				var link_def = LinkDefinition.ParseLinkTarget(this, null, m_Markdown.ExtraMode);
+				var link_def = LinkDefinition.ParseLinkTarget(this, null, m_Markdown.ExtraMode, tolerateLinkWhitespace);
 				if (link_def==null)
 					return null;
 
