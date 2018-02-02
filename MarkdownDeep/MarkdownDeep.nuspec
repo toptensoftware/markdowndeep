@@ -19,7 +19,7 @@
 		<tags>Markdown MarkdownExtra MarkdownDeep</tags>
 	</metadata>
 	<files>
-		<file src="bin\Release\MarkdownDeep.dll" target="lib\.NetFramework 3.5" />
-		<file src="bin\Release\MarkdownDeep.pdb" target="lib\.NetFramework 3.5" />
+		<file src="bin\Release\MarkdownDeep.dll" target="lib\net35" />
+		<file src="bin\Release\MarkdownDeep.pdb" target="lib\net35" />
 	</files>
 </package>
