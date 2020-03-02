@@ -17,6 +17,8 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\MarkdownDeep\markdowndeep.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -396,6 +398,9 @@
     <EmbeddedResource Include="testfiles\spantests\Emphasis.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\MarkdownDeep\markdowndeep.snk">
+      <Link>markdowndeep.snk</Link>
+    </None>
     <None Include="MarkdownDeepTests.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
