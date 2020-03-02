@@ -13,4 +13,5 @@ Debug
 *.zip
 *.nupkg
 *.lock.json
-/packages/*
+packages/
+.idea/
